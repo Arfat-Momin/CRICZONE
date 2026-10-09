@@ -1,0 +1,236 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { format } from "date-fns";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { getAdminTournamentDetail } from "@/lib/queries/admin";
+import { CreateTeamForm } from "@/components/admin/CreateTeamForm";
+import { DeleteTeamButton } from "@/components/admin/DeleteTeamButton";
+import { CopyButton } from "@/components/admin/CopyButton";
+import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelect";
+import { DeleteTournamentButton } from "@/components/admin/DeleteTournamentButton";
+import { getSiteUrl } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
+
+type Props = { params: Promise<{ id: string }> };
+
+export default async function AdminTournamentPage({ params }: Props) {
+  await requireAdmin();
+  const { id } = await params;
+  const data = await getAdminTournamentDetail(id);
+  if (!data) notFound();
+
+  const { tournament, players, teams } = data;
+  const publicUrl = `${getSiteUrl()}/t/${tournament.slug}`;
+  const registerUrl = `${getSiteUrl()}/t/${tournament.slug}/register`;
+
+  return (
+    <main className="min-h-screen w-full bg-[#FDFCF0]">
+      <header className="border-b border-[#1B4332]/10 bg-white/70 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link
+            href="/admin/dashboard"
+            className="text-sm font-bold text-[#2D6A4F] hover:underline"
+          >
+            &larr; All Tournaments
+          </Link>
+          <DeleteTournamentButton
+            tournamentId={tournament.id}
+            tournamentName={tournament.name}
+          />
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-6xl px-6 py-10">
+        {/* Header */}
+        <div className="flex flex-col gap-5 rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <TournamentStatusSelect
+                tournamentId={tournament.id}
+                current={tournament.status}
+              />
+              <span className="text-xs font-semibold text-[#1B4332]/60">
+                Registration:{" "}
+                {tournament.registration_enabled ? "Open" : "Closed"}
+              </span>
+            </div>
+            <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-forest md:text-4xl">
+              {tournament.name}
+            </h1>
+            <div className="mt-2 space-y-0.5 text-sm text-[#1B4332]/65">
+              {tournament.venue && <p>📍 {tournament.venue}</p>}
+              {tournament.auction_start_at && (
+                <p>
+                  📅{" "}
+                  {format(
+                    new Date(tournament.auction_start_at),
+                    "EEE, MMM d, yyyy · h:mm a",
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg bg-forest px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F]"
+            >
+              Open Public Page &rarr;
+            </a>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={publicUrl}
+                className="w-full rounded-lg border border-[#1B4332]/15 bg-[#FAFDF9] px-2 py-1.5 text-[11px] font-mono text-[#1B4332]/70"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <CopyButton value={publicUrl} label="Copy" />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={registerUrl}
+                className="w-full rounded-lg border border-[#1B4332]/15 bg-[#FAFDF9] px-2 py-1.5 text-[11px] font-mono text-[#1B4332]/70"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <CopyButton value={registerUrl} label="Reg. link" />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
+          <StatCard label="Players" value={players.length} />
+          <StatCard label="Teams" value={teams.length} />
+          <StatCard
+            label="Status"
+            value={tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)}
+          />
+        </div>
+
+        {/* Grid */}
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+          <section>
+            <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest">
+              Teams ({teams.length})
+            </h2>
+            {teams.length === 0 ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-8 text-center text-sm text-[#1B4332]/60">
+                No teams added yet. Add one &rarr;
+              </div>
+            ) : (
+              <ul className="mt-4 space-y-2">
+                {teams.map((t) => (
+                  <li
+                    key={t.id}
+                    className="flex items-center justify-between rounded-xl border border-[#1B4332]/10 bg-white p-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-bold text-forest">{t.team_name}</p>
+                      <p className="truncate text-xs text-[#1B4332]/60">
+                        {t.captain_name ?? "—"} · {t.points_remaining} pts
+                        {t.max_players ? ` · max ${t.max_players}` : ""}
+                      </p>
+                    </div>
+                    <DeleteTeamButton
+                      teamId={t.id}
+                      tournamentId={tournament.id}
+                      teamName={t.team_name}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <aside className="lg:sticky lg:top-6 lg:h-fit">
+            <CreateTeamForm tournamentId={tournament.id} />
+          </aside>
+        </div>
+
+        <section className="mt-12">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest">
+            Players ({players.length})
+          </h2>
+          {players.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-8 text-center text-sm text-[#1B4332]/60">
+              No players registered yet. Share the registration link to start
+              collecting entries.
+            </div>
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded-2xl border border-[#1B4332]/10 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-[#1B4332]/10 bg-[#FAFDF9] text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/60">
+                  <tr>
+                    <th className="px-4 py-3">Player</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Jersey</th>
+                    <th className="hidden px-4 py-3 sm:table-cell">Mobile</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {players.map((p) => (
+                    <tr
+                      key={p.id}
+                      className="border-b border-[#1B4332]/5 last:border-0 hover:bg-[#FAFDF9]"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {p.photo_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={p.photo_url}
+                              alt=""
+                              className="h-8 w-8 rounded-full border border-[#1B4332]/15 object-cover"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-[#1B4332]/10" />
+                          )}
+                          <span className="font-semibold text-forest">
+                            {p.full_name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-[#1B4332]/70">
+                        {p.category ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-[#1B4332]/70">
+                        {p.jersey_no ? `#${p.jersey_no}` : "—"}
+                      </td>
+                      <td className="hidden px-4 py-3 font-mono text-xs text-[#1B4332]/70 sm:table-cell">
+                        {p.mobile_no ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full bg-[#1B4332]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#1B4332]">
+                          {p.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-[#1B4332]/10 bg-white p-4">
+      <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/50">
+        {label}
+      </p>
+      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-forest">
+        {value}
+      </p>
+    </div>
+  );
+}
