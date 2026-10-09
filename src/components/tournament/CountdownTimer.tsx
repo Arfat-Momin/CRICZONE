@@ -25,12 +25,27 @@ function diff(targetMs: number): Parts {
 
 export function CountdownTimer({ targetIso }: { targetIso: string }) {
   const target = new Date(targetIso).getTime();
-  const [parts, setParts] = useState<Parts>(() => diff(target));
+  // Start as null so SSR and the first client render match.
+  // The real value is populated in useEffect after hydration.
+  const [parts, setParts] = useState<Parts | null>(null);
 
   useEffect(() => {
+    setParts(diff(target));
     const id = setInterval(() => setParts(diff(target)), 1000);
     return () => clearInterval(id);
   }, [target]);
+
+  // Pre-hydration placeholder — stable across SSR + first paint.
+  if (parts === null) {
+    return (
+      <div className="flex flex-wrap gap-3">
+        <Unit value={null} label="Days" />
+        <Unit value={null} label="Hours" />
+        <Unit value={null} label="Mins" />
+        <Unit value={null} label="Secs" />
+      </div>
+    );
+  }
 
   if (parts.done) {
     return (
@@ -50,11 +65,11 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
   );
 }
 
-function Unit({ value, label }: { value: number; label: string }) {
+function Unit({ value, label }: { value: number | null; label: string }) {
   return (
     <div className="min-w-[64px] rounded-xl border border-[#1B4332]/10 bg-white px-3 py-2.5 text-center shadow-sm">
       <span className="block font-[family-name:var(--font-numeric)] text-2xl font-bold tabular-nums text-forest sm:text-3xl">
-        {String(value).padStart(2, "0")}
+        {value === null ? "--" : String(value).padStart(2, "0")}
       </span>
       <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-[#1B4332]/55">
         {label}
