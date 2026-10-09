@@ -115,6 +115,42 @@ export type Database = {
           },
         ]
       }
+      player_contacts: {
+        Row: {
+          created_at: string
+          mobile_no: string
+          player_id: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          mobile_no: string
+          player_id: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          mobile_no?: string
+          player_id?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_contacts_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_contacts_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_group_members: {
         Row: {
           created_at: string
@@ -194,7 +230,6 @@ export type Database = {
           id: string
           jersey_no: number | null
           jersey_size: string | null
-          mobile_no: string | null
           photo_url: string | null
           registered_at: string
           selling_price: number | null
@@ -214,7 +249,6 @@ export type Database = {
           id?: string
           jersey_no?: number | null
           jersey_size?: string | null
-          mobile_no?: string | null
           photo_url?: string | null
           registered_at?: string
           selling_price?: number | null
@@ -234,7 +268,6 @@ export type Database = {
           id?: string
           jersey_no?: number | null
           jersey_size?: string | null
-          mobile_no?: string | null
           photo_url?: string | null
           registered_at?: string
           selling_price?: number | null

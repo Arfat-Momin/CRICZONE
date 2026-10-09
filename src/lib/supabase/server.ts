@@ -1,17 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { Database } from "@/types/database.types";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
 
-/**
- * Server-side Supabase client (anon key, cookie-based session).
- * Use inside Server Components, Server Actions, and Route Handlers.
- *
- * Next.js 15: `cookies()` is async.
- */
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+  return createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -22,7 +17,7 @@ export async function createClient() {
             cookieStore.set(name, value, options),
           );
         } catch {
-          // Called from a Server Component. Middleware handles session refresh.
+          // Server Component context — middleware refreshes session.
         }
       },
     },

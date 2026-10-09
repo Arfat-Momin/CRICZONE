@@ -1,0 +1,64 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Parts = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  done: boolean;
+};
+
+function diff(targetMs: number): Parts {
+  const ms = targetMs - Date.now();
+  if (ms <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, done: true };
+  const s = Math.floor(ms / 1000);
+  return {
+    days: Math.floor(s / 86400),
+    hours: Math.floor((s % 86400) / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+    done: false,
+  };
+}
+
+export function CountdownTimer({ targetIso }: { targetIso: string }) {
+  const target = new Date(targetIso).getTime();
+  const [parts, setParts] = useState<Parts>(() => diff(target));
+
+  useEffect(() => {
+    const id = setInterval(() => setParts(diff(target)), 1000);
+    return () => clearInterval(id);
+  }, [target]);
+
+  if (parts.done) {
+    return (
+      <p className="text-base font-semibold text-[#2D6A4F]">
+        Auction will start soon — please wait.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-3">
+      <Unit value={parts.days} label="Days" />
+      <Unit value={parts.hours} label="Hours" />
+      <Unit value={parts.minutes} label="Mins" />
+      <Unit value={parts.seconds} label="Secs" />
+    </div>
+  );
+}
+
+function Unit({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="min-w-[64px] rounded-xl border border-[#1B4332]/10 bg-white px-3 py-2.5 text-center shadow-sm">
+      <span className="block font-[family-name:var(--font-numeric)] text-2xl font-bold tabular-nums text-forest sm:text-3xl">
+        {String(value).padStart(2, "0")}
+      </span>
+      <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-[#1B4332]/55">
+        {label}
+      </span>
+    </div>
+  );
+}
