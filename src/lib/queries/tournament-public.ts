@@ -7,6 +7,7 @@ export type TournamentPublicData = {
   tournament: Tables<"tournaments">;
   players: Tables<"players">[];
   teams: Tables<"teams">[];
+  state: Tables<"auction_state"> | null;
 };
 
 export async function getTournamentPublicData(
@@ -23,7 +24,7 @@ export async function getTournamentPublicData(
 
   if (error || !tournament) return null;
 
-  const [playersRes, teamsRes] = await Promise.all([
+  const [playersRes, teamsRes, stateRes] = await Promise.all([
     supabase
       .from("players")
       .select("*")
@@ -34,11 +35,17 @@ export async function getTournamentPublicData(
       .select("*")
       .eq("tournament_id", tournament.id)
       .order("team_name", { ascending: true }),
+    supabase
+      .from("auction_state")
+      .select("*")
+      .eq("tournament_id", tournament.id)
+      .maybeSingle(),
   ]);
 
   return {
     tournament,
     players: playersRes.data ?? [],
     teams: teamsRes.data ?? [],
+    state: stateRes.data ?? null,
   };
 }

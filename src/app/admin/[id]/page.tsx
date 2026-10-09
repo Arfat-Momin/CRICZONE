@@ -73,14 +73,22 @@ export default async function AdminTournamentPage({ params }: Props) {
           </div>
 
           <div className="flex flex-col gap-3 md:w-[340px]">
-            <a
-              href={auctionUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg bg-forest px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F]"
-            >
-              Open Auction Page &rarr;
-            </a>
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={auctionUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg bg-forest px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F]"
+              >
+                Open Public &rarr;
+              </a>
+              <Link
+                href={`/admin/${tournament.id}/live`}
+                className="rounded-lg bg-sold px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110"
+              >
+                Live Control &rarr;
+              </Link>
+            </div>
 
             <div>
               <p className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/50">

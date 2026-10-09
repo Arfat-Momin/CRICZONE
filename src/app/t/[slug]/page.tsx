@@ -7,6 +7,7 @@ import { TournamentHero } from "@/components/tournament/TournamentHero";
 import { RosterGrid } from "@/components/tournament/RosterGrid";
 import { TeamGrid } from "@/components/tournament/TeamGrid";
 import { RosterRealtimeBridge } from "@/components/tournament/RosterRealtimeBridge";
+import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +29,21 @@ export default async function TournamentPage({ params }: Props) {
   const data = await getTournamentPublicData(slug);
   if (!data) notFound();
 
-  const { tournament, players, teams } = data;
+  const { tournament, players, teams, state } = data;
 
-  // If the auction is live, Phase 8 will render the Auction Room here.
-  // Until then, show a "starting soon" state for the live status too.
+  // LIVE — full immersive auction room
+  if (tournament.status === "live") {
+    return (
+      <AuctionRoom
+        tournament={tournament}
+        initialPlayers={players}
+        initialTeams={teams}
+        initialState={state}
+      />
+    );
+  }
 
+  // PRE-AUCTION / ENDED — public view
   const registrationOpen =
     tournament.registration_enabled &&
     (tournament.status === "registration" || tournament.status === "ready");
@@ -45,7 +56,6 @@ export default async function TournamentPage({ params }: Props) {
       <main>
         <TournamentHero tournament={tournament} />
 
-        {/* Registration CTA — small, one row, links to /register */}
         {registrationOpen && (
           <section className="mx-auto max-w-7xl px-6 pt-8">
             <div className="flex flex-col items-start gap-3 rounded-2xl border border-[#2D6A4F]/25 bg-gradient-to-r from-mint/60 to-cream p-5 sm:flex-row sm:items-center sm:justify-between">
