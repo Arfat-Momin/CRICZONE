@@ -5,9 +5,9 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { getAdminTournamentDetail } from "@/lib/queries/admin";
 import { CreateTeamForm } from "@/components/admin/CreateTeamForm";
 import { DeleteTeamButton } from "@/components/admin/DeleteTeamButton";
-import { CopyButton } from "@/components/admin/CopyButton";
 import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelect";
 import { DeleteTournamentButton } from "@/components/admin/DeleteTournamentButton";
+import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
 import { getSiteUrl } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -72,7 +72,7 @@ export default async function AdminTournamentPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 md:w-[320px]">
             <a
               href={publicUrl}
               target="_blank"
@@ -81,24 +81,8 @@ export default async function AdminTournamentPage({ params }: Props) {
             >
               Open Public Page &rarr;
             </a>
-            <div className="flex items-center gap-2">
-              <input
-                readOnly
-                value={publicUrl}
-                className="w-full rounded-lg border border-[#1B4332]/15 bg-[#FAFDF9] px-2 py-1.5 text-[11px] font-mono text-[#1B4332]/70"
-                onFocus={(e) => e.currentTarget.select()}
-              />
-              <CopyButton value={publicUrl} label="Copy" />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                readOnly
-                value={registerUrl}
-                className="w-full rounded-lg border border-[#1B4332]/15 bg-[#FAFDF9] px-2 py-1.5 text-[11px] font-mono text-[#1B4332]/70"
-                onFocus={(e) => e.currentTarget.select()}
-              />
-              <CopyButton value={registerUrl} label="Reg. link" />
-            </div>
+            <ReadOnlyUrlField value={publicUrl} buttonLabel="Copy" />
+            <ReadOnlyUrlField value={registerUrl} buttonLabel="Reg. link" />
           </div>
         </div>
 
@@ -108,7 +92,9 @@ export default async function AdminTournamentPage({ params }: Props) {
           <StatCard label="Teams" value={teams.length} />
           <StatCard
             label="Status"
-            value={tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)}
+            value={
+              tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)
+            }
           />
         </div>
 
