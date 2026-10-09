@@ -39,3 +39,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- CRICZONE additions ---
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Sentry
+.sentryclirc
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
