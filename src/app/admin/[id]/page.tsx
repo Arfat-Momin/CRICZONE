@@ -103,6 +103,13 @@ export default async function AdminTournamentPage({ params }: Props) {
               </p>
               <ReadOnlyUrlField value={registerUrl} buttonLabel="Copy" />
             </div>
+
+            <a
+              href={`/api/admin/tournaments/${tournament.id}/export`}
+              className="rounded-lg border border-[#1B4332]/20 bg-white px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-mint"
+            >
+              ⬇ Export Players CSV
+            </a>
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import { RosterGrid } from "@/components/tournament/RosterGrid";
 import { TeamGrid } from "@/components/tournament/TeamGrid";
 import { RosterRealtimeBridge } from "@/components/tournament/RosterRealtimeBridge";
 import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
+import { SummaryView } from "@/components/tournament/SummaryView";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export default async function TournamentPage({ params }: Props) {
 
   const { tournament, players, teams, state } = data;
 
-  // LIVE — full immersive auction room
+  // LIVE — immersive auction room
   if (tournament.status === "live") {
     return (
       <AuctionRoom
@@ -43,7 +44,20 @@ export default async function TournamentPage({ params }: Props) {
     );
   }
 
-  // PRE-AUCTION / ENDED — public view
+  // ENDED / ARCHIVED — summary view (public, shareable)
+  if (tournament.status === "ended" || tournament.status === "archived") {
+    return (
+      <>
+        <Navbar />
+        <main>
+          <SummaryView tournament={tournament} players={players} teams={teams} />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // PRE-AUCTION — countdown + roster + registration CTA
   const registrationOpen =
     tournament.registration_enabled &&
     (tournament.status === "registration" || tournament.status === "ready");
