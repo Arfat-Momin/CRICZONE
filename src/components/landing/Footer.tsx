@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HiddenAdminTrigger } from "@/components/shared/HiddenAdminTrigger";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -38,19 +39,18 @@ export function Footer() {
         </div>
         <div>
           <h4 className="text-sm font-bold uppercase tracking-wider text-mint">
-            Organizers
+            Contact
           </h4>
           <ul className="mt-3 space-y-2 text-sm text-cream/80">
-            <li>
-              <Link href="/admin" className="hover:text-mint">
-                Admin Panel
-              </Link>
-            </li>
+            <li>Organize a tournament?</li>
+            <li>Reach out to the host directly.</li>
           </ul>
         </div>
       </div>
       <div className="border-t border-cream/10 py-5 text-center text-xs text-cream/60">
-        &copy; {year} CRICZONE · Designed and Developed by Arfat Momin
+        <HiddenAdminTrigger>
+          &copy; {year} CRICZONE · Designed and Developed by Arfat Momin
+        </HiddenAdminTrigger>
       </div>
     </footer>
   );

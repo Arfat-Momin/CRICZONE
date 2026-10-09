@@ -21,14 +21,6 @@ export function Navbar() {
               Archive
             </Link>
           </li>
-          <li>
-            <Link
-              href="/admin"
-              className="rounded-lg border border-[#1B4332]/20 px-3 py-1.5 transition hover:bg-mint hover:text-forest"
-            >
-              Admin
-            </Link>
-          </li>
         </ul>
       </nav>
     </header>
