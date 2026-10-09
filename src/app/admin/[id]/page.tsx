@@ -21,7 +21,7 @@ export default async function AdminTournamentPage({ params }: Props) {
   if (!data) notFound();
 
   const { tournament, players, teams } = data;
-  const publicUrl = `${getSiteUrl()}/t/${tournament.slug}`;
+  const auctionUrl = `${getSiteUrl()}/t/${tournament.slug}`;
   const registerUrl = `${getSiteUrl()}/t/${tournament.slug}/register`;
 
   return (
@@ -72,17 +72,29 @@ export default async function AdminTournamentPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 md:w-[320px]">
+          <div className="flex flex-col gap-3 md:w-[340px]">
             <a
-              href={publicUrl}
+              href={auctionUrl}
               target="_blank"
               rel="noreferrer"
               className="rounded-lg bg-forest px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F]"
             >
-              Open Public Page &rarr;
+              Open Auction Page &rarr;
             </a>
-            <ReadOnlyUrlField value={publicUrl} buttonLabel="Copy" />
-            <ReadOnlyUrlField value={registerUrl} buttonLabel="Reg. link" />
+
+            <div>
+              <p className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/50">
+                Auction / Live Link
+              </p>
+              <ReadOnlyUrlField value={auctionUrl} buttonLabel="Copy" />
+            </div>
+
+            <div>
+              <p className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/50">
+                Registration Link
+              </p>
+              <ReadOnlyUrlField value={registerUrl} buttonLabel="Copy" />
+            </div>
           </div>
         </div>
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { slugify } from "@/lib/utils/slug";
+import { generateShortCode } from "@/lib/utils/slug";
 import { DEFAULT_FORM_FIELDS } from "@/lib/tournament/form-config";
 import type { Tables, TablesInsert } from "@/types/supabase";
 
@@ -19,6 +19,25 @@ type CreateTournamentInput = {
   openForRegistration: boolean;
 };
 
+/**
+ * Generates a slug that is guaranteed unique across the tournaments table.
+ * Retries up to 10 times if a collision occurs (vanishingly unlikely).
+ */
+async function generateUniqueSlug(
+  supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"],
+): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const candidate = generateShortCode();
+    const { data } = await supabase
+      .from("tournaments")
+      .select("id")
+      .eq("slug", candidate)
+      .maybeSingle();
+    if (!data) return candidate;
+  }
+  throw new Error("Could not generate a unique slug — please try again.");
+}
+
 export async function createTournamentAction(
   input: CreateTournamentInput,
 ): Promise<ActionResult<{ id: string; slug: string }>> {
@@ -30,22 +49,7 @@ export async function createTournamentAction(
       return { ok: false, error: "Name must be at least 2 characters." };
     }
 
-    const baseSlug = slugify(name);
-    if (!baseSlug) {
-      return { ok: false, error: "Name must contain letters or numbers." };
-    }
-
-    let slug = baseSlug;
-    let suffix = 2;
-    for (let i = 0; i < 50; i++) {
-      const { data } = await supabase
-        .from("tournaments")
-        .select("id")
-        .eq("slug", slug)
-        .maybeSingle();
-      if (!data) break;
-      slug = `${baseSlug}-${suffix++}`;
-    }
+    const slug = await generateUniqueSlug(supabase);
 
     const formConfig = {
       enabled: true,

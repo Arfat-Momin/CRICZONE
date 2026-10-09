@@ -1,14 +1,13 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { TournamentHero } from "@/components/tournament/TournamentHero";
-import { RegistrationForm } from "@/components/tournament/RegistrationForm";
 import { RosterGrid } from "@/components/tournament/RosterGrid";
 import { TeamGrid } from "@/components/tournament/TeamGrid";
 import { RosterRealtimeBridge } from "@/components/tournament/RosterRealtimeBridge";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
-import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
 export const dynamic = "force-dynamic";
 
@@ -30,11 +29,12 @@ export default async function TournamentPage({ params }: Props) {
   if (!data) notFound();
 
   const { tournament, players, teams } = data;
-  const config = normalizeFormConfig(tournament.form_config, tournament.name);
+
+  // If the auction is live, Phase 8 will render the Auction Room here.
+  // Until then, show a "starting soon" state for the live status too.
 
   const registrationOpen =
     tournament.registration_enabled &&
-    config.enabled &&
     (tournament.status === "registration" || tournament.status === "ready");
 
   return (
@@ -45,27 +45,29 @@ export default async function TournamentPage({ params }: Props) {
       <main>
         <TournamentHero tournament={tournament} />
 
-        <div className="mx-auto max-w-7xl px-6 py-10 md:py-14">
-          {registrationOpen && (
-            <section id="register" className="mb-14 scroll-mt-20">
-              <div className="mx-auto max-w-2xl">
-                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest md:text-3xl">
-                  {config.title}
-                </h2>
-                <p className="mt-1.5 text-sm text-[#1B4332]/65">
-                  {config.description}
+        {/* Registration CTA — small, one row, links to /register */}
+        {registrationOpen && (
+          <section className="mx-auto max-w-7xl px-6 pt-8">
+            <div className="flex flex-col items-start gap-3 rounded-2xl border border-[#2D6A4F]/25 bg-gradient-to-r from-mint/60 to-cream p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wider text-[#2D6A4F]">
+                  Want to play?
                 </p>
-                <div className="mt-6">
-                  <RegistrationForm
-                    tournamentId={tournament.id}
-                    tournamentName={tournament.name}
-                    config={config}
-                  />
-                </div>
+                <p className="mt-0.5 text-sm text-[#1B4332]/75">
+                  Registration is open for this tournament.
+                </p>
               </div>
-            </section>
-          )}
+              <Link
+                href={`/t/${tournament.slug}/register`}
+                className="rounded-xl bg-forest px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-cream shadow-md transition hover:-translate-y-0.5 hover:bg-[#2D6A4F]"
+              >
+                Register as a player &rarr;
+              </Link>
+            </div>
+          </section>
+        )}
 
+        <div className="mx-auto max-w-7xl px-6 py-10 md:py-14">
           <TeamGrid teams={teams} />
 
           <section className={teams.length > 0 ? "mt-14" : ""}>
