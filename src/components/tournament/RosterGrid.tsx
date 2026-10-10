@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import type { Tables } from "@/types/supabase";
-import { PlayerCard } from "./PlayerCard";
+import { PlayerCard, type DisplayField } from "./PlayerCard";
 import { PlayerModal } from "./PlayerModal";
 
-export function RosterGrid({ players }: { players: Tables<"players">[] }) {
+export function RosterGrid({
+  players,
+  displayFields = [],
+}: {
+  players: Tables<"players">[];
+  displayFields?: DisplayField[];
+}) {
   const [selected, setSelected] = useState<Tables<"players"> | null>(null);
 
   if (players.length === 0) {
@@ -20,7 +26,12 @@ export function RosterGrid({ players }: { players: Tables<"players">[] }) {
     <>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {players.map((p) => (
-          <PlayerCard key={p.id} player={p} onOpen={() => setSelected(p)} />
+          <PlayerCard
+            key={p.id}
+            player={p}
+            displayFields={displayFields}
+            onOpen={() => setSelected(p)}
+          />
         ))}
       </div>
       {selected && (

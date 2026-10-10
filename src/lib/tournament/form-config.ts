@@ -24,6 +24,8 @@ export type FormConfig = {
   title: string;
   description: string;
   formFields: FormFieldDef[];
+  /** Field IDs to display on player cards (roster + auction block). */
+  cardDisplayFields: string[];
 };
 
 export const DEFAULT_FORM_FIELDS: FormFieldDef[] = [
@@ -37,8 +39,32 @@ export const DEFAULT_FORM_FIELDS: FormFieldDef[] = [
   { id: "photo", label: "Player Photo", type: "photo", required: true },
 ];
 
+export const DEFAULT_CARD_DISPLAY_FIELDS: string[] = [
+  "category",
+  "currentTeam",
+  "basePrice",
+];
+
+export const LOCKED_FIELD_IDS: ReadonlySet<string> = new Set([
+  "firstName",
+  "surname",
+  "mobileNo",
+  "jerseyNo",
+  "jerseySize",
+  "category",
+  "currentTeam",
+  "photo",
+]);
+
 const VALID_TYPES: FormFieldType[] = [
-  "text", "number", "tel", "email", "select", "radio", "textarea", "photo",
+  "text",
+  "number",
+  "tel",
+  "email",
+  "select",
+  "radio",
+  "textarea",
+  "photo",
 ];
 
 export function normalizeFormConfig(
@@ -48,26 +74,23 @@ export function normalizeFormConfig(
   const fallback: FormConfig = {
     enabled: true,
     title: `${tournamentName} Player Registration`,
-    description: "Register to join the auction.",
+    description: "Fill in your details to enter the auction roster.",
     formFields: DEFAULT_FORM_FIELDS,
+    cardDisplayFields: DEFAULT_CARD_DISPLAY_FIELDS,
   };
 
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fallback;
-
   const obj = raw as Record<string, unknown>;
 
   const enabled = obj.enabled !== false;
   const title =
-    typeof obj.title === "string" && obj.title.trim()
-      ? obj.title.trim()
-      : fallback.title;
+    typeof obj.title === "string" && obj.title.trim() ? obj.title.trim() : fallback.title;
   const description =
     typeof obj.description === "string" && obj.description.trim()
       ? obj.description.trim()
       : fallback.description;
 
   let formFields: FormFieldDef[] = DEFAULT_FORM_FIELDS;
-
   if (Array.isArray(obj.formFields) && obj.formFields.length > 0) {
     const parsed: FormFieldDef[] = [];
     for (const item of obj.formFields) {
@@ -86,7 +109,9 @@ export function normalizeFormConfig(
         required: f.required === true,
       };
       if (Array.isArray(f.options)) {
-        const opts = f.options.filter((o): o is string => typeof o === "string" && o.length > 0);
+        const opts = f.options.filter(
+          (o): o is string => typeof o === "string" && o.length > 0,
+        );
         if (opts.length > 0) def.options = opts;
       }
       if (f.uniqueMobile === true) def.uniqueMobile = true;
@@ -95,5 +120,23 @@ export function normalizeFormConfig(
     if (parsed.length > 0) formFields = parsed;
   }
 
-  return { enabled, title, description, formFields };
+  let cardDisplayFields: string[] = DEFAULT_CARD_DISPLAY_FIELDS;
+  if (Array.isArray(obj.cardDisplayFields)) {
+    const ids = obj.cardDisplayFields.filter(
+      (x): x is string => typeof x === "string" && x.length > 0,
+    );
+    if (ids.length > 0) cardDisplayFields = ids;
+    else cardDisplayFields = [];
+  }
+
+  return { enabled, title, description, formFields, cardDisplayFields };
+}
+
+export function humanizeFieldId(id: string): string {
+  return id
+    .replace(/^custom_/, "")
+    .replace(/_[a-z0-9]{6,}$/, "") // strip random suffix
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
 }

@@ -11,6 +11,7 @@ import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
 import { SummaryView } from "@/components/tournament/SummaryView";
 import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
+import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +33,18 @@ export default async function TournamentPage({ params }: Props) {
   if (!data) notFound();
 
   const { tournament, players, teams, state } = data;
+  const config = normalizeFormConfig(tournament.form_config, tournament.name);
 
-  // LIVE — immersive auction room (also gated, admin bypasses via /admin)
+  // Build display-field metadata once for reuse
+  const displayFields = config.cardDisplayFields
+    .map((id) => {
+      const field = config.formFields.find((f) => f.id === id);
+      if (field) return { id, label: field.label };
+      if (id === "basePrice") return { id, label: "Base Price" };
+      return null;
+    })
+    .filter((x): x is { id: string; label: string } => x !== null);
+
   if (tournament.status === "live") {
     return (
       <MaintenanceGate>
@@ -47,7 +58,6 @@ export default async function TournamentPage({ params }: Props) {
     );
   }
 
-  // ENDED / ARCHIVED — summary view
   if (tournament.status === "ended" || tournament.status === "archived") {
     return (
       <MaintenanceGate>
@@ -60,9 +70,9 @@ export default async function TournamentPage({ params }: Props) {
     );
   }
 
-  // PRE-AUCTION — countdown + roster + registration CTA
   const registrationOpen =
     tournament.registration_enabled &&
+    config.enabled &&
     (tournament.status === "registration" || tournament.status === "ready");
 
   return (
@@ -105,7 +115,7 @@ export default async function TournamentPage({ params }: Props) {
               {players.length} registered
             </p>
             <div className="mt-6">
-              <RosterGrid players={players} />
+              <RosterGrid players={players} displayFields={displayFields} />
             </div>
           </section>
         </div>

@@ -9,6 +9,8 @@ import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelec
 import { DeleteTournamentButton } from "@/components/admin/DeleteTournamentButton";
 import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
 import { AdminPlayerSection } from "@/components/admin/AdminPlayerSection";
+import { FormBuilderSection } from "@/components/admin/forms/FormBuilderSection";
+import { normalizeFormConfig } from "@/lib/tournament/form-config";
 import { GroupsSection } from "@/components/admin/GroupsSection";
 import { TournamentActionsBar } from "@/components/admin/TournamentActionsBar";
 import { getTournamentGroups } from "@/lib/queries/groups";
@@ -26,6 +28,7 @@ export default async function AdminTournamentPage({ params }: Props) {
 
   const { tournament, players, teams } = data;
   const groups = await getTournamentGroups(tournament.id);
+  const formConfig = normalizeFormConfig(tournament.form_config, tournament.name);
   const auctionUrl = `${getSiteUrl()}/t/${tournament.slug}`;
   const registerUrl = `${getSiteUrl()}/t/${tournament.slug}/register`;
 
@@ -181,6 +184,12 @@ export default async function AdminTournamentPage({ params }: Props) {
           groupingEnabled={tournament.grouping_enabled}
           players={players}
           groups={groups}
+        />
+
+        <FormBuilderSection
+          tournamentId={tournament.id}
+          tournamentName={tournament.name}
+          initialConfig={formConfig}
         />
 
         <AdminPlayerSection players={players} tournamentId={tournament.id} />

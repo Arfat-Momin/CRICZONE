@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { generateShortCode } from "@/lib/utils/slug";
 import { DEFAULT_FORM_FIELDS } from "@/lib/tournament/form-config";
 import type { Tables, TablesInsert } from "@/types/supabase";
+import type { Json } from "@/types/database.types";
+import type { FormConfig } from "@/lib/tournament/form-config";
 
 type TournamentStatus = Tables<"tournaments">["status"];
 
@@ -171,6 +173,61 @@ export async function setGroupingModeAction(
     revalidatePath(`/admin/${tournamentId}/live`);
     return { ok: true, data: undefined };
   } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Unexpected error.",
+    };
+  }
+}
+export async function updateFormConfigAction(
+  tournamentId: string,
+  formConfig: FormConfig,
+): Promise<ActionResult<{ slug: string }>> {
+  try {
+    const { supabase } = await requireAdmin();
+
+    const title = formConfig.title?.trim() || "Player Registration";
+    const description =
+      formConfig.description?.trim() ||
+      "Fill in your details to enter the auction roster.";
+    const fields = Array.isArray(formConfig.formFields) ? formConfig.formFields : [];
+    const cardFields = Array.isArray(formConfig.cardDisplayFields)
+      ? formConfig.cardDisplayFields
+      : [];
+
+    if (fields.length === 0) {
+      return { ok: false, error: "Form must have at least one field." };
+    }
+
+    const payload = {
+      enabled: formConfig.enabled !== false,
+      title,
+      description,
+      formFields: fields,
+      cardDisplayFields: cardFields,
+    } as unknown as Json;
+
+    const { data: updated, error } = await supabase
+      .from("tournaments")
+      .update({
+        form_config: payload,
+        registration_enabled: formConfig.enabled !== false,
+      })
+      .eq("id", tournamentId)
+      .select("slug")
+      .single();
+
+    if (error || !updated) {
+      return { ok: false, error: error?.message ?? "Could not save form settings." };
+    }
+
+    revalidatePath(`/admin/${tournamentId}`);
+    revalidatePath(`/t/${updated.slug}`, "page");
+    revalidatePath(`/t/${updated.slug}/register`, "page");
+
+    return { ok: true, data: { slug: updated.slug } };
+  } catch (e) {
+    console.error("updateFormConfigAction failed:", e);
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Unexpected error.",

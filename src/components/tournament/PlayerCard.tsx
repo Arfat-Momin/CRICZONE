@@ -2,16 +2,51 @@
 
 import type { Tables } from "@/types/supabase";
 
+export type DisplayField = { id: string; label: string };
+
+function getFieldValue(
+  player: Tables<"players">,
+  fieldId: string,
+): string | null {
+  switch (fieldId) {
+    case "category":
+      return player.category ?? null;
+    case "currentTeam":
+      return player.current_team ?? null;
+    case "jerseyNo":
+      return player.jersey_no != null ? `#${player.jersey_no}` : null;
+    case "jerseySize":
+      return player.jersey_size ?? null;
+    case "basePrice":
+      return player.base_price != null ? `${player.base_price} pts` : null;
+    default: {
+      const cf = player.custom_fields;
+      if (cf && typeof cf === "object" && !Array.isArray(cf)) {
+        const v = (cf as Record<string, unknown>)[fieldId];
+        if (v == null) return null;
+        return String(v);
+      }
+      return null;
+    }
+  }
+}
+
 export function PlayerCard({
   player,
+  displayFields,
   onOpen,
 }: {
   player: Tables<"players">;
+  displayFields: DisplayField[];
   onOpen: () => void;
 }) {
   const photo =
-    player.photo_url ||
-    "https://placehold.co/200x200/1B4332/FDFCF0?text=%3F";
+    player.photo_url || "https://placehold.co/200x200/1B4332/FDFCF0?text=%3F";
+
+  const pills = displayFields
+    .map((f) => ({ label: f.label, value: getFieldValue(player, f.id) }))
+    .filter((x): x is { label: string; value: string } => !!x.value);
+
   return (
     <button
       type="button"
@@ -30,10 +65,17 @@ export function PlayerCard({
       <p className="mt-3 line-clamp-2 text-sm font-bold text-forest">
         {player.full_name}
       </p>
-      {player.category && (
-        <span className="mt-1 line-clamp-1 text-[10px] font-bold uppercase tracking-wider text-[#2D6A4F]/80">
-          {player.category}
-        </span>
+      {pills.length > 0 && (
+        <div className="mt-2 flex w-full flex-col gap-1">
+          {pills.map((p) => (
+            <span
+              key={p.label}
+              className="line-clamp-1 rounded-full bg-mint/60 px-2 py-0.5 text-[10px] font-semibold text-forest"
+            >
+              {p.value}
+            </span>
+          ))}
+        </div>
       )}
     </button>
   );
