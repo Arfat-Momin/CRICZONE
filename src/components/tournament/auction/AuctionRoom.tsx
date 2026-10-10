@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Tables } from "@/types/supabase";
 import { useAuctionRealtime } from "./useAuctionRealtime";
 import { OnBlockStage } from "./OnBlockStage";
 import { TeamsRow } from "./TeamsRow";
 import { PlayerTabs } from "./PlayerTabs";
 import { SoldPopup, UnsoldBanner } from "./SoldPopup";
+import { ProjectionMode } from "./ProjectionMode";
 
 type Props = {
   tournament: Tables<"tournaments">;
@@ -34,6 +36,39 @@ export function AuctionRoom({
     initialTeams,
   });
 
+  const [projectionOpen, setProjectionOpen] = useState(false);
+
+  // Keyboard shortcut: `P` opens projection (ignored while typing in inputs)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (projectionOpen) return;
+      const t = e.target;
+      if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
+      if (e.key === "p" || e.key === "P") {
+        e.preventDefault();
+        setProjectionOpen(true);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [projectionOpen]);
+
+  // Fullscreen request/exit when projection toggles
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (projectionOpen) {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {
+          // Silently ignore if the browser blocks (no user gesture, permission, etc.)
+        });
+      }
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  }, [projectionOpen]);
+
   const onBlockPlayer = state?.current_player_id
     ? players.find((p) => p.id === state.current_player_id) ?? null
     : null;
@@ -45,7 +80,7 @@ export function AuctionRoom({
   return (
     <div className="min-h-screen w-full bg-[#FDFCF0]">
       <header className="sticky top-0 z-40 border-b border-[#1B4332]/10 bg-[#FDFCF0]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-4 py-3 md:px-6">
+        <div className="relative mx-auto flex max-w-7xl items-center justify-center gap-3 px-4 py-3 md:px-6">
           {tournament.poster_url && (
             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 border-[#2D6A4F]/40 shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -63,6 +98,17 @@ export function AuctionRoom({
             <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
             LIVE
           </span>
+
+          {/* Discreet projection trigger */}
+          <button
+            type="button"
+            onClick={() => setProjectionOpen(true)}
+            title="Presentation mode (P)"
+            aria-label="Open presentation mode"
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-[#1B4332]/15 bg-white/80 text-base text-[#1B4332]/60 shadow-sm backdrop-blur transition hover:bg-forest hover:text-cream md:right-4"
+          >
+            <span aria-hidden>⛶</span>
+          </button>
         </div>
       </header>
 
@@ -101,6 +147,15 @@ export function AuctionRoom({
       {unsoldEvent && (
         <UnsoldBanner player={unsoldEvent.player} onClose={dismissUnsold} />
       )}
+
+      <ProjectionMode
+        open={projectionOpen}
+        onClose={() => setProjectionOpen(false)}
+        state={state}
+        onBlockPlayer={onBlockPlayer}
+        currentHighestTeam={currentHighestTeam}
+        tournamentName={tournament.name}
+      />
     </div>
   );
 }
