@@ -17,10 +17,10 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
 
   return (
     <section className="relative isolate border-b border-[#1B4332]/10 bg-gradient-to-b from-[#D8F3DC]/45 via-[#FDFCF0] to-transparent">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-        {tournament.poster_url && (
-          <div className="mb-8 overflow-hidden rounded-2xl border border-[#1B4332]/10 shadow-lg">
-            <div className="aspect-[21/9] w-full">
+      <div className="mx-auto max-w-7xl px-6 py-10 md:py-12">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          {tournament.poster_url && (
+            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-[#2D6A4F]/40 shadow-md sm:h-28 sm:w-28">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={tournament.poster_url}
@@ -28,36 +28,38 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
                 className="h-full w-full object-cover"
               />
             </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
+                isLive ? "bg-sold text-white" : "bg-forest text-cream"
+              }`}
+            >
+              {isLive && (
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+              )}
+              {STATUS_LABEL[tournament.status] ?? "Tournament"}
+            </span>
+
+            <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-forest md:text-4xl lg:text-5xl">
+              {tournament.name}
+            </h1>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-[#1B4332]/70">
+              {tournament.venue && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span aria-hidden>📍</span> {tournament.venue}
+                </span>
+              )}
+              {startIso && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span aria-hidden>📅</span>{" "}
+                  {format(new Date(startIso), "EEE, MMM d · h:mm a")}
+                </span>
+              )}
+            </div>
           </div>
-        )}
-
-        <span
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
-            isLive ? "bg-sold text-white" : "bg-forest text-cream"
-          }`}
-        >
-          {isLive && (
-            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-          )}
-          {STATUS_LABEL[tournament.status] ?? "Tournament"}
-        </span>
-
-        <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-forest md:text-5xl">
-          {tournament.name}
-        </h1>
-
-        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#1B4332]/70">
-          {tournament.venue && (
-            <span className="inline-flex items-center gap-1.5">
-              <span aria-hidden>📍</span> {tournament.venue}
-            </span>
-          )}
-          {startIso && (
-            <span className="inline-flex items-center gap-1.5">
-              <span aria-hidden>📅</span>{" "}
-              {format(new Date(startIso), "EEE, MMM d · h:mm a")}
-            </span>
-          )}
         </div>
 
         {startIso && !isLive && !isFinished && (

@@ -33,13 +33,27 @@ export default async function RegisterPage({ params }: Props) {
     <>
       <Navbar />
       <main className="mx-auto max-w-2xl px-6 py-12 md:py-16">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#2D6A4F]">
-          {tournament.name}
-        </span>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-forest md:text-4xl">
-          {config.title}
-        </h1>
-        <p className="mt-2 text-sm text-[#1B4332]/65">{config.description}</p>
+        <div className="flex items-center gap-4">
+          {tournament.poster_url && (
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-[#2D6A4F]/40 shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tournament.poster_url}
+                alt={`${tournament.name} poster`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#2D6A4F]">
+              {tournament.name}
+            </span>
+            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-forest md:text-3xl">
+              {config.title}
+            </h1>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-[#1B4332]/65">{config.description}</p>
 
         <div className="mt-8">
           {open ? (
