@@ -5,6 +5,7 @@ import { LiveTournaments } from "@/components/landing/LiveTournaments";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { PastAuctions } from "@/components/landing/PastAuctions";
 import { Footer } from "@/components/landing/Footer";
+import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const revalidate = 60;
@@ -24,7 +25,7 @@ function TournamentsSkeleton() {
 
 export default function HomePage() {
   return (
-    <>
+    <MaintenanceGate>
       <Navbar />
       <main>
         <Hero />
@@ -48,6 +49,6 @@ export default function HomePage() {
         </Suspense>
       </main>
       <Footer />
-    </>
+    </MaintenanceGate>
   );
 }

@@ -4,6 +4,8 @@ import { LogoutButton } from "@/components/admin/LogoutButton";
 import { CreateTournamentForm } from "@/components/admin/CreateTournamentForm";
 import { TournamentCard } from "@/components/admin/TournamentCard";
 import { listAdminTournaments } from "@/lib/queries/admin";
+import { SiteMaintenanceToggle } from "@/components/admin/SiteMaintenanceToggle";
+import { getSiteState } from "@/lib/queries/site";
 
 export const metadata = { title: "Dashboard · CRICZONE Admin" };
 export const dynamic = "force-dynamic";
@@ -11,6 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const { user } = await requireAdmin();
   const tournaments = await listAdminTournaments();
+  const siteState = await getSiteState();
 
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
@@ -61,8 +64,9 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <aside className="lg:sticky lg:top-6 lg:h-fit">
+        <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
           <CreateTournamentForm />
+          <SiteMaintenanceToggle current={siteState} />
         </aside>
       </div>
     </main>

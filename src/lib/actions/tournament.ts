@@ -155,3 +155,25 @@ export async function deleteTournamentAction(
     };
   }
 }
+export async function setGroupingModeAction(
+  tournamentId: string,
+  enabled: boolean,
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase
+      .from("tournaments")
+      .update({ grouping_enabled: enabled })
+      .eq("id", tournamentId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath(`/admin/${tournamentId}`);
+    revalidatePath(`/admin/${tournamentId}/live`);
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Unexpected error.",
+    };
+  }
+}

@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { Reveal } from "@/components/shared/Reveal";
+import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { getArchivedTournaments } from "@/lib/queries/tournaments";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default async function ArchivePage() {
   const archives = await getArchivedTournaments(48);
 
   return (
-    <>
+    <MaintenanceGate>
       <Navbar />
       <main className="mx-auto max-w-7xl px-6 py-16 md:py-20">
         <Reveal>
@@ -65,6 +66,6 @@ export default async function ArchivePage() {
         )}
       </main>
       <Footer />
-    </>
+    </MaintenanceGate>
   );
 }

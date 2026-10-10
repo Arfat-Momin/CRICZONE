@@ -9,6 +9,9 @@ import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelec
 import { DeleteTournamentButton } from "@/components/admin/DeleteTournamentButton";
 import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
 import { AdminPlayerSection } from "@/components/admin/AdminPlayerSection";
+import { GroupsSection } from "@/components/admin/GroupsSection";
+import { TournamentActionsBar } from "@/components/admin/TournamentActionsBar";
+import { getTournamentGroups } from "@/lib/queries/groups";
 import { getSiteUrl } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +25,7 @@ export default async function AdminTournamentPage({ params }: Props) {
   if (!data) notFound();
 
   const { tournament, players, teams } = data;
+  const groups = await getTournamentGroups(tournament.id);
   const auctionUrl = `${getSiteUrl()}/t/${tournament.slug}`;
   const registerUrl = `${getSiteUrl()}/t/${tournament.slug}/register`;
 
@@ -165,6 +169,19 @@ export default async function AdminTournamentPage({ params }: Props) {
             <CreateTeamForm tournamentId={tournament.id} />
           </aside>
         </div>
+
+        <TournamentActionsBar
+          tournamentId={tournament.id}
+          auctionUrl={auctionUrl}
+          registerUrl={registerUrl}
+        />
+
+        <GroupsSection
+          tournamentId={tournament.id}
+          groupingEnabled={tournament.grouping_enabled}
+          players={players}
+          groups={groups}
+        />
 
         <AdminPlayerSection players={players} tournamentId={tournament.id} />
       </div>

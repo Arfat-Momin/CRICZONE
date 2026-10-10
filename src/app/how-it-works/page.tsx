@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Footer } from "@/components/landing/Footer";
+import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 
 export const metadata: Metadata = {
   title: "How It Works",
@@ -30,7 +31,7 @@ const FAQ = [
 
 export default function HowItWorksPage() {
   return (
-    <>
+    <MaintenanceGate>
       <Navbar />
       <main className="pt-8">
         <HowItWorks />
@@ -62,6 +63,6 @@ export default function HowItWorksPage() {
         </section>
       </main>
       <Footer />
-    </>
+    </MaintenanceGate>
   );
 }

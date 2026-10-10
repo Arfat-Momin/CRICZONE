@@ -9,6 +9,7 @@ import { TeamGrid } from "@/components/tournament/TeamGrid";
 import { RosterRealtimeBridge } from "@/components/tournament/RosterRealtimeBridge";
 import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
 import { SummaryView } from "@/components/tournament/SummaryView";
+import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 
 export const dynamic = "force-dynamic";
@@ -32,28 +33,30 @@ export default async function TournamentPage({ params }: Props) {
 
   const { tournament, players, teams, state } = data;
 
-  // LIVE — immersive auction room
+  // LIVE — immersive auction room (also gated, admin bypasses via /admin)
   if (tournament.status === "live") {
     return (
-      <AuctionRoom
-        tournament={tournament}
-        initialPlayers={players}
-        initialTeams={teams}
-        initialState={state}
-      />
+      <MaintenanceGate>
+        <AuctionRoom
+          tournament={tournament}
+          initialPlayers={players}
+          initialTeams={teams}
+          initialState={state}
+        />
+      </MaintenanceGate>
     );
   }
 
-  // ENDED / ARCHIVED — summary view (public, shareable)
+  // ENDED / ARCHIVED — summary view
   if (tournament.status === "ended" || tournament.status === "archived") {
     return (
-      <>
+      <MaintenanceGate>
         <Navbar />
         <main>
           <SummaryView tournament={tournament} players={players} teams={teams} />
         </main>
         <Footer />
-      </>
+      </MaintenanceGate>
     );
   }
 
@@ -63,7 +66,7 @@ export default async function TournamentPage({ params }: Props) {
     (tournament.status === "registration" || tournament.status === "ready");
 
   return (
-    <>
+    <MaintenanceGate>
       <Navbar />
       <RosterRealtimeBridge tournamentId={tournament.id} />
 
@@ -109,6 +112,6 @@ export default async function TournamentPage({ params }: Props) {
       </main>
 
       <Footer />
-    </>
+    </MaintenanceGate>
   );
 }

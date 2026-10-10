@@ -115,6 +115,24 @@ export type Database = {
           },
         ]
       }
+      global_settings: {
+        Row: {
+          id: string
+          site_state: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          site_state?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          site_state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       player_contacts: {
         Row: {
           created_at: string
