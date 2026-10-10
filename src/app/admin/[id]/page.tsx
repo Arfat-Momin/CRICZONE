@@ -196,7 +196,14 @@ export default async function AdminTournamentPage({ params }: Props) {
         />
 
         <AdminPlayerSection players={players} tournamentId={tournament.id} />
-      </div>
+      <DangerZone
+          tournamentId={tournament.id}
+          tournamentName={tournament.name}
+          playerCount={players.length}
+          teamCount={teams.length}
+        />
+
+        </div>
     </main>
   );
 }
