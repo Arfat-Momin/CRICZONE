@@ -1,13 +1,18 @@
 "use client";
 
-const MAX_DIM = 800;
+const DEFAULT_MAX_DIM = 800;
 const QUALITY = 0.85;
 
 /**
- * Reads a File, resizes to <=800px on the long edge, and returns a WebP data URL.
- * Throws a clear error if the browser can't produce WebP.
+ * Reads a File, resizes so the longest edge is <= maxDim, and returns
+ * a WebP data URL. Throws if the browser can't produce WebP.
+ *
+ * Player photos: 800px (default). Posters / banners: pass 1600.
  */
-export async function fileToWebpDataUrl(file: File): Promise<string> {
+export async function fileToWebpDataUrl(
+  file: File,
+  maxDim: number = DEFAULT_MAX_DIM,
+): Promise<string> {
   const rawDataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
@@ -24,12 +29,12 @@ export async function fileToWebpDataUrl(file: File): Promise<string> {
 
   let w = img.naturalWidth;
   let h = img.naturalHeight;
-  if (w > h && w > MAX_DIM) {
-    h = Math.round((h * MAX_DIM) / w);
-    w = MAX_DIM;
-  } else if (h > MAX_DIM) {
-    w = Math.round((w * MAX_DIM) / h);
-    h = MAX_DIM;
+  if (w > h && w > maxDim) {
+    h = Math.round((h * maxDim) / w);
+    w = maxDim;
+  } else if (h > maxDim) {
+    w = Math.round((w * maxDim) / h);
+    h = maxDim;
   }
 
   const canvas = document.createElement("canvas");

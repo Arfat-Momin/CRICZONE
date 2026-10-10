@@ -18,6 +18,19 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
   return (
     <section className="relative isolate border-b border-[#1B4332]/10 bg-gradient-to-b from-[#D8F3DC]/45 via-[#FDFCF0] to-transparent">
       <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+        {tournament.poster_url && (
+          <div className="mb-8 overflow-hidden rounded-2xl border border-[#1B4332]/10 shadow-lg">
+            <div className="aspect-[21/9] w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tournament.poster_url}
+                alt={`${tournament.name} poster`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
         <span
           className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest ${
             isLive ? "bg-sold text-white" : "bg-forest text-cream"

@@ -7,9 +7,21 @@ type Props = {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
   error?: string | null;
+  /** Longest-edge cap before WebP export. Default 800 (player photo). Posters: 1600. */
+  maxDim?: number;
+  /** Aspect class for the preview frame. Default "rounded-full". Posters: "rounded-lg". */
+  previewShape?: "round" | "rect";
+  hint?: string;
 };
 
-export function PhotoDropzone({ value, onChange, error }: Props) {
+export function PhotoDropzone({
+  value,
+  onChange,
+  error,
+  maxDim,
+  previewShape = "round",
+  hint,
+}: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dragover, setDragover] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -21,13 +33,13 @@ export function PhotoDropzone({ value, onChange, error }: Props) {
       setLocalError("Please choose a valid image file.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setLocalError("Image must be under 5 MB.");
+    if (file.size > 8 * 1024 * 1024) {
+      setLocalError("Image must be under 8 MB.");
       return;
     }
     setBusy(true);
     try {
-      const dataUrl = await fileToWebpDataUrl(file);
+      const dataUrl = await fileToWebpDataUrl(file, maxDim);
       onChange(dataUrl);
     } catch (e) {
       setLocalError(e instanceof Error ? e.message : "Could not process image.");
@@ -35,6 +47,11 @@ export function PhotoDropzone({ value, onChange, error }: Props) {
       setBusy(false);
     }
   }
+
+  const previewClass =
+    previewShape === "round"
+      ? "h-20 w-20 rounded-full border-2 border-[#2D6A4F] object-cover"
+      : "h-20 w-32 rounded-lg border-2 border-[#2D6A4F] object-cover";
 
   return (
     <div>
@@ -71,13 +88,9 @@ export function PhotoDropzone({ value, onChange, error }: Props) {
         {value ? (
           <div className="flex items-center gap-4 text-left">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={value}
-              alt="Player preview"
-              className="h-20 w-20 rounded-full border-2 border-[#2D6A4F] object-cover"
-            />
+            <img src={value} alt="Preview" className={previewClass} />
             <div className="min-w-0">
-              <p className="text-sm font-bold text-forest">Photo ready</p>
+              <p className="text-sm font-bold text-forest">Ready</p>
               <button
                 type="button"
                 onClick={(e) => {
@@ -96,7 +109,7 @@ export function PhotoDropzone({ value, onChange, error }: Props) {
               📷
             </p>
             <p className="mt-2 text-sm font-bold text-forest">
-              {busy ? "Processing…" : "Drag & drop player photo here"}
+              {busy ? "Processing…" : "Drag & drop image here"}
             </p>
             <p className="mt-0.5 text-xs text-[#1B4332]/60">
               or{" "}
@@ -105,16 +118,14 @@ export function PhotoDropzone({ value, onChange, error }: Props) {
               </span>
             </p>
             <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1B4332]/40">
-              Auto-converted to WebP · max 5 MB
+              {hint ?? "Auto-converted to WebP · max 8 MB"}
             </p>
           </div>
         )}
       </div>
 
       {(localError || error) && (
-        <p className="mt-2 text-xs font-semibold text-sold">
-          {localError ?? error}
-        </p>
+        <p className="mt-2 text-xs font-semibold text-sold">{localError ?? error}</p>
       )}
     </div>
   );

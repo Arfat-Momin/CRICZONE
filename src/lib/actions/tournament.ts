@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { generateShortCode } from "@/lib/utils/slug";
 import { DEFAULT_FORM_FIELDS } from "@/lib/tournament/form-config";
+import { uploadTournamentPoster } from "@/lib/storage/upload-photo";
 import type { Tables, TablesInsert } from "@/types/supabase";
 import type { Json } from "@/types/database.types";
 import type { FormConfig } from "@/lib/tournament/form-config";
@@ -19,6 +20,7 @@ type CreateTournamentInput = {
   venue: string | null;
   auctionStartAt: string | null;
   openForRegistration: boolean;
+  posterDataUrl?: string | null;
 };
 
 /**
@@ -79,6 +81,20 @@ export async function createTournamentAction(
 
     if (error || !data) {
       return { ok: false, error: error?.message ?? "Could not create tournament." };
+    }
+
+    // Optional poster — uploaded after insert (needs tournament id in path)
+    if (input.posterDataUrl) {
+      try {
+        const up = await uploadTournamentPoster(data.id, input.posterDataUrl);
+        await supabase
+          .from("tournaments")
+          .update({ poster_url: up.url })
+          .eq("id", data.id);
+      } catch (posterErr) {
+        // Non-fatal: tournament created, admin can upload later from Overview
+        console.warn("Poster upload failed during creation:", posterErr);
+      }
     }
 
     revalidatePath("/admin/dashboard");
@@ -271,6 +287,61 @@ export async function clearTournamentDataAction(
     return { ok: true, data: { deleted: count ?? 0 } };
   } catch (e) {
     console.error("clearTournamentDataAction failed:", e);
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Unexpected error.",
+    };
+  }
+}
+export async function updatePosterAction(
+  tournamentId: string,
+  posterDataUrl: string | null,
+): Promise<ActionResult<{ slug: string }>> {
+  try {
+    const { supabase } = await requireAdmin();
+
+    // Fetch slug for revalidation
+    const { data: t } = await supabase
+      .from("tournaments")
+      .select("slug")
+      .eq("id", tournamentId)
+      .maybeSingle();
+    if (!t) return { ok: false, error: "Tournament not found." };
+
+    // Remove
+    if (posterDataUrl === null) {
+      const { error } = await supabase
+        .from("tournaments")
+        .update({ poster_url: null })
+        .eq("id", tournamentId);
+      if (error) return { ok: false, error: error.message };
+
+      revalidatePath(`/admin/${tournamentId}`);
+      revalidatePath(`/t/${t.slug}`, "page");
+      return { ok: true, data: { slug: t.slug } };
+    }
+
+    // Upload + update
+    let url: string;
+    try {
+      const up = await uploadTournamentPoster(tournamentId, posterDataUrl);
+      url = up.url;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Poster upload failed.";
+      return { ok: false, error: msg };
+    }
+
+    const { error } = await supabase
+      .from("tournaments")
+      .update({ poster_url: url })
+      .eq("id", tournamentId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath(`/admin/${tournamentId}`);
+    revalidatePath(`/t/${t.slug}`, "page");
+    return { ok: true, data: { slug: t.slug } };
+  } catch (e) {
+    console.error("updatePosterAction failed:", e);
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Unexpected error.",

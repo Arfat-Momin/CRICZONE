@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
 import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
 import { ExportPdfButton } from "@/components/admin/ExportPdfButton";
+import { TournamentPosterCard } from "@/components/admin/TournamentPosterCard";
 import { getSiteUrl } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -89,6 +90,11 @@ export default async function OverviewPage({ params }: Props) {
         <Stat label="Sold" value={soldCount} tone="success" />
         <Stat label="Unsold" value={unsoldCount} tone="sold" />
       </section>
+
+      <TournamentPosterCard
+        tournamentId={tournament.id}
+        currentPosterUrl={tournament.poster_url}
+      />
 
       <section className="rounded-2xl border border-[#1B4332]/10 bg-white p-5 shadow-sm">
         <h2 className="font-[family-name:var(--font-display)] text-lg font-bold text-forest">

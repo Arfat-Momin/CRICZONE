@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createTournamentAction } from "@/lib/actions/tournament";
+import { PhotoDropzone } from "@/components/tournament/PhotoDropzone";
 
 export function CreateTournamentForm() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export function CreateTournamentForm() {
   const [venue, setVenue] = useState("");
   const [start, setStart] = useState("");
   const [openReg, setOpenReg] = useState(true);
+  const [poster, setPoster] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +26,7 @@ export function CreateTournamentForm() {
         venue: venue || null,
         auctionStartAt: isoStart,
         openForRegistration: openReg,
+        posterDataUrl: poster,
       });
       if (!result.ok) {
         setError(result.error);
@@ -32,6 +35,7 @@ export function CreateTournamentForm() {
       setName("");
       setVenue("");
       setStart("");
+      setPoster(null);
       router.push(`/admin/${result.data.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unexpected error.");
@@ -95,6 +99,23 @@ export function CreateTournamentForm() {
             onChange={(e) => setStart(e.target.value)}
             className={inputCls}
             disabled={busy}
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#1B4332]/70">
+            Tournament Poster (optional)
+          </label>
+          <p className="mb-2 text-[11px] text-[#1B4332]/50">
+            Shown as a banner on the public page and as a thumbnail in the live
+            auction. Landscape ~21:9 works best.
+          </p>
+          <PhotoDropzone
+            value={poster}
+            onChange={setPoster}
+            maxDim={1600}
+            previewShape="rect"
+            hint="Landscape recommended · auto-converted to WebP · max 8 MB"
           />
         </div>
 

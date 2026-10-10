@@ -364,6 +364,7 @@ export type Database = {
           grouping_enabled: boolean
           id: string
           name: string
+          poster_url: string | null
           registration_enabled: boolean
           slug: string
           status: Database["public"]["Enums"]["tournament_status"]
@@ -377,6 +378,7 @@ export type Database = {
           grouping_enabled?: boolean
           id?: string
           name: string
+          poster_url?: string | null
           registration_enabled?: boolean
           slug: string
           status?: Database["public"]["Enums"]["tournament_status"]
@@ -390,6 +392,7 @@ export type Database = {
           grouping_enabled?: boolean
           id?: string
           name?: string
+          poster_url?: string | null
           registration_enabled?: boolean
           slug?: string
           status?: Database["public"]["Enums"]["tournament_status"]
