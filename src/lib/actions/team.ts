@@ -8,6 +8,7 @@ type CreateTeamInput = {
   tournamentId: string;
   teamName: string;
   captainName: string | null;
+  photoUrl: string | null;
   pointsRemaining: number;
   maxPlayers: number | null;
 };
@@ -35,6 +36,7 @@ export async function createTeamAction(
         tournament_id: input.tournamentId,
         team_name: teamName,
         captain_name: input.captainName?.trim() || null,
+        photo_url: input.photoUrl?.trim() || null,
         points_remaining: input.pointsRemaining,
         max_players: input.maxPlayers,
       })
@@ -70,6 +72,41 @@ export async function deleteTeamAction(
     const { error } = await supabase.from("teams").delete().eq("id", teamId);
     if (error) return { ok: false, error: error.message };
 
+    revalidatePath(`/admin/${tournamentId}`);
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Unexpected error.",
+    };
+  }
+}
+
+export async function updateTeamAction(
+  teamId: string,
+  tournamentId: string,
+  patch: {
+    teamName?: string;
+    captainName?: string | null;
+    photoUrl?: string | null;
+    pointsRemaining?: number;
+    maxPlayers?: number | null;
+  },
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase
+      .from("teams")
+      .update({
+        team_name: patch.teamName?.trim() || undefined,
+        captain_name: patch.captainName === undefined ? undefined : patch.captainName,
+        photo_url: patch.photoUrl === undefined ? undefined : patch.photoUrl,
+        points_remaining: patch.pointsRemaining,
+        max_players: patch.maxPlayers,
+      })
+      .eq("id", teamId);
+
+    if (error) return { ok: false, error: error.message };
     revalidatePath(`/admin/${tournamentId}`);
     return { ok: true, data: undefined };
   } catch (e) {

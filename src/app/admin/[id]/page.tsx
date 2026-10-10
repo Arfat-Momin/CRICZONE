@@ -8,6 +8,7 @@ import { DeleteTeamButton } from "@/components/admin/DeleteTeamButton";
 import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelect";
 import { DeleteTournamentButton } from "@/components/admin/DeleteTournamentButton";
 import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
+import { AdminPlayerSection } from "@/components/admin/AdminPlayerSection";
 import { getSiteUrl } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -165,71 +166,7 @@ export default async function AdminTournamentPage({ params }: Props) {
           </aside>
         </div>
 
-        <section className="mt-12">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest">
-            Players ({players.length})
-          </h2>
-          {players.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-8 text-center text-sm text-[#1B4332]/60">
-              No players registered yet. Share the registration link to start
-              collecting entries.
-            </div>
-          ) : (
-            <div className="mt-4 overflow-x-auto rounded-2xl border border-[#1B4332]/10 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-[#1B4332]/10 bg-[#FAFDF9] text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/60">
-                  <tr>
-                    <th className="px-4 py-3">Player</th>
-                    <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3">Jersey</th>
-                    <th className="hidden px-4 py-3 sm:table-cell">Mobile</th>
-                    <th className="px-4 py-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {players.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="border-b border-[#1B4332]/5 last:border-0 hover:bg-[#FAFDF9]"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          {p.photo_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={p.photo_url}
-                              alt=""
-                              className="h-8 w-8 rounded-full border border-[#1B4332]/15 object-cover"
-                            />
-                          ) : (
-                            <div className="h-8 w-8 rounded-full bg-[#1B4332]/10" />
-                          )}
-                          <span className="font-semibold text-forest">
-                            {p.full_name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-[#1B4332]/70">
-                        {p.category ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-[#1B4332]/70">
-                        {p.jersey_no ? `#${p.jersey_no}` : "—"}
-                      </td>
-                      <td className="hidden px-4 py-3 font-mono text-xs text-[#1B4332]/70 sm:table-cell">
-                        {p.mobile_no ?? "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="rounded-full bg-[#1B4332]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#1B4332]">
-                          {p.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        <AdminPlayerSection players={players} tournamentId={tournament.id} />
       </div>
     </main>
   );

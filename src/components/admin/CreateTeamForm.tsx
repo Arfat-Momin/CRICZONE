@@ -8,6 +8,7 @@ export function CreateTeamForm({ tournamentId }: { tournamentId: string }) {
   const router = useRouter();
   const [teamName, setTeamName] = useState("");
   const [captainName, setCaptainName] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
   const [points, setPoints] = useState("100");
   const [maxPlayers, setMaxPlayers] = useState("6");
   const [busy, setBusy] = useState(false);
@@ -26,6 +27,7 @@ export function CreateTeamForm({ tournamentId }: { tournamentId: string }) {
         tournamentId,
         teamName,
         captainName: captainName || null,
+        photoUrl: photoUrl || null,
         pointsRemaining: pointsNum,
         maxPlayers: maxNum,
       });
@@ -36,6 +38,7 @@ export function CreateTeamForm({ tournamentId }: { tournamentId: string }) {
       setSuccess(`Added "${teamName}"`);
       setTeamName("");
       setCaptainName("");
+      setPhotoUrl("");
       setPoints("100");
       setMaxPlayers("6");
       router.refresh();
@@ -84,6 +87,18 @@ export function CreateTeamForm({ tournamentId }: { tournamentId: string }) {
             disabled={busy}
           />
         </div>
+        <div>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-[#1B4332]/70">
+            Logo / Photo URL (optional)
+          </label>
+          <input
+            value={photoUrl}
+            onChange={(e) => setPhotoUrl(e.target.value)}
+            placeholder="https://..."
+            className={inputCls}
+            disabled={busy}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-[#1B4332]/70">
@@ -107,7 +122,7 @@ export function CreateTeamForm({ tournamentId }: { tournamentId: string }) {
               min={1}
               value={maxPlayers}
               onChange={(e) => setMaxPlayers(e.target.value)}
-              placeholder="Leave empty for no limit"
+              placeholder="blank = no limit"
               className={inputCls}
               disabled={busy}
             />
