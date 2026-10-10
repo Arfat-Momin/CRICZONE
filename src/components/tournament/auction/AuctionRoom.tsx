@@ -44,24 +44,22 @@ export function AuctionRoom({
 
   return (
     <div className="min-h-screen w-full bg-[#FDFCF0]">
-      <header className="sticky top-0 z-40 border-b border-[#1B4332]/10 bg-[#1B4332] text-cream shadow-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            {tournament.poster_url && (
-              <div className="h-10 w-16 shrink-0 overflow-hidden rounded-md border border-cream/20">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tournament.poster_url}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-            <p className="min-w-0 flex-1 truncate font-[family-name:var(--font-display)] text-base font-bold md:text-lg">
-              {tournament.name}
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-sold px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest">
+      <header className="sticky top-0 z-40 border-b border-[#1B4332]/10 bg-[#FDFCF0]/90 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-4 py-3 md:px-6">
+          {tournament.poster_url && (
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 border-[#2D6A4F]/40 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tournament.poster_url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+          <h1 className="truncate text-center font-[family-name:var(--font-display)] text-base font-bold text-forest md:text-lg">
+            {tournament.name}
+          </h1>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sold px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white">
             <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
             LIVE
           </span>
