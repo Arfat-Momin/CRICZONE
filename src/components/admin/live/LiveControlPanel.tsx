@@ -139,7 +139,24 @@ export function LiveControlPanel({
     }
   }
 
-  // ---------- Auction state ----------
+  // Optimistic bid: parent updates local state immediately, no server wait
+  function onOptimisticBid(nextBid: number, teamId: string) {
+    setState((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        current_bid_price: nextBid,
+        current_highest_team_id: teamId,
+      };
+    });
+  }
+
+  function onBidConfirmed() {
+    // Realtime will overwrite with the authoritative state; nothing else needed.
+    // If the RPC failed, realtime still has the previous value — parent state
+    // will reconcile on the next event.
+  }
+
   async function goLive() {
     await withBusy(async () => {
       const r = await updateTournamentStatusAction(tournament.id, "live");
@@ -163,7 +180,6 @@ export function LiveControlPanel({
     });
   }
 
-  // ---------- Put on block ----------
   async function runPutOnBlock(playerId: string) {
     await withBusy(async () => {
       const start = await putOnBlockAction(tournament.id, playerId);
@@ -171,7 +187,6 @@ export function LiveControlPanel({
         onMessage("err", start.error);
         return;
       }
-      // Let the public shuffle animation play
       await new Promise((r) => setTimeout(r, 3200));
       const fin = await finalizeOnBlockAction(tournament.id, playerId);
       if (!fin.ok) {
@@ -216,17 +231,19 @@ export function LiveControlPanel({
     });
   }
 
-  // ---------- Bid mode ----------
   async function onToggleBidMode() {
     const next = state?.bid_mode === "star" ? "normal" : "star";
     await withBusy(async () => {
       const r = await setBidModeAction(tournament.id, next);
       if (!r.ok) onMessage("err", r.error);
-      else onMessage("ok", `Bid mode set to ${next === "star" ? "STAR (1000 pts)" : "NORMAL"}.`);
+      else
+        onMessage(
+          "ok",
+          `Bid mode set to ${next === "star" ? "STAR (1000 pts)" : "NORMAL"}.`,
+        );
     });
   }
 
-  // ---------- Derived ----------
   const onBlockPlayer = state?.current_player_id
     ? players.find((p) => p.id === state.current_player_id) ?? null
     : null;
@@ -244,7 +261,6 @@ export function LiveControlPanel({
 
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
-      {/* Header */}
       <header className="border-b border-[#1B4332]/10 bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
           <Link
@@ -306,11 +322,8 @@ export function LiveControlPanel({
           </div>
         )}
 
-        {/* Grid: left = block + bidding, right = stats + sold */}
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
-          {/* Left column */}
           <div>
-            {/* Current block */}
             <section className="rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
@@ -378,7 +391,6 @@ export function LiveControlPanel({
               </div>
             </section>
 
-            {/* Put on block */}
             <section className="mt-6 rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
               <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
                 Put Player on Block
@@ -450,22 +462,21 @@ export function LiveControlPanel({
               </div>
             </section>
 
-            {/* Bidding pad */}
             {onBlockPlayer && (
               <BiddingPad
                 tournamentId={tournament.id}
                 state={state}
                 teams={teams}
                 players={players}
+                onOptimisticBid={onOptimisticBid}
+                onBidConfirmed={onBidConfirmed}
                 onBusy={withBusy}
                 onMessage={onMessage}
               />
             )}
           </div>
 
-          {/* Right column */}
           <div>
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-3">
               <Stat label="Pending" value={pendingPool.length} tone="forest" />
               <Stat
@@ -476,7 +487,6 @@ export function LiveControlPanel({
               <Stat label="Unsold" value={unsoldPool.length} tone="amber" />
             </div>
 
-            {/* Sold list with revert */}
             <SoldPlayersList
               tournamentId={tournament.id}
               players={players}

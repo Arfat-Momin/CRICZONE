@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { unstable_noStore as noStore } from "next/cache";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
@@ -14,11 +15,10 @@ import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
 /**
- * ISR: page is statically cached and regenerated in the background.
- * - Live auctions get fresh data via client-side realtime (no polling needed)
- * - Status transitions (ended, registration closed) propagate within 30s
+ * Live auctions need fresh server state on every load — ISR caching
+ * would serve stale bid data during the crucial first render.
  */
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -32,12 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export async function generateStaticParams() {
-  // Don't pre-render at build; regenerate on demand (ISR).
-  return [];
-}
-
 export default async function TournamentPage({ params }: Props) {
+  noStore();
   const { slug } = await params;
   const data = await getTournamentPublicData(slug);
   if (!data) notFound();

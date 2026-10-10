@@ -1,7 +1,7 @@
 "use client";
 
 import type { Tables } from "@/types/supabase";
-import { revertSaleAction } from "@/lib/actions/auction";
+import { browserRevertSale } from "@/lib/hooks/useAuctionActions";
 
 type Props = {
   tournamentId: string;
@@ -34,7 +34,7 @@ export function SoldPlayersList({
       return;
     }
     await onBusy(async () => {
-      const r = await revertSaleAction(tournamentId, playerId);
+      const r = await browserRevertSale(tournamentId, playerId);
       if (!r.ok) onMessage("err", r.error);
       else onMessage("ok", `Reverted sale of ${playerName}.`);
     });

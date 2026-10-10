@@ -2,17 +2,20 @@
 
 import type { Tables } from "@/types/supabase";
 import {
-  placeBidAction,
-  revertLastBidAction,
-  sellPlayerAction,
-  passPlayerAction,
-} from "@/lib/actions/auction";
+  browserPlaceBid,
+  browserRevertLastBid,
+  browserSellPlayer,
+  browserPassPlayer,
+  computeNextBid,
+} from "@/lib/hooks/useAuctionActions";
 
 type Props = {
   tournamentId: string;
   state: Tables<"auction_state"> | null;
   teams: Tables<"teams">[];
   players: Tables<"players">[];
+  onOptimisticBid: (nextBid: number, teamId: string) => void;
+  onBidConfirmed: () => void;
   onBusy: (fn: () => Promise<void>) => Promise<void>;
   onMessage: (kind: "ok" | "err", text: string) => void;
 };
@@ -22,23 +25,33 @@ export function BiddingPad({
   state,
   teams,
   players,
+  onOptimisticBid,
+  onBidConfirmed,
   onBusy,
   onMessage,
 }: Props) {
   const currentBid = state?.current_bid_price ?? 0;
   const highestTeamId = state?.current_highest_team_id ?? null;
+  const bidMode = state?.bid_mode ?? "normal";
 
   async function onPlaceBid(teamId: string) {
-    await onBusy(async () => {
-      const r = await placeBidAction(tournamentId, teamId);
-      if (!r.ok) onMessage("err", r.error);
-      else onMessage("ok", `Bid placed — now ${r.data.nextBid} pts.`);
-    });
+    // Optimistic: update the UI instantly
+    const nextBid = computeNextBid(currentBid, bidMode);
+    onOptimisticBid(nextBid, teamId);
+
+    const r = await browserPlaceBid(tournamentId, teamId);
+    if (!r.ok) {
+      onMessage("err", r.error);
+      onBidConfirmed(); // revert — parent will resync from realtime
+      return;
+    }
+    onMessage("ok", `Bid placed — now ${r.data.nextBid} pts.`);
+    onBidConfirmed();
   }
 
   async function onRevertBid() {
     await onBusy(async () => {
-      const r = await revertLastBidAction(tournamentId);
+      const r = await browserRevertLastBid(tournamentId);
       if (!r.ok) onMessage("err", r.error);
       else onMessage("ok", "Last bid reverted.");
     });
@@ -50,7 +63,7 @@ export function BiddingPad({
       return;
     }
     await onBusy(async () => {
-      const r = await passPlayerAction(tournamentId, state.current_player_id!);
+      const r = await browserPassPlayer(tournamentId, state.current_player_id!);
       if (!r.ok) onMessage("err", r.error);
       else onMessage("ok", "Player marked unsold.");
     });
@@ -62,7 +75,7 @@ export function BiddingPad({
       return;
     }
     await onBusy(async () => {
-      const r = await sellPlayerAction(
+      const r = await browserSellPlayer(
         tournamentId,
         state.current_player_id!,
         highestTeamId,
@@ -92,7 +105,9 @@ export function BiddingPad({
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
         {teams.map((team) => {
-          const boughtCount = players.filter((p) => p.sold_to_team_id === team.id).length;
+          const boughtCount = players.filter(
+            (p) => p.sold_to_team_id === team.id,
+          ).length;
           const remaining =
             team.max_players != null ? team.max_players - boughtCount : null;
           const isHighest = team.id === highestTeamId;
@@ -105,7 +120,7 @@ export function BiddingPad({
               type="button"
               onClick={() => onPlaceBid(team.id)}
               disabled={disabled}
-              className={`rounded-xl border p-3 text-left transition ${
+              className={`rounded-xl border p-3 text-left transition active:scale-[0.97] ${
                 isHighest
                   ? "border-success bg-mint"
                   : "border-[#1B4332]/15 bg-white hover:border-[#2D6A4F]/40"
