@@ -34,6 +34,7 @@ export default async function RegisterPage({ params }: Props) {
     <>
       <Navbar />
       <main className="mx-auto max-w-2xl px-6 py-12 md:py-16">
+        {/* Header with poster */}
         <div className="flex items-center gap-4">
           {tournament.poster_url && (
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-[#2D6A4F]/40 shadow-md">
@@ -54,6 +55,7 @@ export default async function RegisterPage({ params }: Props) {
             </h1>
           </div>
         </div>
+
         <p className="mt-4 text-sm text-[#1B4332]/65">{config.description}</p>
 
         <div className="mt-8">
@@ -62,6 +64,7 @@ export default async function RegisterPage({ params }: Props) {
               tournamentId={tournament.id}
               tournamentName={tournament.name}
               config={config}
+              posterUrl={tournament.poster_url}
             />
           ) : (
             <div className="rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-10 text-center">
