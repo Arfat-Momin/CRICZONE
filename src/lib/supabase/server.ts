@@ -1,9 +1,19 @@
+import "server-only";
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import type { Database } from "@/types/database.types";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
 
-export async function createClient() {
+/**
+ * Server-side Supabase client (anon key, cookie-based session).
+ *
+ * Wrapped in React.cache() so that multiple calls within the SAME
+ * server request reuse a single client instance — big latency win when
+ * a layout + page + multiple queries all need the client.
+ */
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
@@ -22,4 +32,4 @@ export async function createClient() {
       },
     },
   });
-}
+});

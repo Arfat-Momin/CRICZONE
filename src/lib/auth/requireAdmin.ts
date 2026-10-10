@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminEmail } from "@/lib/env";
 
@@ -20,10 +21,12 @@ export class ForbiddenError extends Error {
 }
 
 /**
- * Server-side guard for every admin mutation and admin-only route.
- * Usage: const { supabase, user } = await requireAdmin();
+ * Server-side guard for admin mutations and admin-only routes.
+ *
+ * Wrapped in React.cache() so layout + page + nested components calling
+ * requireAdmin() only trigger ONE auth check per request.
  */
-export async function requireAdmin() {
+export const requireAdmin = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,4 +43,4 @@ export async function requireAdmin() {
   }
 
   return { supabase, user: { id: user.id, email } };
-}
+});

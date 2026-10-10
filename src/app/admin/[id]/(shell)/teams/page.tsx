@@ -13,20 +13,18 @@ export default async function TeamsPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: tournament } = await supabase
-    .from("tournaments")
-    .select("id, name")
-    .eq("id", id)
-    .maybeSingle();
-  if (!tournament) notFound();
+  const [tournamentRes, teamsRes] = await Promise.all([
+    supabase.from("tournaments").select("id, name").eq("id", id).maybeSingle(),
+    supabase
+      .from("teams")
+      .select("*")
+      .eq("tournament_id", id)
+      .order("team_name", { ascending: true }),
+  ]);
 
-  const { data: teams } = await supabase
-    .from("teams")
-    .select("*")
-    .eq("tournament_id", id)
-    .order("team_name", { ascending: true });
-
-  const safeTeams = teams ?? [];
+  if (!tournamentRes.data) notFound();
+  const tournament = tournamentRes.data;
+  const safeTeams = teamsRes.data ?? [];
 
   return (
     <div className="space-y-6">

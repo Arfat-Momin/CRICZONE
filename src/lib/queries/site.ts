@@ -1,15 +1,11 @@
 import "server-only";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type SiteState = "online" | "maintenance";
 
-/**
- * Reads the global site state. Defaults to "online" if the row is
- * missing or the query fails, so a transient DB issue never locks
- * out the public site.
- */
-export async function getSiteState(): Promise<SiteState> {
+export const getSiteState = cache(async (): Promise<SiteState> => {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -22,4 +18,4 @@ export async function getSiteState(): Promise<SiteState> {
   } catch {
     return "online";
   }
-}
+});

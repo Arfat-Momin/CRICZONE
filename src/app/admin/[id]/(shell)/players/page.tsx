@@ -17,20 +17,23 @@ export default async function PlayersPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: tournament } = await supabase
-    .from("tournaments")
-    .select("id, name, slug")
-    .eq("id", id)
-    .maybeSingle();
-  if (!tournament) notFound();
+  const [tournamentRes, playersRes] = await Promise.all([
+    supabase
+      .from("tournaments")
+      .select("id, name, slug")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("players")
+      .select("*, player_contacts(mobile_no)")
+      .eq("tournament_id", id)
+      .order("registered_at", { ascending: false }),
+  ]);
 
-  const { data: rawPlayers } = await supabase
-    .from("players")
-    .select("*, player_contacts(mobile_no)")
-    .eq("tournament_id", id)
-    .order("registered_at", { ascending: false });
+  if (!tournamentRes.data) notFound();
+  const tournament = tournamentRes.data;
 
-  const players = ((rawPlayers ?? []) as unknown as PlayerRow[]).map((p) => {
+  const players = ((playersRes.data ?? []) as unknown as PlayerRow[]).map((p) => {
     const contacts = p.player_contacts;
     let mobile: string | null = null;
     if (Array.isArray(contacts)) mobile = contacts[0]?.mobile_no ?? null;
