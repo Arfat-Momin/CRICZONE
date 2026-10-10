@@ -3,14 +3,12 @@
 import { useState } from "react";
 import { registerPlayerAction } from "@/lib/actions/register";
 import { PhotoDropzone } from "./PhotoDropzone";
-import { ZoomableImage } from "@/components/shared/ZoomableImage";
 import type { FormConfig, FormFieldDef } from "@/lib/tournament/form-config";
 
 type Props = {
   tournamentId: string;
   tournamentName: string;
   config: FormConfig;
-  posterUrl?: string | null;
 };
 
 function blankValues(config: FormConfig): Record<string, string> {
@@ -25,12 +23,7 @@ function blankValues(config: FormConfig): Record<string, string> {
   return v;
 }
 
-export function RegistrationForm({
-  tournamentId,
-  tournamentName,
-  config,
-  posterUrl,
-}: Props) {
+export function RegistrationForm({ tournamentId, tournamentName, config }: Props) {
   const [values, setValues] = useState<Record<string, string>>(() =>
     blankValues(config),
   );
@@ -108,19 +101,6 @@ export function RegistrationForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-3.5" noValidate>
-      {posterUrl && (
-        <div className="overflow-hidden rounded-2xl border border-[#1B4332]/10 bg-white shadow-sm">
-          <div className="aspect-[21/9] w-full">
-            <ZoomableImage
-              src={posterUrl}
-              alt={`${tournamentName} poster`}
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        </div>
-      )}
-
       {nonPhotoFields.map((field) => (
         <FieldRenderer
           key={field.id}
