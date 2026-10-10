@@ -47,7 +47,7 @@ export function EditPlayerModal({ player, tournamentId, onClose }: Props) {
         category: category || null,
         currentTeam: currentTeam || null,
         basePrice: Number.parseFloat(basePrice) || 1,
-        photoDataUrl: photo,
+        photoInput: photo,
         clearPhoto,
       });
       if (!result.ok) {

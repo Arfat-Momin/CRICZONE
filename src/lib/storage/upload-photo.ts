@@ -4,8 +4,8 @@ import { randomUUID } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const BUCKET = "player-photos";
-const PLAYER_MAX_BYTES = 4 * 1024 * 1024; // 4 MB (higher quality player photo)
-const POSTER_MAX_BYTES = 8 * 1024 * 1024; // 8 MB (higher quality poster)
+const PLAYER_MAX_BYTES = 4 * 1024 * 1024;
+const POSTER_MAX_BYTES = 8 * 1024 * 1024;
 
 export type UploadResult = { url: string; path: string };
 
@@ -82,4 +82,42 @@ export async function uploadTournamentPoster(
 
   const { data } = admin.storage.from(BUCKET).getPublicUrl(key);
   return { url: data.publicUrl, path: key };
+}
+
+/**
+ * Flexible image input resolver used by admin actions.
+ *
+ * Accepts:
+ *   - null / ""       → returns { url: null, path: null }
+ *   - data:image/...  → uploads to Supabase Storage, returns public URL
+ *   - http(s)://...   → stores the URL directly (no re-upload)
+ *
+ * Kind controls size limits + storage path prefix.
+ */
+export async function resolveImageInput(
+  tournamentId: string,
+  input: string | null | undefined,
+  kind: "player" | "poster",
+): Promise<{ url: string | null; path: string | null }> {
+  if (!input) return { url: null, path: null };
+  const trimmed = input.trim();
+  if (!trimmed) return { url: null, path: null };
+
+  if (trimmed.startsWith("data:")) {
+    const up =
+      kind === "poster"
+        ? await uploadTournamentPoster(tournamentId, trimmed)
+        : await uploadPlayerPhoto(tournamentId, trimmed);
+    return { url: up.url, path: up.path };
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    // Basic length guard so we don't store pathological inputs
+    if (trimmed.length > 2000) {
+      throw new Error("URL is too long (max 2000 characters).");
+    }
+    return { url: trimmed, path: null };
+  }
+
+  throw new Error("Unsupported image input (must be a data URL or http(s) URL).");
 }

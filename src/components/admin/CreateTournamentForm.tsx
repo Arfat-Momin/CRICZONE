@@ -26,7 +26,7 @@ export function CreateTournamentForm() {
         venue: venue || null,
         auctionStartAt: isoStart,
         openForRegistration: openReg,
-        posterDataUrl: poster,
+        posterInput: poster,
       });
       if (!result.ok) {
         setError(result.error);

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { generateShortCode } from "@/lib/utils/slug";
 import { DEFAULT_FORM_FIELDS } from "@/lib/tournament/form-config";
-import { uploadTournamentPoster } from "@/lib/storage/upload-photo";
+import { resolveImageInput } from "@/lib/storage/upload-photo";
 import type { Tables, TablesInsert } from "@/types/supabase";
 import type { Json } from "@/types/database.types";
 import type { FormConfig } from "@/lib/tournament/form-config";
@@ -20,7 +20,7 @@ type CreateTournamentInput = {
   venue: string | null;
   auctionStartAt: string | null;
   openForRegistration: boolean;
-  posterDataUrl?: string | null;
+  posterInput?: string | null;
 };
 
 /**
@@ -83,14 +83,16 @@ export async function createTournamentAction(
       return { ok: false, error: error?.message ?? "Could not create tournament." };
     }
 
-    // Optional poster — uploaded after insert (needs tournament id in path)
-    if (input.posterDataUrl) {
+    // Optional poster — resolved after insert (needs tournament id in path for uploads)
+    if (input.posterInput) {
       try {
-        const up = await uploadTournamentPoster(data.id, input.posterDataUrl);
-        await supabase
-          .from("tournaments")
-          .update({ poster_url: up.url })
-          .eq("id", data.id);
+        const resolved = await resolveImageInput(data.id, input.posterInput, "poster");
+        if (resolved.url) {
+          await supabase
+            .from("tournaments")
+            .update({ poster_url: resolved.url })
+            .eq("id", data.id);
+        }
       } catch (posterErr) {
         // Non-fatal: tournament created, admin can upload later from Overview
         console.warn("Poster upload failed during creation:", posterErr);
@@ -295,12 +297,11 @@ export async function clearTournamentDataAction(
 }
 export async function updatePosterAction(
   tournamentId: string,
-  posterDataUrl: string | null,
+  posterInput: string | null,
 ): Promise<ActionResult<{ slug: string }>> {
   try {
     const { supabase } = await requireAdmin();
 
-    // Fetch slug for revalidation
     const { data: t } = await supabase
       .from("tournaments")
       .select("slug")
@@ -309,7 +310,7 @@ export async function updatePosterAction(
     if (!t) return { ok: false, error: "Tournament not found." };
 
     // Remove
-    if (posterDataUrl === null) {
+    if (posterInput === null) {
       const { error } = await supabase
         .from("tournaments")
         .update({ poster_url: null })
@@ -321,13 +322,14 @@ export async function updatePosterAction(
       return { ok: true, data: { slug: t.slug } };
     }
 
-    // Upload + update
+    // Resolve (data URL -> upload; http URL -> store directly)
     let url: string;
     try {
-      const up = await uploadTournamentPoster(tournamentId, posterDataUrl);
-      url = up.url;
+      const resolved = await resolveImageInput(tournamentId, posterInput, "poster");
+      if (!resolved.url) return { ok: false, error: "Poster processing failed." };
+      url = resolved.url;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Poster upload failed.";
+      const msg = e instanceof Error ? e.message : "Poster processing failed.";
       return { ok: false, error: msg };
     }
 

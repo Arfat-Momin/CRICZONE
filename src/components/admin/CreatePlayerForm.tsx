@@ -39,7 +39,7 @@ export function CreatePlayerForm({ tournamentId, onSuccess }: Props) {
         category: category || null,
         currentTeam: currentTeam || null,
         basePrice: Number.parseFloat(basePrice) || 1,
-        photoDataUrl: photo,
+        photoInput: photo,
       });
       if (!result.ok) {
         setError(result.error);
