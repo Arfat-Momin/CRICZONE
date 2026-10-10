@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { SummaryView } from "@/components/tournament/SummaryView";
+import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // Archived data changes rarely
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -27,13 +28,12 @@ export default async function ArchiveDetailPage({ params }: Props) {
 
   const { tournament, players, teams } = data;
 
-  // Archived detail route accepts ended + archived only
   if (tournament.status !== "archived" && tournament.status !== "ended") {
     notFound();
   }
 
   return (
-    <>
+    <MaintenanceGate>
       <Navbar />
       <main>
         <div className="mx-auto max-w-7xl px-6 pt-8">
@@ -47,6 +47,6 @@ export default async function ArchiveDetailPage({ params }: Props) {
         <SummaryView tournament={tournament} players={players} teams={teams} />
       </main>
       <Footer />
-    </>
+    </MaintenanceGate>
   );
 }

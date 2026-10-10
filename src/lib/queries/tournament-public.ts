@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import type { Tables } from "@/types/supabase";
 
 export type TournamentPublicData = {
@@ -11,9 +11,13 @@ export type TournamentPublicData = {
   state: Tables<"auction_state"> | null;
 };
 
+/**
+ * Public tournament read — cookie-less, cacheable, ISR-friendly.
+ * Cached per-request via React.cache() and per-slug across requests via ISR.
+ */
 export const getTournamentPublicData = cache(
   async (slug: string): Promise<TournamentPublicData | null> => {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
 
     const { data: tournament, error } = await supabase
       .from("tournaments")

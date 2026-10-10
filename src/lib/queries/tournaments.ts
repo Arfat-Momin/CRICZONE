@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import type { Tournament } from "@/types/supabase";
 
 export type PublicTournament = Pick<
@@ -10,12 +10,8 @@ export type PublicTournament = Pick<
 
 const PUBLIC_COLUMNS = "id, slug, name, venue, auction_start_at, status" as const;
 
-/**
- * Live + registration + ready tournaments — shown on the landing page.
- * RLS already filters drafts; we additionally restrict to active states.
- */
 export async function getActiveTournaments(limit = 12): Promise<PublicTournament[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("tournaments")
     .select(PUBLIC_COLUMNS)
@@ -30,11 +26,8 @@ export async function getActiveTournaments(limit = 12): Promise<PublicTournament
   return data ?? [];
 }
 
-/**
- * Archived tournaments — shown on landing + /archive.
- */
 export async function getArchivedTournaments(limit = 8): Promise<PublicTournament[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("tournaments")
     .select(PUBLIC_COLUMNS)
@@ -49,11 +42,8 @@ export async function getArchivedTournaments(limit = 8): Promise<PublicTournamen
   return data ?? [];
 }
 
-/**
- * Get a single public tournament by slug (any public status).
- */
 export async function getTournamentBySlug(slug: string): Promise<PublicTournament | null> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("tournaments")
     .select(PUBLIC_COLUMNS)

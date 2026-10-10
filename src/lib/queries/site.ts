@@ -1,13 +1,13 @@
 import "server-only";
 
 import { cache } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 
 export type SiteState = "online" | "maintenance";
 
 export const getSiteState = cache(async (): Promise<SiteState> => {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("global_settings")
       .select("site_state")

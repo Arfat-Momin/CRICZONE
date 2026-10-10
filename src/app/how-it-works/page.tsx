@@ -10,10 +10,13 @@ export const metadata: Metadata = {
     "How CRICZONE runs real-time turf cricket auctions — from tournament setup to the final bid.",
 };
 
+// Fully static — no data dependency
+export const revalidate = 3600;
+
 const FAQ = [
   {
     q: "Can two tournaments run at the same time?",
-    a: "Yes. Every tournament is fully isolated with its own players, teams, groups, and realtime channel. Running multiple leagues in parallel is a first-class feature.",
+    a: "Yes. Every tournament is fully isolated with its own players, teams, groups, and realtime channel.",
   },
   {
     q: "How does live bidding work?",

@@ -13,7 +13,12 @@ import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
-export const dynamic = "force-dynamic";
+/**
+ * ISR: page is statically cached and regenerated in the background.
+ * - Live auctions get fresh data via client-side realtime (no polling needed)
+ * - Status transitions (ended, registration closed) propagate within 30s
+ */
+export const revalidate = 30;
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -27,6 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+export async function generateStaticParams() {
+  // Don't pre-render at build; regenerate on demand (ISR).
+  return [];
+}
+
 export default async function TournamentPage({ params }: Props) {
   const { slug } = await params;
   const data = await getTournamentPublicData(slug);
@@ -35,7 +45,6 @@ export default async function TournamentPage({ params }: Props) {
   const { tournament, players, teams, state } = data;
   const config = normalizeFormConfig(tournament.form_config, tournament.name);
 
-  // Build display-field metadata once for reuse
   const displayFields = config.cardDisplayFields
     .map((id) => {
       const field = config.formFields.find((f) => f.id === id);

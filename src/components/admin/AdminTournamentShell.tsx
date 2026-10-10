@@ -108,7 +108,7 @@ export function AdminTournamentShell({
               else if (item.accent) colorCls = "text-[#2D6A4F] hover:bg-mint";
               return (
                 <li key={item.href} className="shrink-0">
-                  <Link href={item.href} className={`${baseCls} ${colorCls}`}>
+                  <Link href={item.href} prefetch={true} className={`${baseCls} ${colorCls}`}>
                     <span aria-hidden>{item.icon}</span>
                     <span>{item.label}</span>
                   </Link>
