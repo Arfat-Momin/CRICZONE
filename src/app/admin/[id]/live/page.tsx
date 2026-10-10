@@ -16,8 +16,10 @@ export default async function LivePage({ params }: Props) {
   return (
     <LiveControlPanel
       tournament={detail.tournament}
+      initialState={detail.state}
       initialPlayers={detail.players}
       initialTeams={detail.teams}
+      initialGroups={detail.groups}
     />
   );
 }

@@ -2,10 +2,18 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/supabase";
+import { getTournamentGroups, type GroupWithMembers } from "./groups";
 
 export type AdminTournamentSummary = Pick<
   Tables<"tournaments">,
-  "id" | "slug" | "name" | "venue" | "auction_start_at" | "status" | "registration_enabled" | "created_at"
+  | "id"
+  | "slug"
+  | "name"
+  | "venue"
+  | "auction_start_at"
+  | "status"
+  | "registration_enabled"
+  | "created_at"
 > & {
   player_count: number;
   team_count: number;
@@ -16,7 +24,9 @@ export async function listAdminTournaments(): Promise<AdminTournamentSummary[]> 
 
   const { data: tournaments, error } = await supabase
     .from("tournaments")
-    .select("id, slug, name, venue, auction_start_at, status, registration_enabled, created_at")
+    .select(
+      "id, slug, name, venue, auction_start_at, status, registration_enabled, created_at",
+    )
     .order("created_at", { ascending: false });
 
   if (error || !tournaments) {
@@ -24,7 +34,6 @@ export async function listAdminTournaments(): Promise<AdminTournamentSummary[]> 
     return [];
   }
 
-  // Count players + teams per tournament
   const ids = tournaments.map((t) => t.id);
   if (ids.length === 0) return [];
 
@@ -53,6 +62,8 @@ export type AdminTournamentDetail = {
   tournament: Tables<"tournaments">;
   players: Array<Tables<"players"> & { mobile_no: string | null }>;
   teams: Tables<"teams">[];
+  state: Tables<"auction_state"> | null;
+  groups: GroupWithMembers[];
 };
 
 export async function getAdminTournamentDetail(
@@ -68,7 +79,7 @@ export async function getAdminTournamentDetail(
 
   if (error || !tournament) return null;
 
-  const [playersRes, teamsRes] = await Promise.all([
+  const [playersRes, teamsRes, stateRes, groups] = await Promise.all([
     supabase
       .from("players")
       .select("*, player_contacts(mobile_no)")
@@ -79,6 +90,12 @@ export async function getAdminTournamentDetail(
       .select("*")
       .eq("tournament_id", id)
       .order("team_name", { ascending: true }),
+    supabase
+      .from("auction_state")
+      .select("*")
+      .eq("tournament_id", id)
+      .maybeSingle(),
+    getTournamentGroups(id),
   ]);
 
   type PlayerRow = Tables<"players"> & {
@@ -100,5 +117,7 @@ export async function getAdminTournamentDetail(
     tournament,
     players,
     teams: teamsRes.data ?? [],
+    state: stateRes.data ?? null,
+    groups,
   };
 }

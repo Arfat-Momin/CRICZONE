@@ -2,45 +2,54 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/supabase";
+import type { GroupWithMembers } from "@/lib/queries/groups";
 import {
   putOnBlockAction,
   finalizeOnBlockAction,
-  placeBidAction,
-  revertLastBidAction,
-  sellPlayerAction,
-  passPlayerAction,
+  clearOnBlockAction,
+  setBidModeAction,
 } from "@/lib/actions/auction";
 import { updateTournamentStatusAction } from "@/lib/actions/tournament";
+import { BiddingPad } from "./BiddingPad";
+import { GroupDrawButtons } from "./GroupDrawButtons";
+import { SoldPlayersList } from "./SoldPlayersList";
+
+type AdminPlayer = Tables<"players"> & { mobile_no: string | null };
 
 type Props = {
   tournament: Tables<"tournaments">;
-  initialPlayers: Array<Tables<"players"> & { mobile_no: string | null }>;
+  initialState: Tables<"auction_state"> | null;
+  initialPlayers: AdminPlayer[];
   initialTeams: Tables<"teams">[];
+  initialGroups: GroupWithMembers[];
 };
 
 export function LiveControlPanel({
   tournament: initialTournament,
+  initialState,
   initialPlayers,
   initialTeams,
+  initialGroups,
 }: Props) {
+  const router = useRouter();
   const [tournament, setTournament] = useState(initialTournament);
-  const [players, setPlayers] = useState<Array<Tables<"players"> & { mobile_no: string | null }>>(initialPlayers);
+  const [players, setPlayers] = useState<AdminPlayer[]>(initialPlayers);
   const [teams, setTeams] = useState<Tables<"teams">[]>(initialTeams);
-  const [state, setState] = useState<Tables<"auction_state"> | null>(null);
+  const [groups, setGroups] = useState<GroupWithMembers[]>(initialGroups);
+  const [state, setState] = useState<Tables<"auction_state"> | null>(initialState);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [manualPlayerId, setManualPlayerId] = useState("");
-  const [manualTeamId, setManualTeamId] = useState("");
-  const [manualPrice, setManualPrice] = useState("");
 
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
 
-  // Realtime: auction_state + players + teams
+  // Realtime subscriptions
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -116,6 +125,10 @@ export function LiveControlPanel({
     };
   }, [tournament.id]);
 
+  function onMessage(kind: "ok" | "err", text: string) {
+    setMsg({ kind, text });
+  }
+
   async function withBusy(fn: () => Promise<void>) {
     setBusy(true);
     setMsg(null);
@@ -126,13 +139,14 @@ export function LiveControlPanel({
     }
   }
 
+  // ---------- Auction state ----------
   async function goLive() {
     await withBusy(async () => {
       const r = await updateTournamentStatusAction(tournament.id, "live");
-      if (!r.ok) setMsg({ kind: "err", text: r.error });
+      if (!r.ok) onMessage("err", r.error);
       else {
         setTournament((t) => ({ ...t, status: "live" }));
-        setMsg({ kind: "ok", text: "Auction is LIVE." });
+        onMessage("ok", "Auction is LIVE.");
       }
     });
   }
@@ -141,18 +155,36 @@ export function LiveControlPanel({
     if (!confirm("End the auction? No more bids can be placed.")) return;
     await withBusy(async () => {
       const r = await updateTournamentStatusAction(tournament.id, "ended");
-      if (!r.ok) setMsg({ kind: "err", text: r.error });
+      if (!r.ok) onMessage("err", r.error);
       else {
         setTournament((t) => ({ ...t, status: "ended" }));
-        setMsg({ kind: "ok", text: "Auction ended." });
+        onMessage("ok", "Auction ended.");
       }
     });
   }
 
-  async function putRandom(status: "pending" | "unsold") {
-    const pool = players.filter((p) => p.status === status);
+  // ---------- Put on block ----------
+  async function runPutOnBlock(playerId: string) {
+    await withBusy(async () => {
+      const start = await putOnBlockAction(tournament.id, playerId);
+      if (!start.ok) {
+        onMessage("err", start.error);
+        return;
+      }
+      // Let the public shuffle animation play
+      await new Promise((r) => setTimeout(r, 3200));
+      const fin = await finalizeOnBlockAction(tournament.id, playerId);
+      if (!fin.ok) {
+        onMessage("err", fin.error);
+        return;
+      }
+      onMessage("ok", `${start.data.playerName} is on the block.`);
+    });
+  }
+
+  async function drawRandom(pool: AdminPlayer[], label: string) {
     if (pool.length === 0) {
-      setMsg({ kind: "err", text: `No ${status} players available.` });
+      onMessage("err", `No ${label} players available.`);
       return;
     }
     const winner = pool[Math.floor(Math.random() * pool.length)];
@@ -160,74 +192,41 @@ export function LiveControlPanel({
     await runPutOnBlock(winner.id);
   }
 
-  async function runPutOnBlock(playerId: string) {
-    await withBusy(async () => {
-      const start = await putOnBlockAction(tournament.id, playerId);
-      if (!start.ok) {
-        setMsg({ kind: "err", text: start.error });
-        return;
-      }
-      // Let the public shuffle animation play
-      await new Promise((r) => setTimeout(r, 3200));
-      const fin = await finalizeOnBlockAction(tournament.id, playerId);
-      if (!fin.ok) {
-        setMsg({ kind: "err", text: fin.error });
-        return;
-      }
-      setMsg({ kind: "ok", text: `${start.data.playerName} is on the block.` });
-    });
+  async function onDrawOutsideGroups() {
+    const allGroupPlayerIds = new Set<string>();
+    for (const g of groups) for (const pid of g.player_ids) allGroupPlayerIds.add(pid);
+    const pool = players.filter(
+      (p) => p.status === "pending" && !allGroupPlayerIds.has(p.id),
+    );
+    await drawRandom(pool, "outside-group");
   }
 
-  async function placeBid(teamId: string) {
-    await withBusy(async () => {
-      const r = await placeBidAction(tournament.id, teamId);
-      if (!r.ok) setMsg({ kind: "err", text: r.error });
-      else setMsg({ kind: "ok", text: `Bid placed — now ${r.data.nextBid} pts.` });
-    });
-  }
-
-  async function revertBid() {
-    await withBusy(async () => {
-      const r = await revertLastBidAction(tournament.id);
-      if (!r.ok) setMsg({ kind: "err", text: r.error });
-      else setMsg({ kind: "ok", text: "Last bid reverted." });
-    });
-  }
-
-  async function sellManual() {
-    const teamId = manualTeamId || state?.current_highest_team_id || "";
-    const price = Number.parseFloat(manualPrice) || state?.current_bid_price || 0;
-    if (!state?.current_player_id) {
-      setMsg({ kind: "err", text: "No player on block." });
-      return;
-    }
-    if (!teamId || price <= 0) {
-      setMsg({ kind: "err", text: "Select a team and enter a price." });
+  async function onClearBlock() {
+    if (
+      !confirm(
+        "Clear the current block?\n\nAny on-block player will return to Pending and bid history will be cleared.",
+      )
+    ) {
       return;
     }
     await withBusy(async () => {
-      const r = await sellPlayerAction(tournament.id, state.current_player_id!, teamId, price);
-      if (!r.ok) setMsg({ kind: "err", text: r.error });
-      else {
-        setManualPrice("");
-        setManualTeamId("");
-        setMsg({ kind: "ok", text: "Sold!" });
-      }
+      const r = await clearOnBlockAction(tournament.id);
+      if (!r.ok) onMessage("err", r.error);
+      else onMessage("ok", "Block cleared.");
     });
   }
 
-  async function pass() {
-    if (!state?.current_player_id) {
-      setMsg({ kind: "err", text: "No player on block." });
-      return;
-    }
+  // ---------- Bid mode ----------
+  async function onToggleBidMode() {
+    const next = state?.bid_mode === "star" ? "normal" : "star";
     await withBusy(async () => {
-      const r = await passPlayerAction(tournament.id, state.current_player_id!);
-      if (!r.ok) setMsg({ kind: "err", text: r.error });
-      else setMsg({ kind: "ok", text: "Player marked unsold." });
+      const r = await setBidModeAction(tournament.id, next);
+      if (!r.ok) onMessage("err", r.error);
+      else onMessage("ok", `Bid mode set to ${next === "star" ? "STAR (1000 pts)" : "NORMAL"}.`);
     });
   }
 
+  // ---------- Derived ----------
   const onBlockPlayer = state?.current_player_id
     ? players.find((p) => p.id === state.current_player_id) ?? null
     : null;
@@ -241,8 +240,11 @@ export function LiveControlPanel({
     (p) => p.status === "pending" || p.status === "unsold",
   );
 
+  const blockLocked = !!onBlockPlayer;
+
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
+      {/* Header */}
       <header className="border-b border-[#1B4332]/10 bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
           <Link
@@ -252,7 +254,15 @@ export function LiveControlPanel({
             &larr; Tournament
           </Link>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#1B4332]/60">
+            <button
+              type="button"
+              onClick={() => router.refresh()}
+              disabled={busy}
+              className="rounded-lg border border-[#1B4332]/20 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-mint disabled:opacity-50"
+            >
+              Refresh
+            </button>
+            <span className="hidden text-xs font-semibold uppercase tracking-wider text-[#1B4332]/60 sm:inline">
               {tournament.status}
             </span>
             {tournament.status !== "live" && tournament.status !== "ended" && (
@@ -296,207 +306,186 @@ export function LiveControlPanel({
           </div>
         )}
 
-        {/* On-block status */}
-        <section className="mt-6 rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
-          <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-            Current Block
-          </h2>
-          <div className="mt-3 text-sm text-[#1B4332]/75">
-            {state?.shuffling_name ? (
-              <p>
-                Shuffling:{" "}
-                <span className="font-bold text-sold">{state.shuffling_name}</span>
-              </p>
-            ) : onBlockPlayer ? (
-              <p>
-                On block:{" "}
-                <span className="font-bold text-forest">{onBlockPlayer.full_name}</span> ·{" "}
-                Current bid:{" "}
-                <span className="font-bold text-sold">{state?.current_bid_price ?? 0} pts</span>{" "}
-                {currentHighestTeam && (
-                  <>
-                    by <span className="font-bold text-[#2D6A4F]">{currentHighestTeam.team_name}</span>
-                  </>
-                )}
-              </p>
-            ) : (
-              <p className="text-[#1B4332]/60">No player on the block.</p>
-            )}
-          </div>
-        </section>
-
-        {/* Put on block */}
-        <section className="mt-6 rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
-          <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-            Put Player on Block
-          </h2>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => putRandom("pending")}
-              disabled={busy || !!onBlockPlayer || pendingPool.length === 0}
-              className="rounded-lg bg-forest px-4 py-2 text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F] disabled:opacity-50"
-            >
-              Random Pending ({pendingPool.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => putRandom("unsold")}
-              disabled={busy || !!onBlockPlayer || unsoldPool.length === 0}
-              className="rounded-lg bg-[#FFA000] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
-            >
-              Random Unsold ({unsoldPool.length})
-            </button>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <select
-              value={manualPlayerId}
-              onChange={(e) => setManualPlayerId(e.target.value)}
-              disabled={busy || !!onBlockPlayer}
-              className="min-w-[220px] rounded-lg border border-[#1B4332]/20 bg-[#FDFCF0] px-3 py-2 text-sm"
-            >
-              <option value="">— Manual select —</option>
-              {manualPool.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.full_name} ({p.status})
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => {
-                if (manualPlayerId) void runPutOnBlock(manualPlayerId);
-              }}
-              disabled={busy || !!onBlockPlayer || !manualPlayerId}
-              className="rounded-lg bg-[#546E7A] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
-            >
-              Put on Block
-            </button>
-          </div>
-        </section>
-
-        {/* Bidding panel */}
-        {onBlockPlayer && (
-          <section className="mt-6 rounded-2xl border-2 border-sold/30 bg-gradient-to-b from-[#FFF7F7] to-white p-6 shadow-md">
-            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-              Bidding Pad
-            </h2>
-            <p className="mt-1 text-sm text-[#1B4332]/75">
-              Current bid:{" "}
-              <span className="font-[family-name:var(--font-numeric)] text-lg font-bold text-sold">
-                {state?.current_bid_price ?? 0} pts
-              </span>
-            </p>
-
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {teams.map((team) => {
-                const bought = players.filter((p) => p.sold_to_team_id === team.id);
-                const remaining =
-                  team.max_players != null ? team.max_players - bought.length : null;
-                const isHighest = team.id === state?.current_highest_team_id;
-                const full = remaining !== null && remaining <= 0;
-                const canAfford = team.points_remaining > 0;
-                const disabled = busy || isHighest || full || !canAfford;
-                return (
+        {/* Grid: left = block + bidding, right = stats + sold */}
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
+          {/* Left column */}
+          <div>
+            {/* Current block */}
+            <section className="rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
+                  Current Block
+                </h2>
+                <div className="flex gap-2">
                   <button
-                    key={team.id}
                     type="button"
-                    onClick={() => placeBid(team.id)}
-                    disabled={disabled}
-                    className={`rounded-xl border p-3 text-left transition ${
-                      isHighest
-                        ? "border-success bg-mint"
-                        : "border-[#1B4332]/15 bg-white hover:border-[#2D6A4F]/40"
+                    onClick={onToggleBidMode}
+                    disabled={busy}
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition ${
+                      state?.bid_mode === "star"
+                        ? "border-[#7B1FA2] bg-[#7B1FA2] text-white"
+                        : "border-[#1B4332]/20 bg-white text-forest hover:bg-mint"
                     } disabled:opacity-50`}
                   >
-                    <p className="truncate text-sm font-bold text-forest">
-                      {team.team_name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-[#1B4332]/60">
-                      {team.points_remaining} pts
-                      {remaining !== null && ` · ${remaining} slots`}
-                    </p>
-                    {isHighest && (
-                      <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-success">
-                        Highest
-                      </p>
-                    )}
+                    {state?.bid_mode === "star" ? "★ Star Mode ON" : "Star Mode OFF"}
                   </button>
-                );
-              })}
-            </div>
+                  {blockLocked && (
+                    <button
+                      type="button"
+                      onClick={onClearBlock}
+                      disabled={busy}
+                      className="rounded-lg border border-sold/40 bg-sold/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-sold transition hover:bg-sold hover:text-white disabled:opacity-50"
+                    >
+                      Clear Block
+                    </button>
+                  )}
+                </div>
+              </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={revertBid}
-                disabled={busy}
-                className="rounded-lg border border-[#1B4332]/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-mint disabled:opacity-50"
-              >
-                Revert Last Bid
-              </button>
-              <button
-                type="button"
-                onClick={pass}
-                disabled={busy}
-                className="rounded-lg border border-sold/40 bg-sold/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-sold transition hover:bg-sold hover:text-white disabled:opacity-50"
-              >
-                Pass (Unsold)
-              </button>
-            </div>
+              <div className="mt-3 text-sm text-[#1B4332]/75">
+                {state?.shuffling_name ? (
+                  <p>
+                    Shuffling:{" "}
+                    <span className="font-bold text-sold">{state.shuffling_name}</span>
+                  </p>
+                ) : onBlockPlayer ? (
+                  <>
+                    <p>
+                      On block:{" "}
+                      <span className="font-bold text-forest">
+                        {onBlockPlayer.full_name}
+                      </span>
+                    </p>
+                    <p className="mt-1">
+                      Current bid:{" "}
+                      <span className="font-[family-name:var(--font-numeric)] font-bold text-sold">
+                        {state?.current_bid_price ?? 0} pts
+                      </span>
+                      {currentHighestTeam && (
+                        <>
+                          {" "}
+                          by{" "}
+                          <span className="font-bold text-[#2D6A4F]">
+                            {currentHighestTeam.team_name}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-[#1B4332]/60">No player on the block.</p>
+                )}
+              </div>
+            </section>
 
-            <div className="mt-6 border-t border-[#1B4332]/10 pt-5">
-              <p className="text-sm font-bold text-forest">Manual Sell</p>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <select
-                  value={manualTeamId}
-                  onChange={(e) => setManualTeamId(e.target.value)}
-                  className="min-w-[180px] rounded-lg border border-[#1B4332]/20 bg-[#FDFCF0] px-3 py-2 text-sm"
-                >
-                  <option value="">
-                    {state?.current_highest_team_id
-                      ? "— Use highest bidder —"
-                      : "— Select team —"}
-                  </option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.team_name} ({t.points_remaining} pts)
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  step="0.5"
-                  min={0.5}
-                  placeholder={`Price (e.g. ${state?.current_bid_price ?? 1})`}
-                  value={manualPrice}
-                  onChange={(e) => setManualPrice(e.target.value)}
-                  className="w-40 rounded-lg border border-[#1B4332]/20 bg-[#FDFCF0] px-3 py-2 text-sm"
-                />
+            {/* Put on block */}
+            <section className="mt-6 rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
+                Put Player on Block
+              </h2>
+
+              <div className="mt-4 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  onClick={sellManual}
-                  disabled={busy}
-                  className="rounded-lg bg-success px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
+                  onClick={() => drawRandom(pendingPool, "pending")}
+                  disabled={busy || blockLocked || pendingPool.length === 0}
+                  className="rounded-lg bg-forest px-4 py-2 text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F] disabled:opacity-50"
                 >
-                  Sell Player
+                  Random Pending ({pendingPool.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => drawRandom(unsoldPool, "unsold")}
+                  disabled={busy || blockLocked || unsoldPool.length === 0}
+                  className="rounded-lg bg-[#FFA000] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
+                >
+                  Random Unsold ({unsoldPool.length})
                 </button>
               </div>
-            </div>
-          </section>
-        )}
 
-        {/* Pools summary */}
-        <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Stat label="Pending" value={pendingPool.length} tone="forest" />
-          <Stat
-            label="Sold"
-            value={players.filter((p) => p.status === "sold").length}
-            tone="sold"
-          />
-          <Stat label="Unsold" value={unsoldPool.length} tone="amber" />
-        </section>
+              {tournament.grouping_enabled && (
+                <GroupDrawButtons
+                  groups={groups}
+                  players={players}
+                  disabled={busy || blockLocked}
+                  onDrawFromGroup={async (g) => {
+                    const pool = players.filter(
+                      (p) => p.status === "pending" && g.player_ids.includes(p.id),
+                    );
+                    await drawRandom(pool, `"${g.name}"`);
+                  }}
+                  onDrawOutside={onDrawOutsideGroups}
+                />
+              )}
+
+              <div className="mt-4">
+                <p className="mb-1 text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
+                  Manual Override
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <select
+                    value={manualPlayerId}
+                    onChange={(e) => setManualPlayerId(e.target.value)}
+                    disabled={busy || blockLocked}
+                    className="min-w-[220px] rounded-lg border border-[#1B4332]/20 bg-[#FDFCF0] px-3 py-2 text-sm"
+                  >
+                    <option value="">— Manual select —</option>
+                    {manualPool.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.full_name} ({p.status})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (manualPlayerId) void runPutOnBlock(manualPlayerId);
+                    }}
+                    disabled={busy || blockLocked || !manualPlayerId}
+                    className="rounded-lg bg-[#546E7A] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
+                  >
+                    Put on Block
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Bidding pad */}
+            {onBlockPlayer && (
+              <BiddingPad
+                tournamentId={tournament.id}
+                state={state}
+                teams={teams}
+                players={players}
+                onBusy={withBusy}
+                onMessage={onMessage}
+              />
+            )}
+          </div>
+
+          {/* Right column */}
+          <div>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <Stat label="Pending" value={pendingPool.length} tone="forest" />
+              <Stat
+                label="Sold"
+                value={players.filter((p) => p.status === "sold").length}
+                tone="sold"
+              />
+              <Stat label="Unsold" value={unsoldPool.length} tone="amber" />
+            </div>
+
+            {/* Sold list with revert */}
+            <SoldPlayersList
+              tournamentId={tournament.id}
+              players={players}
+              teams={teams}
+              onBusy={withBusy}
+              onMessage={onMessage}
+            />
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -514,7 +503,7 @@ function Stat({
   const color =
     tone === "sold" ? "text-sold" : tone === "amber" ? "text-[#FFA000]" : "text-forest";
   return (
-    <div className="rounded-xl border border-[#1B4332]/10 bg-white p-4">
+    <div className="rounded-xl border border-[#1B4332]/10 bg-white p-4 text-center">
       <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/50">
         {label}
       </p>

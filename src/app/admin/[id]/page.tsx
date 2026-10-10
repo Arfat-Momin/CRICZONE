@@ -8,6 +8,8 @@ import { DeleteTeamButton } from "@/components/admin/DeleteTeamButton";
 import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelect";
 import { DeleteTournamentButton } from "@/components/admin/DeleteTournamentButton";
 import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
+import { ExportPdfButton } from "@/components/admin/ExportPdfButton";
+import { DangerZone } from "@/components/admin/DangerZone";
 import { AdminPlayerSection } from "@/components/admin/AdminPlayerSection";
 import { FormBuilderSection } from "@/components/admin/forms/FormBuilderSection";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
@@ -118,6 +120,7 @@ export default async function AdminTournamentPage({ params }: Props) {
             >
               ⬇ Export Players CSV
             </a>
+            <ExportPdfButton tournamentId={tournament.id} />
           </div>
         </div>
 

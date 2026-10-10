@@ -234,3 +234,46 @@ export async function updateFormConfigAction(
     };
   }
 }
+export async function clearTournamentDataAction(
+  tournamentId: string,
+): Promise<ActionResult<{ deleted: number }>> {
+  try {
+    const { supabase } = await requireAdmin();
+
+    // Count players first for the response
+    const { count } = await supabase
+      .from("players")
+      .select("id", { count: "exact", head: true })
+      .eq("tournament_id", tournamentId);
+
+    // Delete in dependency-safe order
+    await supabase.from("players").delete().eq("tournament_id", tournamentId);
+    await supabase.from("teams").delete().eq("tournament_id", tournamentId);
+    await supabase.from("player_groups").delete().eq("tournament_id", tournamentId);
+    await supabase.from("bid_events").delete().eq("tournament_id", tournamentId);
+
+    // Reset auction_state
+    await supabase
+      .from("auction_state")
+      .update({
+        current_player_id: null,
+        current_bid_price: 0,
+        current_highest_team_id: null,
+        shuffling_name: null,
+        bid_mode: "normal",
+      })
+      .eq("tournament_id", tournamentId);
+
+    revalidatePath("/admin/dashboard");
+    revalidatePath(`/admin/${tournamentId}`);
+    revalidatePath(`/admin/${tournamentId}/live`);
+
+    return { ok: true, data: { deleted: count ?? 0 } };
+  } catch (e) {
+    console.error("clearTournamentDataAction failed:", e);
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Unexpected error.",
+    };
+  }
+}
