@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 import { RegistrationForm } from "@/components/tournament/RegistrationForm";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
@@ -36,10 +37,10 @@ export default async function RegisterPage({ params }: Props) {
         <div className="flex items-center gap-4">
           {tournament.poster_url && (
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-[#2D6A4F]/40 shadow-md">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ZoomableImage
                 src={tournament.poster_url}
                 alt={`${tournament.name} poster`}
+                loading="eager"
                 className="h-full w-full object-cover"
               />
             </div>

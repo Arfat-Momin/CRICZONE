@@ -4,12 +4,16 @@ import { randomUUID } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const BUCKET = "player-photos";
-const PLAYER_MAX_BYTES = 2 * 1024 * 1024;
-const POSTER_MAX_BYTES = 4 * 1024 * 1024;
+const PLAYER_MAX_BYTES = 4 * 1024 * 1024; // 4 MB (higher quality player photo)
+const POSTER_MAX_BYTES = 8 * 1024 * 1024; // 8 MB (higher quality poster)
 
 export type UploadResult = { url: string; path: string };
 
-function parseDataUrl(dataUrl: string): { subtype: string; base64: string; sizeBytes: number } {
+function parseDataUrl(dataUrl: string): {
+  subtype: string;
+  base64: string;
+  sizeBytes: number;
+} {
   const match = dataUrl.match(
     /^data:image\/(webp|jpeg|jpg|png);base64,([A-Za-z0-9+/=]+)$/,
   );

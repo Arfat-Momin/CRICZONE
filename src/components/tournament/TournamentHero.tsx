@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { CountdownTimer } from "./CountdownTimer";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 import type { Tables } from "@/types/supabase";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -21,10 +22,10 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           {tournament.poster_url && (
             <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-[#2D6A4F]/40 shadow-md sm:h-28 sm:w-28">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ZoomableImage
                 src={tournament.poster_url}
                 alt={`${tournament.name} poster`}
+                loading="eager"
                 className="h-full w-full object-cover"
               />
             </div>

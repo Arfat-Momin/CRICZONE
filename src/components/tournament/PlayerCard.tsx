@@ -1,6 +1,7 @@
 "use client";
 
 import type { Tables } from "@/types/supabase";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 
 export type DisplayField = { id: string; label: string };
 
@@ -54,8 +55,7 @@ export function PlayerCard({
       className="group flex flex-col items-center rounded-2xl border border-[#1B4332]/10 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:border-[#2D6A4F]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2"
     >
       <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-[#2D6A4F]/55">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <ZoomableImage
           src={photo}
           alt={player.full_name}
           loading="lazy"

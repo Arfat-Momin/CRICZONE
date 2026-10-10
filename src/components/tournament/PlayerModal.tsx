@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { Tables } from "@/types/supabase";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === "object" && !Array.isArray(v)) {
@@ -53,8 +54,7 @@ export function PlayerModal({
         </span>
 
         <div className="mx-auto mt-4 h-32 w-32 overflow-hidden rounded-full border-4 border-[#2D6A4F] shadow-lg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <ZoomableImage
             src={photo}
             alt={player.full_name}
             className="h-full w-full object-cover object-top"

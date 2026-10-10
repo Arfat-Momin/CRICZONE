@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Tables } from "@/types/supabase";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 
 type Props = {
   state: Tables<"auction_state"> | null;
@@ -102,10 +103,10 @@ function PlayerBlockCard({ player }: { player: Tables<"players"> }) {
       className="flex h-full flex-col items-center gap-5 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8"
     >
       <div className="h-40 w-40 shrink-0 overflow-hidden rounded-2xl border-4 border-[#2D6A4F]/50 shadow-xl sm:h-52 sm:w-52">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <ZoomableImage
           src={photo}
           alt={player.full_name}
+          loading="eager"
           className="h-full w-full object-cover object-top"
         />
       </div>

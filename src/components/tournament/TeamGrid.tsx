@@ -1,4 +1,5 @@
 import type { Tables } from "@/types/supabase";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 
 export function TeamGrid({ teams }: { teams: Tables<"teams">[] }) {
   if (teams.length === 0) return null;
@@ -23,8 +24,7 @@ export function TeamGrid({ teams }: { teams: Tables<"teams">[] }) {
               className="rounded-2xl border border-[#1B4332]/10 bg-white p-4 text-center shadow-sm"
             >
               <div className="mx-auto h-16 w-16 overflow-hidden rounded-full border-2 border-[#2D6A4F]/55">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <ZoomableImage
                   src={photo}
                   alt={t.team_name}
                   loading="lazy"

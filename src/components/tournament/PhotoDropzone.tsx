@@ -33,8 +33,8 @@ export function PhotoDropzone({
       setLocalError("Please choose a valid image file.");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setLocalError("Image must be under 8 MB.");
+    if (file.size > 12 * 1024 * 1024) {
+      setLocalError("Image must be under 12 MB.");
       return;
     }
     setBusy(true);
@@ -118,7 +118,7 @@ export function PhotoDropzone({
               </span>
             </p>
             <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1B4332]/40">
-              {hint ?? "Auto-converted to WebP · max 8 MB"}
+              {hint ?? "Auto-converted to WebP · max 12 MB"}
             </p>
           </div>
         )}
