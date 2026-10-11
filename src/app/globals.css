@@ -166,3 +166,82 @@ body::before {
     scroll-behavior: auto !important;
   }
 }
+/* ============================================================
+   CRICZONE NIGHT STADIUM — landing-page-only utilities
+   ============================================================ */
+
+@theme inline {
+  --color-night: #050A08;
+  --color-night-2: #0A1410;
+  --color-floodlight: #FFE8B8;
+  --color-pitch: #0F231A;
+}
+
+@layer utilities {
+  /* Headline glow — mint */
+  .text-glow-mint {
+    text-shadow:
+      0 0 20px rgba(216, 243, 220, 0.45),
+      0 0 45px rgba(45, 106, 79, 0.35),
+      0 2px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  /* Headline glow — warm floodlight */
+  .text-glow-warm {
+    text-shadow:
+      0 0 24px rgba(255, 232, 184, 0.5),
+      0 0 55px rgba(255, 166, 0, 0.28);
+  }
+
+  /* Glass card on dark */
+  .glass-dark {
+    background: rgba(15, 35, 26, 0.55);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(216, 243, 220, 0.14);
+  }
+
+  /* Subtle grain overlay for hero */
+  .hero-grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+}
+
+@keyframes cz-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.cz-marquee-track {
+  display: inline-flex;
+  min-width: 200%;
+  animation: cz-marquee 38s linear infinite;
+}
+.cz-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes cz-float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-14px) rotate(6deg); }
+}
+.cz-float-slow { animation: cz-float-slow 6s ease-in-out infinite; }
+
+@keyframes cz-pulse-dot {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(1.35); }
+}
+.cz-pulse-dot { animation: cz-pulse-dot 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cz-marquee-track,
+  .cz-float-slow,
+  .cz-pulse-dot {
+    animation: none !important;
+  }
+}

@@ -1,24 +1,58 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 24);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1B4332]/10 bg-[#FDFCF0]/85 backdrop-blur-md">
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "border-b border-mint/10 bg-[#050A08]/70 backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight text-forest"
+          className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight text-cream text-glow-mint"
         >
           CRICZONE
         </Link>
-        <ul className="flex items-center gap-6 text-sm font-semibold text-[#1B4332]/80">
+        <ul className="flex items-center gap-1 text-sm font-semibold text-cream/85">
           <li>
-            <Link href="/how-it-works" className="transition hover:text-forest">
+            <Link
+              href="/how-it-works"
+              className="rounded-lg px-3 py-2 transition hover:bg-mint/10 hover:text-mint"
+            >
               How It Works
             </Link>
           </li>
           <li>
-            <Link href="/archive" className="transition hover:text-forest">
+            <Link
+              href="/archive"
+              className="rounded-lg px-3 py-2 transition hover:bg-mint/10 hover:text-mint"
+            >
               Archive
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="#tournaments"
+              className="ml-2 rounded-lg bg-mint px-3.5 py-2 text-forest transition hover:bg-cream"
+            >
+              Live Now
             </Link>
           </li>
         </ul>
