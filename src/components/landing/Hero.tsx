@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 /**
- * CRICZONE — Night Stadium Hero
+ * CRICZONE — Night Stadium Hero v2
  *
- * Background image: public/images/hero-night-cricket.jpg
- * Fallback gradient sits *behind* the image so a missing file
- * never hides a present one.
+ * Performance notes:
+ *  - No `useScroll` — the image is a static backdrop (kills a rAF loop)
+ *  - No `filter: blur()` on lights — replaced with pre-softened gradients
+ *  - No `mix-blend-*` — avoids extra compositing layers
+ *  - No navbar backdrop-blur on this page (see Navbar.tsx)
+ *  - All reveal animations run once (initial → animate), not on scroll
  */
 
 const HERO_IMAGE = "/images/hero-night-cricket.jpg";
@@ -19,41 +21,26 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.12, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
 export function Hero() {
   const reduce = useReducedMotion();
-  const sectionRef = useRef<HTMLElement | null>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1.04, 1.18]);
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative isolate flex min-h-[100svh] w-full items-center overflow-hidden bg-[#050A08] text-cream"
-    >
+    <section className="relative isolate flex min-h-[100svh] w-full items-center overflow-hidden bg-[#050A08] text-cream">
       {/* ============================================================
-          LAYER 1 — FALLBACK GRADIENT (deepest, only visible if image missing)
-          IMPORTANT: must come BEFORE the <Image> in DOM so image stacks on top.
+          LAYER 1 — FALLBACK GRADIENT (deepest)
           ============================================================ */}
       <div
         aria-hidden
@@ -61,13 +48,9 @@ export function Hero() {
       />
 
       {/* ============================================================
-          LAYER 2 — HERO IMAGE (renders on top of fallback)
+          LAYER 2 — HERO IMAGE (static, above fallback)
           ============================================================ */}
-      <motion.div
-        aria-hidden
-        className="absolute inset-0 -z-30"
-        style={reduce ? undefined : { y: imageY, scale: imageScale }}
-      >
+      <div aria-hidden className="absolute inset-0 -z-30">
         <Image
           src={HERO_IMAGE}
           alt=""
@@ -76,175 +59,150 @@ export function Hero() {
           sizes="100vw"
           className="object-cover object-center"
         />
-      </motion.div>
+      </div>
 
       {/* ============================================================
-          LAYER 3 — READABILITY OVERLAYS (above image, below content)
+          LAYER 3 — STATIC OVERLAYS (readability, no blur filters)
           ============================================================ */}
+      {/* Left-side darken so text is readable; right side stays bright to show the image */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-20 bg-gradient-to-b from-[#050A08]/85 via-[#050A08]/55 to-[#050A08]"
+        className="absolute inset-0 -z-20 bg-gradient-to-r from-[#050A08] via-[#050A08]/80 to-[#050A08]/30"
       />
+      {/* Bottom fade into the next section */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-20 bg-gradient-to-r from-[#1B4332]/45 via-transparent to-[#1B4332]/35"
+        className="absolute inset-x-0 bottom-0 -z-20 h-40 bg-gradient-to-t from-[#050A08] to-transparent"
       />
-
-      {/* Floodlight glow from top */}
+      {/* Soft floodlight bloom from top (pre-softened radial, no blur filter) */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 -z-20 h-[70%] bg-[radial-gradient(ellipse_at_top,rgba(255,232,184,0.16),transparent_60%)]"
+        className="absolute inset-x-0 top-0 -z-20 h-[60%]"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 0%, rgba(255,232,184,0.18), rgba(255,232,184,0.06) 40%, transparent 70%)",
+        }}
+      />
+      {/* Two diagonal light washes (soft edges — no blur filter needed) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-20 opacity-30"
+        style={{
+          background:
+            "linear-gradient(118deg, transparent 20%, rgba(216,243,220,0.12) 38%, transparent 48%), linear-gradient(62deg, transparent 55%, rgba(216,243,220,0.1) 72%, transparent 82%)",
+        }}
       />
 
       {/* ============================================================
-          LAYER 4 — CONIC LIGHT BEAMS (stadium spotlights)
+          CONTENT — split: text left / preview card right
           ============================================================ */}
-      {!reduce && (
-        <>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-[20%] left-1/2 -z-10 h-[140%] w-[70%] -translate-x-1/2 opacity-40 mix-blend-screen"
-            style={{
-              background:
-                "conic-gradient(from 180deg at 50% 0%, transparent 0deg, rgba(255,232,184,0.22) 8deg, transparent 18deg, transparent 342deg, rgba(255,232,184,0.22) 352deg, transparent 360deg)",
-              filter: "blur(6px)",
-              maskImage:
-                "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-[20%] left-[30%] -z-10 h-[140%] w-[45%] -translate-x-1/2 rotate-[-10deg] opacity-25 mix-blend-screen"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(216,243,220,0.35) 0%, transparent 70%)",
-              filter: "blur(14px)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-[20%] right-[30%] -z-10 h-[140%] w-[45%] translate-x-1/2 rotate-[10deg] opacity-25 mix-blend-screen"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(216,243,220,0.35) 0%, transparent 70%)",
-              filter: "blur(14px)",
-            }}
-          />
-        </>
-      )}
-
-      {/* ============================================================
-          LAYER 5 — GRAIN (filmic texture)
-          ============================================================ */}
-      <div aria-hidden className="hero-grain absolute inset-0 -z-10" />
-
-      {/* ============================================================
-          FLOATING CRICKET BALL
-          ============================================================ */}
-      {!reduce && (
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute right-[12%] top-[28%] hidden h-5 w-5 rounded-full bg-sold shadow-[0_0_32px_rgba(193,18,31,0.7),0_0_80px_rgba(193,18,31,0.35)] md:block"
-          animate={{
-            x: [0, -180, -320, -180, 0],
-            y: [0, -80, -40, 100, 0],
-            scale: [1, 1.1, 1.2, 1.05, 1],
-          }}
-          transition={{
-            duration: 11,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      )}
-
-      {/* ============================================================
-          CONTENT
-          ============================================================ */}
-      <motion.div
-        className="relative z-10 mx-auto w-full max-w-7xl px-6 py-24 md:py-28 lg:py-32"
-        style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
-      >
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-3xl"
-        >
-          <motion.div variants={itemVariants}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-mint/25 bg-mint/10 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-mint backdrop-blur">
-              <span className="cz-pulse-dot inline-block h-2 w-2 rounded-full bg-sold" />
-              Live Turf Cricket Auctions
-            </span>
-          </motion.div>
-
-          <motion.h1
-            variants={itemVariants}
-            className="mt-6 font-[family-name:var(--font-display)] text-[2.6rem] font-bold leading-[1.02] tracking-tight text-cream text-glow-mint md:text-6xl lg:text-7xl"
-          >
-            The auction floor,
-            <br />
-            <span className="italic text-mint text-glow-warm">
-              under the lights.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={itemVariants}
-            className="mt-6 max-w-2xl text-base leading-relaxed text-cream/75 md:text-lg"
-          >
-            CRICZONE is the real-time tournament auction platform built for turf
-            cricket. Run multiple leagues in parallel, host live bidding from any
-            device, and give your crowd a broadcast-quality experience — all from
-            one link.
-          </motion.p>
-
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-24 md:py-28 lg:py-32">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
+          {/* ---------- LEFT: copy ---------- */}
           <motion.div
-            variants={itemVariants}
-            className="mt-10 flex flex-wrap items-center gap-3"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-7"
           >
-            <Link
-              href="#tournaments"
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-mint px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-forest shadow-[0_10px_40px_-10px_rgba(216,243,220,0.6)] transition hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
-            >
-              <span className="relative z-10">Browse tournaments</span>
-              <span
-                aria-hidden
-                className="relative z-10 transition group-hover:translate-x-0.5"
-              >
-                →
+            {/* Kicker */}
+            <motion.div variants={itemVariants}>
+              <span className="inline-flex items-center gap-2 rounded-full border border-mint/25 bg-mint/10 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-mint">
+                <span className="cz-pulse-dot inline-block h-2 w-2 rounded-full bg-sold" />
+                Live Turf Cricket Auctions
               </span>
-            </Link>
+            </motion.div>
 
-            <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 rounded-xl border border-cream/25 bg-cream/5 px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-cream backdrop-blur transition hover:-translate-y-0.5 hover:border-mint/60 hover:bg-cream/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
+            {/* Headline */}
+            <motion.h1
+              variants={itemVariants}
+              className="mt-7 font-[family-name:var(--font-display)] text-[2.75rem] font-bold leading-[0.98] tracking-[-0.02em] text-cream text-glow-mint sm:text-6xl lg:text-7xl"
             >
-              How it works
-            </Link>
+              Where turf cricket
+              <br />
+              auctions{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10 italic text-mint text-glow-warm">
+                  come alive.
+                </span>
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-1 z-0 h-3 bg-mint/20 blur-[2px]"
+                />
+              </span>
+            </motion.h1>
+
+            {/* Subhead */}
+            <motion.p
+              variants={itemVariants}
+              className="mt-7 max-w-xl text-base leading-relaxed text-cream/75 md:text-lg"
+            >
+              Run multiple tournaments in parallel. Host live bidding from any
+              device. Give your crowd a broadcast-quality night — all from one
+              link.
+            </motion.p>
+
+            {/* CTA row */}
+            <motion.div
+              variants={itemVariants}
+              className="mt-10 flex flex-wrap items-center gap-3"
+            >
+              <Link
+                href="#tournaments"
+                className="group inline-flex items-center gap-2 rounded-xl bg-mint px-7 py-4 text-sm font-bold uppercase tracking-wide text-forest shadow-[0_14px_50px_-12px_rgba(216,243,220,0.75)] transition hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
+              >
+                Browse live now
+                <span
+                  aria-hidden
+                  className="transition group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
+              </Link>
+
+              <Link
+                href="/how-it-works"
+                className="inline-flex items-center gap-2 rounded-xl border border-cream/25 bg-cream/5 px-7 py-4 text-sm font-bold uppercase tracking-wide text-cream transition hover:-translate-y-0.5 hover:border-mint/60 hover:bg-cream/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
+              >
+                See how it works
+              </Link>
+            </motion.div>
+
+            {/* Trust strip */}
+            <motion.div
+              variants={itemVariants}
+              className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/50"
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-mint" />
+                Real-time bidding
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-mint" />
+                Multi-tournament
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-mint" />
+                Broadcast-ready
+              </span>
+            </motion.div>
           </motion.div>
 
+          {/* ---------- RIGHT: live preview card ---------- */}
           <motion.div
-            variants={itemVariants}
-            className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-semibold uppercase tracking-widest text-cream/55"
+            initial={reduce ? false : { opacity: 0, y: 24 }}
+            animate={reduce ? undefined : { opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: 0.35,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className="lg:col-span-5"
           >
-            <span className="inline-flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-mint" />
-              Real-time bidding
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-mint" />
-              Multi-tournament
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-mint" />
-              Broadcast-ready
-            </span>
+            <HeroPreviewCard />
           </motion.div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* ============================================================
           SCROLL CUE
@@ -254,20 +212,103 @@ export function Hero() {
         className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.3em] text-cream/40 md:flex"
       >
         <span>Scroll</span>
-        <motion.span
-          animate={reduce ? undefined : { y: [0, 8, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="inline-block h-6 w-[1px] bg-gradient-to-b from-cream/60 to-transparent"
-        />
+        <span className="inline-block h-6 w-[1px] bg-gradient-to-b from-cream/60 to-transparent" />
       </div>
+    </section>
+  );
+}
 
-      {/* ============================================================
-          BOTTOM FADE
-          ============================================================ */}
+/* ============================================================
+   HERO PREVIEW CARD — decorative mock of a live auction
+   ============================================================ */
+
+function HeroPreviewCard() {
+  return (
+    <div className="relative mx-auto w-full max-w-md lg:ml-auto">
+      {/* Ambient glow behind the card */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0A1410] to-transparent"
+        className="absolute -inset-6 -z-10 rounded-[2rem] bg-[radial-gradient(circle_at_50%_30%,rgba(216,243,220,0.28),transparent_65%)] opacity-70"
       />
-    </section>
+
+      {/* Card */}
+      <div className="relative overflow-hidden rounded-3xl border border-mint/20 bg-[#0A1410]/85 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]">
+        {/* Top bar */}
+        <div className="flex items-center justify-between border-b border-mint/10 px-5 py-3">
+          <span className="inline-flex items-center gap-2 rounded-full bg-sold px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-widest text-white">
+            <span className="cz-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-white" />
+            Live now
+          </span>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-cream/40">
+            CRICZONE · S07
+          </span>
+        </div>
+
+        {/* Player row */}
+        <div className="flex items-center gap-4 px-5 py-5">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-mint/40 bg-[#1B4332] text-lg font-bold text-mint">
+            R
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-mint/70">
+              On the Block
+            </p>
+            <p className="mt-1 truncate font-[family-name:var(--font-display)] text-xl font-bold text-cream">
+              Rohit Sharma
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-cream/50">
+              Batsman · #7 · Pune Strikers
+            </p>
+          </div>
+        </div>
+
+        {/* Bid row */}
+        <div className="border-t border-mint/10 px-5 py-5">
+          <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-cream/40">
+            Current Bid
+          </p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <p className="font-[family-name:var(--font-numeric)] text-5xl font-bold leading-none text-mint">
+              2.5
+            </p>
+            <p className="text-xs font-extrabold uppercase tracking-widest text-mint/60">
+              pts
+            </p>
+          </div>
+          <p className="mt-2 text-xs text-cream/60">
+            Bid by{" "}
+            <span className="font-bold text-cream/90">Team Titans</span>
+          </p>
+        </div>
+
+        {/* Footer row */}
+        <div className="grid grid-cols-3 divide-x divide-mint/10 border-t border-mint/10">
+          <div className="px-4 py-3 text-center">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-cream/40">
+              Teams
+            </p>
+            <p className="mt-0.5 font-[family-name:var(--font-numeric)] text-base font-bold text-cream/90">
+              12
+            </p>
+          </div>
+          <div className="px-4 py-3 text-center">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-cream/40">
+              Players
+            </p>
+            <p className="mt-0.5 font-[family-name:var(--font-numeric)] text-base font-bold text-cream/90">
+              86
+            </p>
+          </div>
+          <div className="px-4 py-3 text-center">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-cream/40">
+              Sold
+            </p>
+            <p className="mt-0.5 font-[family-name:var(--font-numeric)] text-base font-bold text-mint">
+              42
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

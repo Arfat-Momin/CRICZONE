@@ -3,23 +3,38 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+/**
+ * Performance note: no `backdrop-blur` here.
+ * Backdrop-filter on a sticky header forces the browser to composite
+ * everything below it on every scroll frame. A solid dark bar after
+ * scroll feels faster and looks just as clean on the night theme.
+ */
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    let raf = 0;
     function onScroll() {
-      setScrolled(window.scrollY > 24);
+      // Throttle with rAF — avoids running on every scroll event
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 24);
+        raf = 0;
+      });
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
         scrolled
-          ? "border-b border-mint/10 bg-[#050A08]/70 backdrop-blur-xl"
+          ? "border-b border-mint/10 bg-[#050A08]"
           : "border-b border-transparent bg-transparent"
       }`}
     >
@@ -34,7 +49,7 @@ export function Navbar() {
           <li>
             <Link
               href="/how-it-works"
-              className="rounded-lg px-3 py-2 transition hover:bg-mint/10 hover:text-mint"
+              className="rounded-lg px-3 py-2 transition-colors hover:bg-mint/10 hover:text-mint"
             >
               How It Works
             </Link>
@@ -42,7 +57,7 @@ export function Navbar() {
           <li>
             <Link
               href="/archive"
-              className="rounded-lg px-3 py-2 transition hover:bg-mint/10 hover:text-mint"
+              className="rounded-lg px-3 py-2 transition-colors hover:bg-mint/10 hover:text-mint"
             >
               Archive
             </Link>
@@ -50,7 +65,7 @@ export function Navbar() {
           <li>
             <Link
               href="#tournaments"
-              className="ml-2 rounded-lg bg-mint px-3.5 py-2 text-forest transition hover:bg-cream"
+              className="ml-2 rounded-lg bg-mint px-3.5 py-2 text-forest transition-colors hover:bg-cream"
             >
               Live Now
             </Link>
