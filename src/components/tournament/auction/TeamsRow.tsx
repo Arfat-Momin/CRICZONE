@@ -27,7 +27,7 @@ export function TeamsRow({
 
   if (teams.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-8 text-center text-sm text-[#1B4332]/60">
+      <p className="rounded-2xl border border-dashed border-mint/20 bg-[#0A1410]/60 p-8 text-center text-sm text-cream/55">
         No teams configured.
       </p>
     );
@@ -47,10 +47,10 @@ export function TeamsRow({
               key={team.id}
               type="button"
               onClick={() => setSelectedTeam(team)}
-              className="group flex flex-col rounded-2xl border border-[#1B4332]/10 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#2D6A4F]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2"
+              className="group flex flex-col rounded-2xl border border-mint/12 bg-[#0A1410] p-4 text-left shadow-[0_0_30px_-16px_rgba(216,243,220,0.25)] transition hover:-translate-y-0.5 hover:border-mint/35 hover:shadow-[0_0_45px_-14px_rgba(216,243,220,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
             >
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#2D6A4F]/40 bg-mint">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-mint/35 bg-[#0F231A]">
                   {team.photo_url ? (
                     <ZoomableImage
                       src={team.photo_url}
@@ -59,30 +59,30 @@ export function TeamsRow({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-base font-bold text-forest">
+                    <div className="flex h-full w-full items-center justify-center text-base font-bold text-mint">
                       {initial}
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-forest">{team.team_name}</p>
+                  <p className="truncate font-bold text-cream">{team.team_name}</p>
                   {team.captain_name && (
-                    <p className="truncate text-xs text-[#1B4332]/60">
+                    <p className="truncate text-xs text-cream/55">
                       {team.captain_name}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="mt-3 flex items-end justify-between border-t border-[#1B4332]/10 pt-3">
+              <div className="mt-3 flex items-end justify-between border-t border-mint/10 pt-3">
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/50">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cream/45">
                     Points
                   </p>
                   <motion.p
                     key={String(team.points_remaining)}
                     initial={{ scale: 1.15, color: "#C1121F" }}
-                    animate={{ scale: 1, color: "#2D6A4F" }}
+                    animate={{ scale: 1, color: "#D8F3DC" }}
                     transition={{ duration: 0.5 }}
                     className="font-[family-name:var(--font-numeric)] text-2xl font-bold"
                   >
@@ -91,12 +91,12 @@ export function TeamsRow({
                 </div>
                 {remaining !== null && (
                   <div className="text-right">
-                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/50">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cream/45">
                       Slots
                     </p>
-                    <p className="font-[family-name:var(--font-numeric)] text-lg font-bold text-forest">
+                    <p className="font-[family-name:var(--font-numeric)] text-lg font-bold text-cream/90">
                       {remaining}
-                      <span className="text-xs text-[#1B4332]/50">
+                      <span className="text-xs text-cream/45">
                         {" "}
                         / {team.max_players}
                       </span>
@@ -110,20 +110,20 @@ export function TeamsRow({
                   {bought.slice(0, 4).map((p) => (
                     <span
                       key={p.id}
-                      className="rounded-full bg-mint px-2 py-0.5 text-[10px] font-semibold text-forest"
+                      className="rounded-full border border-mint/15 bg-mint/5 px-2 py-0.5 text-[10px] font-semibold text-mint/85"
                     >
                       {p.full_name}
                     </span>
                   ))}
                   {bought.length > 4 && (
-                    <span className="rounded-full bg-[#1B4332]/10 px-2 py-0.5 text-[10px] font-semibold text-[#1B4332]/70">
+                    <span className="rounded-full border border-mint/12 bg-mint/5 px-2 py-0.5 text-[10px] font-semibold text-mint/60">
                       +{bought.length - 4} more
                     </span>
                   )}
                 </div>
               )}
 
-              <span className="mt-3 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest text-[#2D6A4F]/80 transition group-hover:gap-2 group-hover:text-[#2D6A4F]">
+              <span className="mt-3 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint/60 transition group-hover:gap-2 group-hover:text-mint">
                 View squad <span aria-hidden>→</span>
               </span>
             </button>

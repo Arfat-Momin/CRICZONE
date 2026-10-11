@@ -38,7 +38,6 @@ export function AuctionRoom({
 
   const [projectionOpen, setProjectionOpen] = useState(false);
 
-  // Keyboard shortcut: `P` opens projection (ignored while typing in inputs)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (projectionOpen) return;
@@ -53,14 +52,14 @@ export function AuctionRoom({
     return () => document.removeEventListener("keydown", onKey);
   }, [projectionOpen]);
 
-  // Fullscreen request/exit when projection toggles
   useEffect(() => {
     if (typeof document === "undefined") return;
     if (projectionOpen) {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {
-          // Silently ignore if the browser blocks (no user gesture, permission, etc.)
-        });
+      if (
+        !document.fullscreenElement &&
+        document.documentElement.requestFullscreen
+      ) {
+        document.documentElement.requestFullscreen().catch(() => {});
       }
     } else {
       if (document.fullscreenElement) {
@@ -78,11 +77,12 @@ export function AuctionRoom({
     : null;
 
   return (
-    <div className="min-h-screen w-full bg-[#FDFCF0]">
-      <header className="sticky top-0 z-40 border-b border-[#1B4332]/10 bg-[#FDFCF0]/90 backdrop-blur">
+    <div className="min-h-screen w-full">
+      {/* Sticky header — solid bar (no backdrop-blur for perf) */}
+      <header className="sticky top-0 z-40 border-b border-mint/10 bg-[#050A08]">
         <div className="relative mx-auto flex max-w-7xl items-center justify-center gap-3 px-4 py-3 md:px-6">
           {tournament.poster_url && (
-            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 border-[#2D6A4F]/40 shadow-sm">
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 border-mint/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={tournament.poster_url}
@@ -91,21 +91,20 @@ export function AuctionRoom({
               />
             </div>
           )}
-          <h1 className="truncate text-center font-[family-name:var(--font-display)] text-base font-bold text-forest md:text-lg">
+          <h1 className="truncate text-center font-[family-name:var(--font-display)] text-base font-bold text-cream md:text-lg">
             {tournament.name}
           </h1>
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sold px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-white">
-            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sold px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white">
+            <span className="cz-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-white" />
             LIVE
           </span>
 
-          {/* Discreet projection trigger */}
           <button
             type="button"
             onClick={() => setProjectionOpen(true)}
             title="Presentation mode (P)"
             aria-label="Open presentation mode"
-            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-[#1B4332]/15 bg-white/80 text-base text-[#1B4332]/60 shadow-sm backdrop-blur transition hover:bg-forest hover:text-cream md:right-4"
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-mint/20 bg-[#0A1410] text-base text-mint/70 transition hover:bg-mint hover:text-forest md:right-4"
           >
             <span aria-hidden>⛶</span>
           </button>
@@ -121,7 +120,7 @@ export function AuctionRoom({
         />
 
         <section className="mt-10">
-          <h2 className="mb-4 font-[family-name:var(--font-display)] text-xl font-bold text-forest md:text-2xl">
+          <h2 className="mb-4 font-[family-name:var(--font-display)] text-xl font-bold text-cream md:text-2xl">
             Teams
           </h2>
           <TeamsRow teams={teams} players={players} />

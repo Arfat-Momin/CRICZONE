@@ -16,7 +16,7 @@ export function RosterGrid({
 
   if (players.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-10 text-center text-sm text-[#1B4332]/60">
+      <p className="rounded-2xl border border-dashed border-mint/20 bg-[#0A1410]/60 p-10 text-center text-sm text-cream/55">
         No players registered yet.
       </p>
     );

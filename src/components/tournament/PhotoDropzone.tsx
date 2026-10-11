@@ -9,9 +9,7 @@ type Props = {
   value: string | null;
   onChange: (value: string | null) => void;
   error?: string | null;
-  /** Longest-edge cap before WebP export. Default 1600 (player photo). Posters: 2400. */
   maxDim?: number;
-  /** Aspect class for the preview frame. Default "rounded-full". Posters: "rect". */
   previewShape?: "round" | "rect";
   hint?: string;
 };
@@ -71,7 +69,6 @@ export function PhotoDropzone({
     setLocalError(null);
     setUrlPreviewError(false);
     if (next === "url") {
-      // If a data URL is currently set, clear it — URL mode starts fresh
       if (value && value.startsWith("data:")) {
         onChange(null);
         setUrlDraft("");
@@ -79,7 +76,6 @@ export function PhotoDropzone({
         setUrlDraft(value);
       }
     } else {
-      // Switching to upload — if a URL is currently set, clear it
       if (value && /^https?:\/\//i.test(value)) {
         onChange(null);
       }
@@ -88,20 +84,20 @@ export function PhotoDropzone({
 
   const previewClass =
     previewShape === "round"
-      ? "h-20 w-20 rounded-full border-2 border-[#2D6A4F] object-cover"
-      : "h-20 w-32 rounded-lg border-2 border-[#2D6A4F] object-cover";
+      ? "h-20 w-20 rounded-full border-2 border-mint/50 object-cover"
+      : "h-20 w-32 rounded-lg border-2 border-mint/50 object-cover";
 
   return (
     <div>
       {/* Mode toggle */}
-      <div className="mb-2 inline-flex rounded-lg border border-[#1B4332]/15 bg-[#FAFDF9] p-0.5">
+      <div className="mb-2 inline-flex rounded-lg border border-mint/15 bg-[#0A1410] p-0.5">
         <button
           type="button"
           onClick={() => switchMode("upload")}
           className={`rounded-md px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition ${
             mode === "upload"
-              ? "bg-forest text-cream"
-              : "text-[#1B4332]/60 hover:text-forest"
+              ? "bg-mint text-forest"
+              : "text-cream/55 hover:text-mint"
           }`}
         >
           Upload File
@@ -111,15 +107,14 @@ export function PhotoDropzone({
           onClick={() => switchMode("url")}
           className={`rounded-md px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition ${
             mode === "url"
-              ? "bg-forest text-cream"
-              : "text-[#1B4332]/60 hover:text-forest"
+              ? "bg-mint text-forest"
+              : "text-cream/55 hover:text-mint"
           }`}
         >
           Use URL
         </button>
       </div>
 
-      {/* Upload mode */}
       {mode === "upload" && (
         <div
           onDragOver={(e) => {
@@ -136,8 +131,8 @@ export function PhotoDropzone({
           onClick={() => inputRef.current?.click()}
           className={`cursor-pointer rounded-xl border-2 border-dashed p-5 text-center transition ${
             dragover
-              ? "border-[#1B4332] bg-mint/50"
-              : "border-[#2D6A4F]/35 bg-[#FAFDF9] hover:bg-mint/20"
+              ? "border-mint bg-mint/10"
+              : "border-mint/30 bg-[#0A1410] hover:bg-mint/5"
           }`}
         >
           <input
@@ -156,7 +151,7 @@ export function PhotoDropzone({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={value} alt="Preview" className={previewClass} />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-forest">Ready</p>
+                <p className="text-sm font-bold text-cream">Ready</p>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -174,16 +169,16 @@ export function PhotoDropzone({
               <p className="text-2xl" aria-hidden>
                 📷
               </p>
-              <p className="mt-2 text-sm font-bold text-forest">
+              <p className="mt-2 text-sm font-bold text-cream">
                 {busy ? "Processing…" : "Drag & drop image here"}
               </p>
-              <p className="mt-0.5 text-xs text-[#1B4332]/60">
+              <p className="mt-0.5 text-xs text-cream/55">
                 or{" "}
-                <span className="font-semibold text-[#2D6A4F] underline">
+                <span className="font-semibold text-mint underline">
                   browse device
                 </span>
               </p>
-              <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1B4332]/40">
+              <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-cream/35">
                 {hint ?? "Auto-converted to WebP · max 12 MB"}
               </p>
             </div>
@@ -191,10 +186,9 @@ export function PhotoDropzone({
         </div>
       )}
 
-      {/* URL mode */}
       {mode === "url" && (
-        <div className="rounded-xl border border-[#1B4332]/15 bg-[#FAFDF9] p-4">
-          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#1B4332]/60">
+        <div className="rounded-xl border border-mint/15 bg-[#0A1410] p-4">
+          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-cream/55">
             Paste image URL
           </label>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -206,13 +200,13 @@ export function PhotoDropzone({
                 setUrlPreviewError(false);
               }}
               placeholder="https://example.com/photo.jpg"
-              className="min-w-0 flex-1 rounded-lg border border-[#1B4332]/20 bg-white px-3 py-2 text-sm text-forest outline-none focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/20"
+              className="min-w-0 flex-1 rounded-lg border border-mint/15 bg-[#050A08] px-3 py-2 text-sm text-cream outline-none focus:border-mint/50"
             />
             <button
               type="button"
               onClick={applyUrl}
               disabled={!urlDraft.trim()}
-              className="rounded-lg bg-forest px-4 py-2 text-xs font-bold uppercase tracking-wider text-cream transition hover:bg-[#2D6A4F] disabled:opacity-50"
+              className="rounded-lg bg-mint px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-cream disabled:opacity-50"
             >
               Set
             </button>
@@ -228,17 +222,13 @@ export function PhotoDropzone({
                 onError={() => setUrlPreviewError(true)}
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-mono text-[#1B4332]/70">
-                  {value}
-                </p>
+                <p className="truncate font-mono text-xs text-cream/65">{value}</p>
                 {urlPreviewError ? (
                   <p className="mt-1 text-xs font-semibold text-sold">
                     ⚠ Image failed to load — check the URL
                   </p>
                 ) : (
-                  <p className="mt-1 text-xs font-semibold text-success">
-                    ✓ URL set
-                  </p>
+                  <p className="mt-1 text-xs font-semibold text-mint">✓ URL set</p>
                 )}
                 <button
                   type="button"
@@ -255,8 +245,8 @@ export function PhotoDropzone({
             </div>
           )}
 
-          <p className="mt-2 text-[10px] uppercase tracking-wider text-[#1B4332]/40">
-            Direct image link (ends in .jpg/.png/.webp) · Google Drive share links work
+          <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-cream/35">
+            Direct link ends in .jpg/.png/.webp · Google Drive share links work
           </p>
         </div>
       )}

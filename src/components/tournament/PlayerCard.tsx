@@ -42,7 +42,7 @@ export function PlayerCard({
   onOpen: () => void;
 }) {
   const photo =
-    player.photo_url || "https://placehold.co/200x200/1B4332/FDFCF0?text=%3F";
+    player.photo_url || "https://placehold.co/200x200/0A1410/D8F3DC?text=%3F";
 
   const pills = displayFields
     .map((f) => ({ label: f.label, value: getFieldValue(player, f.id) }))
@@ -52,9 +52,9 @@ export function PlayerCard({
     <button
       type="button"
       onClick={onOpen}
-      className="group flex flex-col items-center rounded-2xl border border-[#1B4332]/10 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:border-[#2D6A4F]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6A4F] focus-visible:ring-offset-2"
+      className="group flex flex-col items-center rounded-2xl border border-mint/12 bg-[#0A1410] p-4 text-center shadow-[0_0_30px_-16px_rgba(216,243,220,0.25)] transition duration-300 hover:-translate-y-1 hover:border-mint/35 hover:shadow-[0_0_45px_-14px_rgba(216,243,220,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
     >
-      <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-[#2D6A4F]/55">
+      <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-mint/35 shadow-[0_0_20px_-6px_rgba(216,243,220,0.45)] transition group-hover:border-mint/70">
         <ZoomableImage
           src={photo}
           alt={player.full_name}
@@ -62,7 +62,7 @@ export function PlayerCard({
           className="h-full w-full object-cover object-top"
         />
       </div>
-      <p className="mt-3 line-clamp-2 text-sm font-bold text-forest">
+      <p className="mt-3 line-clamp-2 text-sm font-bold text-cream">
         {player.full_name}
       </p>
       {pills.length > 0 && (
@@ -70,7 +70,7 @@ export function PlayerCard({
           {pills.map((p) => (
             <span
               key={p.label}
-              className="line-clamp-1 rounded-full bg-mint/60 px-2 py-0.5 text-[10px] font-semibold text-forest"
+              className="line-clamp-1 rounded-full border border-mint/12 bg-mint/5 px-2 py-0.5 text-[10px] font-semibold text-mint/85"
             >
               {p.value}
             </span>

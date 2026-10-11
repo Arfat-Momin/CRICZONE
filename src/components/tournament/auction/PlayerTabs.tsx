@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
 import type { Tables } from "@/types/supabase";
 
 type Tab = "pending" | "sold" | "unsold";
@@ -32,7 +31,7 @@ export function PlayerTabs({
 
   return (
     <div>
-      <div className="flex flex-wrap gap-1 border-b border-[#1B4332]/10">
+      <div className="flex flex-wrap gap-1 border-b border-mint/10">
         <TabBtn active={tab === "pending"} onClick={() => setTab("pending")}>
           Coming Up · {pending.length}
         </TabBtn>
@@ -66,7 +65,7 @@ export function PlayerTabs({
                 return (
                   <li
                     key={p.id}
-                    className="flex items-center justify-between rounded-xl border border-[#1B4332]/10 bg-white p-3"
+                    className="flex items-center justify-between rounded-xl border border-mint/12 bg-[#0A1410] p-3"
                   >
                     <div className="flex items-center gap-3">
                       {p.photo_url ? (
@@ -74,21 +73,21 @@ export function PlayerTabs({
                         <img
                           src={p.photo_url}
                           alt=""
-                          className="h-9 w-9 rounded-full border border-[#1B4332]/15 object-cover"
+                          className="h-9 w-9 rounded-full border border-mint/25 object-cover"
                         />
                       ) : (
-                        <div className="h-9 w-9 rounded-full bg-[#1B4332]/10" />
+                        <div className="h-9 w-9 rounded-full bg-mint/10" />
                       )}
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-forest">
+                        <p className="truncate font-semibold text-cream">
                           {p.full_name}
                         </p>
-                        <p className="truncate text-xs text-[#1B4332]/60">
+                        <p className="truncate text-xs text-cream/55">
                           {team?.team_name ?? "—"}
                         </p>
                       </div>
                     </div>
-                    <span className="whitespace-nowrap rounded-full bg-sold/10 px-3 py-1 font-[family-name:var(--font-numeric)] text-sm font-bold text-sold">
+                    <span className="whitespace-nowrap rounded-full border border-sold/40 bg-sold/10 px-3 py-1 font-[family-name:var(--font-numeric)] text-sm font-bold text-sold">
                       {p.selling_price ?? 0} pts
                     </span>
                   </li>
@@ -128,7 +127,7 @@ function TabBtn({
       className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-bold uppercase tracking-wider transition ${
         active
           ? "border-sold text-sold"
-          : "border-transparent text-[#1B4332]/50 hover:text-forest"
+          : "border-transparent text-cream/45 hover:text-mint"
       }`}
     >
       {children}
@@ -144,16 +143,16 @@ function MiniCard({
   variant?: "unsold";
 }) {
   const photo =
-    player.photo_url || "https://placehold.co/200x200/1B4332/FDFCF0?text=%3F";
+    player.photo_url || "https://placehold.co/200x200/0A1410/D8F3DC?text=%3F";
   return (
     <div
       className={`flex flex-col items-center rounded-xl border p-3 text-center ${
         variant === "unsold"
-          ? "border-[#1B4332]/10 bg-[#1B4332]/5 opacity-70"
-          : "border-[#1B4332]/10 bg-white"
+          ? "border-mint/10 bg-[#0A1410]/60 opacity-65"
+          : "border-mint/12 bg-[#0A1410]"
       }`}
     >
-      <div className="h-14 w-14 overflow-hidden rounded-full border border-[#1B4332]/15">
+      <div className="h-14 w-14 overflow-hidden rounded-full border border-mint/25">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photo}
@@ -162,11 +161,11 @@ function MiniCard({
           className="h-full w-full object-cover object-top"
         />
       </div>
-      <p className="mt-2 line-clamp-2 text-xs font-bold text-forest">
+      <p className="mt-2 line-clamp-2 text-xs font-bold text-cream">
         {player.full_name}
       </p>
       {variant === "unsold" && (
-        <span className="mt-1 text-[9px] font-extrabold uppercase tracking-wider text-[#1B4332]/40">
+        <span className="mt-1 text-[9px] font-extrabold uppercase tracking-wider text-cream/35">
           Unsold
         </span>
       )}
@@ -176,13 +175,8 @@ function MiniCard({
 
 function Empty({ text }: { text: string }) {
   return (
-    <p className="rounded-xl border border-dashed border-[#1B4332]/15 bg-white/50 p-6 text-center text-sm text-[#1B4332]/55">
+    <p className="rounded-xl border border-dashed border-mint/15 bg-[#0A1410]/50 p-6 text-center text-sm text-cream/55">
       {text}
     </p>
   );
-}
-
-// Local lightweight formatter used for future timestamps; kept to avoid unused import trees
-export function _unusedTimeAgo(iso: string) {
-  return formatDistanceToNowStrict(new Date(iso));
 }

@@ -27,13 +27,13 @@ export function SummaryView({
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 md:py-14">
       <div className="text-center">
-        <span className="inline-block rounded-full bg-forest px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-cream">
+        <span className="inline-block rounded-full border border-mint/25 bg-mint/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint">
           {tournament.status === "archived" ? "Archived Auction" : "Auction Ended"}
         </span>
-        <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-forest md:text-5xl">
+        <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream text-glow-mint md:text-5xl">
           {tournament.name}
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-[#1B4332]/65">
+        <p className="mx-auto mt-3 max-w-xl text-sm text-cream/60">
           Thank you for participating. Here are the final results.
         </p>
       </div>
@@ -45,18 +45,18 @@ export function SummaryView({
       </div>
 
       <section className="mt-14">
-        <h2 className="mb-4 font-[family-name:var(--font-display)] text-2xl font-bold text-forest md:text-3xl">
+        <h2 className="mb-4 font-[family-name:var(--font-display)] text-2xl font-bold text-cream md:text-3xl">
           Player Sale Rankings
         </h2>
         <SummaryPlayerRankings players={players} teams={teams} />
       </section>
 
       <section className="mt-14">
-        <h2 className="mb-4 font-[family-name:var(--font-display)] text-2xl font-bold text-forest md:text-3xl">
+        <h2 className="mb-4 font-[family-name:var(--font-display)] text-2xl font-bold text-cream md:text-3xl">
           Final Squads
         </h2>
         {sortedTeams.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-10 text-center text-sm text-[#1B4332]/60">
+          <div className="rounded-2xl border border-dashed border-mint/20 bg-[#0A1410]/60 p-10 text-center text-sm text-cream/55">
             No teams were configured for this tournament.
           </div>
         ) : (
@@ -82,13 +82,13 @@ function Stat({
 }) {
   const color =
     tone === "success"
-      ? "text-success"
+      ? "text-mint"
       : tone === "amber"
         ? "text-[#FFA000]"
-        : "text-forest";
+        : "text-cream";
   return (
-    <div className="rounded-xl border border-[#1B4332]/10 bg-white p-3 text-center md:p-4">
-      <p className="text-[9px] font-extrabold uppercase tracking-wider text-[#1B4332]/50 md:text-[10px]">
+    <div className="rounded-xl border border-mint/12 bg-[#0A1410] p-3 text-center md:p-4">
+      <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-cream/45 md:text-[10px]">
         {label}
       </p>
       <p

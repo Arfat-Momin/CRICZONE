@@ -68,16 +68,16 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
 
   if (success) {
     return (
-      <div className="rounded-2xl border border-[#2D6A4F]/30 bg-white p-8 text-center shadow-lg">
+      <div className="rounded-2xl border border-mint/30 bg-[#0A1410] p-8 text-center shadow-[0_0_60px_-20px_rgba(216,243,220,0.35)]">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success text-3xl text-white">
           ✓
         </div>
-        <h3 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-bold text-forest">
+        <h3 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-bold text-cream">
           You&apos;re in!
         </h3>
-        <p className="mt-2 text-sm text-[#1B4332]/70">
-          Your registration for <strong>{tournamentName}</strong> has been recorded.
-          You&apos;ll appear in the roster below.
+        <p className="mt-2 text-sm text-cream/70">
+          Your registration for <strong className="text-mint">{tournamentName}</strong>{" "}
+          has been recorded. You&apos;ll appear in the roster below.
         </p>
         <button
           type="button"
@@ -88,7 +88,7 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
             setFieldErrors({});
             setGlobalError(null);
           }}
-          className="mt-5 rounded-lg border border-[#1B4332]/20 px-4 py-2 text-sm font-semibold text-forest transition hover:bg-mint"
+          className="mt-5 rounded-lg border border-mint/25 bg-mint/5 px-4 py-2 text-sm font-semibold text-mint transition hover:bg-mint/15"
         >
           Register another player
         </button>
@@ -112,8 +112,8 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
       ))}
 
       {photoField && (
-        <div className="rounded-2xl border border-[#1B4332]/10 bg-white p-5 shadow-sm">
-          <label className="mb-2 block text-sm font-bold text-forest">
+        <div className="rounded-2xl border border-mint/12 bg-[#0A1410] p-5">
+          <label className="mb-2 block text-sm font-bold text-cream">
             {photoField.label}
             {photoField.required && <span className="ml-1 text-sold">*</span>}
           </label>
@@ -128,7 +128,7 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
       {globalError && (
         <div
           role="alert"
-          className="rounded-lg border border-sold/30 bg-sold/10 px-4 py-3 text-sm font-semibold text-sold"
+          className="rounded-lg border border-sold/40 bg-sold/10 px-4 py-3 text-sm font-semibold text-sold"
         >
           {globalError}
         </div>
@@ -137,7 +137,7 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-xl bg-forest px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-cream shadow-lg transition hover:-translate-y-0.5 hover:bg-[#2D6A4F] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="w-full rounded-xl bg-mint px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-forest shadow-[0_14px_50px_-12px_rgba(216,243,220,0.75)] transition hover:-translate-y-0.5 hover:bg-cream disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
         {busy ? "Submitting…" : "Submit Registration"}
       </button>
@@ -158,7 +158,7 @@ function FieldRenderer({
 }) {
   const inputId = `field-${field.id}`;
   const base =
-    "w-full rounded-lg border border-[#1B4332]/20 bg-[#FDFCF0] px-4 py-2.5 text-forest outline-none transition focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/20";
+    "w-full rounded-lg border border-mint/15 bg-[#050A08] px-4 py-2.5 text-cream placeholder:text-cream/30 outline-none transition focus:border-mint/50 focus:ring-2 focus:ring-mint/15";
 
   let inputEl: React.ReactNode = null;
 
@@ -181,7 +181,7 @@ function FieldRenderer({
         className={base}
       >
         {field.options.map((o) => (
-          <option key={o} value={o}>
+          <option key={o} value={o} className="bg-[#0A1410] text-cream">
             {o}
           </option>
         ))}
@@ -195,8 +195,8 @@ function FieldRenderer({
             key={o}
             className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
               value === o
-                ? "border-[#2D6A4F] bg-mint text-forest"
-                : "border-[#1B4332]/15 bg-white text-[#1B4332]/80 hover:border-[#2D6A4F]/40"
+                ? "border-mint/60 bg-mint/10 text-mint"
+                : "border-mint/15 bg-[#0A1410] text-cream/70 hover:border-mint/35"
             }`}
           >
             <input
@@ -205,7 +205,7 @@ function FieldRenderer({
               value={o}
               checked={value === o}
               onChange={() => onChange(o)}
-              className="accent-[#1B4332]"
+              className="accent-mint"
             />
             <span>{o}</span>
           </label>
@@ -241,8 +241,8 @@ function FieldRenderer({
   }
 
   return (
-    <div className="rounded-2xl border border-[#1B4332]/10 bg-white p-5 shadow-sm">
-      <label htmlFor={inputId} className="mb-1.5 block text-sm font-bold text-forest">
+    <div className="rounded-2xl border border-mint/12 bg-[#0A1410] p-5">
+      <label htmlFor={inputId} className="mb-1.5 block text-sm font-bold text-cream">
         {field.label}
         {field.required && <span className="ml-1 text-sold">*</span>}
       </label>

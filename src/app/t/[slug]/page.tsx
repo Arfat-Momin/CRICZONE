@@ -4,20 +4,17 @@ import { unstable_noStore as noStore } from "next/cache";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
+import { NightBackdrop } from "@/components/shared/NightBackdrop";
+import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { TournamentHero } from "@/components/tournament/TournamentHero";
 import { RosterGrid } from "@/components/tournament/RosterGrid";
 import { TeamGrid } from "@/components/tournament/TeamGrid";
 import { RosterRealtimeBridge } from "@/components/tournament/RosterRealtimeBridge";
 import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
 import { SummaryView } from "@/components/tournament/SummaryView";
-import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
-/**
- * Live auctions need fresh server state on every load — ISR caching
- * would serve stale bid data during the crucial first render.
- */
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -50,31 +47,38 @@ export default async function TournamentPage({ params }: Props) {
     })
     .filter((x): x is { id: string; label: string } => x !== null);
 
+  // ============ LIVE — immersive auction room ============
   if (tournament.status === "live") {
     return (
       <MaintenanceGate>
-        <AuctionRoom
-          tournament={tournament}
-          initialPlayers={players}
-          initialTeams={teams}
-          initialState={state}
-        />
+        <NightBackdrop>
+          <AuctionRoom
+            tournament={tournament}
+            initialPlayers={players}
+            initialTeams={teams}
+            initialState={state}
+          />
+        </NightBackdrop>
       </MaintenanceGate>
     );
   }
 
+  // ============ ENDED / ARCHIVED — summary ============
   if (tournament.status === "ended" || tournament.status === "archived") {
     return (
       <MaintenanceGate>
-        <Navbar />
-        <main>
-          <SummaryView tournament={tournament} players={players} teams={teams} />
-        </main>
-        <Footer />
+        <NightBackdrop>
+          <Navbar />
+          <main>
+            <SummaryView tournament={tournament} players={players} teams={teams} />
+          </main>
+          <Footer />
+        </NightBackdrop>
       </MaintenanceGate>
     );
   }
 
+  // ============ PRE-AUCTION — countdown + roster + register CTA ============
   const registrationOpen =
     tournament.registration_enabled &&
     config.enabled &&
@@ -82,51 +86,53 @@ export default async function TournamentPage({ params }: Props) {
 
   return (
     <MaintenanceGate>
-      <Navbar />
-      <RosterRealtimeBridge tournamentId={tournament.id} />
+      <NightBackdrop>
+        <Navbar />
+        <RosterRealtimeBridge tournamentId={tournament.id} />
 
-      <main>
-        <TournamentHero tournament={tournament} />
+        <main>
+          <TournamentHero tournament={tournament} />
 
-        {registrationOpen && (
-          <section className="mx-auto max-w-7xl px-6 pt-8">
-            <div className="flex flex-col items-start gap-3 rounded-2xl border border-[#2D6A4F]/25 bg-gradient-to-r from-mint/60 to-cream p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-[#2D6A4F]">
-                  Want to play?
-                </p>
-                <p className="mt-0.5 text-sm text-[#1B4332]/75">
-                  Registration is open for this tournament.
-                </p>
+          {registrationOpen && (
+            <section className="mx-auto max-w-7xl px-6 pt-8">
+              <div className="flex flex-col items-start gap-3 rounded-2xl border border-mint/20 bg-gradient-to-r from-mint/10 to-transparent p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-wider text-mint">
+                    Want to play?
+                  </p>
+                  <p className="mt-0.5 text-sm text-cream/70">
+                    Registration is open for this tournament.
+                  </p>
+                </div>
+                <Link
+                  href={`/t/${tournament.slug}/register`}
+                  className="rounded-xl bg-mint px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-forest shadow-[0_10px_35px_-10px_rgba(216,243,220,0.6)] transition hover:-translate-y-0.5 hover:bg-cream"
+                >
+                  Register as a player &rarr;
+                </Link>
               </div>
-              <Link
-                href={`/t/${tournament.slug}/register`}
-                className="rounded-xl bg-forest px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-cream shadow-md transition hover:-translate-y-0.5 hover:bg-[#2D6A4F]"
-              >
-                Register as a player &rarr;
-              </Link>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
-        <div className="mx-auto max-w-7xl px-6 py-10 md:py-14">
-          <TeamGrid teams={teams} />
+          <div className="mx-auto max-w-7xl px-6 py-10 md:py-14">
+            <TeamGrid teams={teams} />
 
-          <section className={teams.length > 0 ? "mt-14" : ""}>
-            <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest md:text-3xl">
-              Players
-            </h2>
-            <p className="mt-1 text-sm text-[#1B4332]/65">
-              {players.length} registered
-            </p>
-            <div className="mt-6">
-              <RosterGrid players={players} displayFields={displayFields} />
-            </div>
-          </section>
-        </div>
-      </main>
+            <section className={teams.length > 0 ? "mt-14" : ""}>
+              <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-cream md:text-3xl">
+                Players
+              </h2>
+              <p className="mt-1 text-sm text-cream/55">
+                {players.length} registered
+              </p>
+              <div className="mt-6">
+                <RosterGrid players={players} displayFields={displayFields} />
+              </div>
+            </section>
+          </div>
+        </main>
 
-      <Footer />
+        <Footer />
+      </NightBackdrop>
     </MaintenanceGate>
   );
 }

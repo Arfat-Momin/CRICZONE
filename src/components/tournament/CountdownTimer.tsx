@@ -25,8 +25,6 @@ function diff(targetMs: number): Parts {
 
 export function CountdownTimer({ targetIso }: { targetIso: string }) {
   const target = new Date(targetIso).getTime();
-  // Start as null so SSR and the first client render match.
-  // The real value is populated in useEffect after hydration.
   const [parts, setParts] = useState<Parts | null>(null);
 
   useEffect(() => {
@@ -35,7 +33,6 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
     return () => clearInterval(id);
   }, [target]);
 
-  // Pre-hydration placeholder — stable across SSR + first paint.
   if (parts === null) {
     return (
       <div className="flex flex-wrap gap-3">
@@ -49,7 +46,7 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
 
   if (parts.done) {
     return (
-      <p className="text-base font-semibold text-[#2D6A4F]">
+      <p className="text-base font-semibold text-mint">
         Auction will start soon — please wait.
       </p>
     );
@@ -67,11 +64,11 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
 
 function Unit({ value, label }: { value: number | null; label: string }) {
   return (
-    <div className="min-w-[64px] rounded-xl border border-[#1B4332]/10 bg-white px-3 py-2.5 text-center shadow-sm">
-      <span className="block font-[family-name:var(--font-numeric)] text-2xl font-bold tabular-nums text-forest sm:text-3xl">
+    <div className="min-w-[72px] rounded-xl border border-mint/12 bg-[#0A1410] px-3 py-3 text-center shadow-[0_0_30px_-12px_rgba(216,243,220,0.35)]">
+      <span className="block font-[family-name:var(--font-numeric)] text-2xl font-bold tabular-nums text-mint md:text-3xl">
         {value === null ? "--" : String(value).padStart(2, "0")}
       </span>
-      <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-[#1B4332]/55">
+      <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-cream/45">
         {label}
       </span>
     </div>
