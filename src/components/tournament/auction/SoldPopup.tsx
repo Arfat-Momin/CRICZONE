@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Tables } from "@/types/supabase";
 
 /* ============================================================
-   SOLD POPUP
+   SOLD POPUP — stadium broadcast palette
    ============================================================ */
 
 type SoldProps = {
@@ -29,11 +29,11 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
   if (!mounted) return null;
 
   const playerPhoto =
-    player.photo_url || "https://placehold.co/400x400/1B4332/FDFCF0?text=%3F";
+    player.photo_url || "https://placehold.co/400x400/131A33/FFC93C?text=%3F";
   const teamInitial = (team.team_name[0] ?? "?").toUpperCase();
   const teamPhoto =
     team.photo_url ||
-    `https://placehold.co/200x200/1B4332/FDFCF0?text=${encodeURIComponent(teamInitial)}`;
+    `https://placehold.co/200x200/131A33/FFC93C?text=${encodeURIComponent(teamInitial)}`;
 
   return createPortal(
     <AnimatePresence>
@@ -45,10 +45,8 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
         transition={{ duration: reduce ? 0.15 : 0.28 }}
         className="pointer-events-none fixed inset-0 z-[85] flex items-center justify-center overflow-hidden"
       >
-        {/* Dark red-tinted backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#3a0510]/95 via-[#1a0308]/95 to-[#0a0204]/95" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a0820]/95 via-[#0d0510]/95 to-[#050208]/95" />
 
-        {/* Radial glow that pulses on impact */}
         {!reduce && (
           <motion.div
             aria-hidden
@@ -61,12 +59,11 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
               height: 600,
               borderRadius: "50%",
               background:
-                "radial-gradient(circle, rgba(216,243,220,0.55) 0%, rgba(193,18,31,0.35) 40%, transparent 70%)",
+                "radial-gradient(circle, rgba(255,201,60,0.55) 0%, rgba(255,77,109,0.35) 40%, transparent 70%)",
             }}
           />
         )}
 
-        {/* White flash frame 1 */}
         {!reduce && (
           <motion.div
             aria-hidden
@@ -77,22 +74,18 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
           />
         )}
 
-        {/* Confetti (sold only) */}
         {!reduce && <Confetti />}
 
-        {/* Content */}
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center gap-4 px-6 text-center md:gap-6">
-          {/* Stamp */}
           <Stamp label="SOLD" variant="sold" reduce={!!reduce} />
 
-          {/* Player */}
           <motion.div
             initial={reduce ? false : { y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center gap-3"
           >
-            <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-mint/60 shadow-2xl md:h-32 md:w-32">
+            <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-[#FFC93C]/60 shadow-[0_0_55px_-12px_rgba(255,201,60,0.7)] md:h-32 md:w-32">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={playerPhoto}
@@ -100,19 +93,18 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
                 className="h-full w-full object-cover object-top"
               />
             </div>
-            <h2 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream md:text-5xl lg:text-6xl">
+            <h2 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-[#F0F4FF] md:text-5xl lg:text-6xl">
               {player.full_name}
             </h2>
           </motion.div>
 
-          {/* Team chip */}
           <motion.div
             initial={reduce ? false : { y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.75, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="flex items-center gap-3 rounded-full border border-mint/30 bg-white/10 px-5 py-2.5 backdrop-blur md:gap-4 md:px-6 md:py-3"
+            className="flex items-center gap-3 rounded-full border border-[#FFC93C]/30 bg-[#FFC93C]/5 px-5 py-2.5 backdrop-blur-none md:gap-4 md:px-6 md:py-3"
           >
-            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-mint/60 md:h-12 md:w-12">
+            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#FFC93C]/60 md:h-12 md:w-12">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={teamPhoto}
@@ -121,16 +113,15 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
               />
             </div>
             <div className="text-left">
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-mint/70 md:text-xs">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-[#FFC93C]/70 md:text-xs">
                 Bid By
               </p>
-              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-cream md:text-xl">
+              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[#F0F4FF] md:text-xl">
                 {team.team_name}
               </p>
             </div>
           </motion.div>
 
-          {/* Price */}
           <motion.div
             initial={reduce ? false : { scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -142,10 +133,10 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
             }}
             className="flex items-baseline gap-2"
           >
-            <p className="font-[family-name:var(--font-numeric)] text-7xl font-bold leading-none text-mint md:text-9xl">
+            <p className="font-[family-name:var(--font-numeric)] text-7xl font-bold leading-none text-led-gold md:text-9xl">
               {price}
             </p>
-            <p className="text-lg font-extrabold uppercase tracking-widest text-mint/70 md:text-2xl">
+            <p className="text-lg font-extrabold uppercase tracking-[0.28em] text-[#FFC93C]/70 md:text-2xl">
               pts
             </p>
           </motion.div>
@@ -178,7 +169,7 @@ export function UnsoldBanner({ player, onClose }: UnsoldProps) {
   if (!mounted) return null;
 
   const playerPhoto =
-    player.photo_url || "https://placehold.co/400x400/1B4332/FDFCF0?text=%3F";
+    player.photo_url || "https://placehold.co/400x400/131A33/FFC93C?text=%3F";
 
   return createPortal(
     <AnimatePresence>
@@ -190,10 +181,8 @@ export function UnsoldBanner({ player, onClose }: UnsoldProps) {
         transition={{ duration: reduce ? 0.15 : 0.3 }}
         className="pointer-events-none fixed inset-0 z-[85] flex items-center justify-center overflow-hidden"
       >
-        {/* Muted gray backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a]/95 via-[#0e0e0e]/95 to-[#050505]/95" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#101010]/95 via-[#080808]/95 to-[#020202]/95" />
 
-        {/* Slow gray ripple */}
         {!reduce && (
           <motion.div
             aria-hidden
@@ -262,16 +251,14 @@ function Stamp({
   reduce: boolean;
 }) {
   const sold = variant === "sold";
-  const color = sold ? "#C1121F" : "#4a4a4a";
+  const color = sold ? "#FF4D6D" : "#4a4a4a";
   const borderColor = sold ? "rgba(255,235,205,0.85)" : "rgba(220,220,220,0.55)";
-  const textColor = sold ? "#FFEBCD" : "#e8e8e8";
+  const textColor = sold ? "#FFE49A" : "#e8e8e8";
 
   return (
     <motion.div
       initial={
-        reduce
-          ? false
-          : { scale: 4.5, opacity: 0, rotate: -30 }
+        reduce ? false : { scale: 4.5, opacity: 0, rotate: -30 }
       }
       animate={
         reduce
@@ -290,12 +277,13 @@ function Stamp({
       className="relative select-none"
       style={{ rotate: reduce ? "-14deg" : undefined }}
     >
-      {/* Distressed stamp frame */}
       <div
         className="relative rounded-2xl px-8 py-4 md:px-14 md:py-7"
         style={{
           border: `5px double ${borderColor}`,
-          boxShadow: `0 0 40px ${sold ? "rgba(255,235,205,0.4)" : "rgba(200,200,200,0.25)"}, inset 0 0 30px rgba(0,0,0,0.35)`,
+          boxShadow: sold
+            ? "0 0 60px rgba(255,77,109,0.45), inset 0 0 30px rgba(0,0,0,0.35)"
+            : "0 0 45px rgba(200,200,200,0.25), inset 0 0 30px rgba(0,0,0,0.35)",
           background: `radial-gradient(circle at center, ${color}dd 0%, ${color}aa 100%)`,
         }}
       >
@@ -303,8 +291,7 @@ function Stamp({
           className="font-[family-name:var(--font-display)] text-6xl font-black uppercase leading-none tracking-[0.05em] md:text-8xl lg:text-9xl"
           style={{
             color: textColor,
-            textShadow:
-              "0 4px 0 rgba(0,0,0,0.25), 2px 2px 0 rgba(0,0,0,0.15)",
+            textShadow: "0 4px 0 rgba(0,0,0,0.25), 2px 2px 0 rgba(0,0,0,0.15)",
             letterSpacing: "0.02em",
           }}
         >
@@ -312,7 +299,6 @@ function Stamp({
         </p>
       </div>
 
-      {/* Tiny impact shake after landing */}
       {!reduce && (
         <motion.div
           aria-hidden
@@ -328,12 +314,12 @@ function Stamp({
 }
 
 /* ============================================================
-   CONFETTI (sold only, GPU-friendly)
+   CONFETTI
    ============================================================ */
 
 function Confetti() {
   const pieces = Array.from({ length: 24 });
-  const colors = ["#C1121F", "#D8F3DC", "#2D6A4F", "#FDFCF0", "#FFA000"];
+  const colors = ["#FF4D6D", "#FFC93C", "#B8FF3C", "#F0F4FF", "#00D9FF"];
 
   return (
     <div
@@ -350,23 +336,14 @@ function Confetti() {
         return (
           <motion.span
             key={i}
-            initial={{
-              y: -60,
-              x: 0,
-              opacity: 0,
-              rotate: 0,
-            }}
+            initial={{ y: -60, x: 0, opacity: 0, rotate: 0 }}
             animate={{
-              y: [ -60, 520 ],
+              y: [-60, 520],
               x: [0, drift],
               opacity: [0, 1, 1, 0],
               rotate: [0, 360 + (i % 3) * 180],
             }}
-            transition={{
-              duration,
-              delay,
-              ease: "easeOut",
-            }}
+            transition={{ duration, delay, ease: "easeOut" }}
             className="absolute block"
             style={{
               left: `${left}%`,

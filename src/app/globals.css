@@ -239,3 +239,84 @@ body::before {
     animation: none !important;
   }
 }
+/* ============================================================
+   CRICZONE BROADCAST STADIUM — live auction utilities
+   ============================================================ */
+
+@theme inline {
+  --color-navy-0: #0B1020;
+  --color-navy-1: #131A33;
+  --color-navy-2: #1B2340;
+  --color-gold: #FFC93C;
+  --color-gold-dim: #FFE49A;
+  --color-coral: #FF4D6D;
+  --color-cyan-live: #00D9FF;
+  --color-lime: #B8FF3C;
+}
+
+@layer utilities {
+  .text-led-gold {
+    color: #FFC93C;
+    text-shadow:
+      0 0 12px rgba(255, 201, 60, 0.55),
+      0 0 34px rgba(255, 201, 60, 0.28);
+  }
+  .text-led-coral {
+    color: #FF4D6D;
+    text-shadow:
+      0 0 12px rgba(255, 77, 109, 0.55),
+      0 0 34px rgba(255, 77, 109, 0.28);
+  }
+  .text-led-cyan {
+    color: #00D9FF;
+    text-shadow:
+      0 0 12px rgba(0, 217, 255, 0.55),
+      0 0 34px rgba(0, 217, 255, 0.28);
+  }
+
+  .card-navy {
+    background: #131A33;
+    border: 1px solid rgba(255, 201, 60, 0.14);
+  }
+  .card-navy-elevated {
+    background: linear-gradient(160deg, #1B2340 0%, #131A33 100%);
+    border: 1px solid rgba(255, 201, 60, 0.22);
+    box-shadow:
+      0 24px 60px -22px rgba(0, 0, 0, 0.65),
+      0 0 45px -18px rgba(255, 201, 60, 0.2);
+  }
+
+  .chip-live {
+    background: #FF4D6D;
+    color: #ffffff;
+    box-shadow: 0 0 24px -6px rgba(255, 77, 109, 0.7);
+  }
+  .chip-gold {
+    background: rgba(255, 201, 60, 0.14);
+    border: 1px solid rgba(255, 201, 60, 0.35);
+    color: #FFC93C;
+  }
+  .chip-cyan {
+    background: rgba(0, 217, 255, 0.12);
+    border: 1px solid rgba(0, 217, 255, 0.35);
+    color: #00D9FF;
+  }
+
+  .diagonal-lines {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255, 201, 60, 0.05) 0px,
+      rgba(255, 201, 60, 0.05) 1px,
+      transparent 1px,
+      transparent 7px
+    );
+  }
+
+  .dot-grid {
+    background-image: radial-gradient(
+      rgba(255, 201, 60, 0.14) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
+  }
+}

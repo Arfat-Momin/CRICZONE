@@ -15,19 +15,23 @@ export function TeamsRow({
 }) {
   const [selectedTeam, setSelectedTeam] = useState<Tables<"teams"> | null>(null);
 
-  const boughtByTeam = useMemo(() => {
-    const map: Record<string, Tables<"players">[]> = {};
+  const statsByTeam = useMemo(() => {
+    const map: Record<
+      string,
+      { bought: Tables<"players">[]; spent: number }
+    > = {};
     for (const p of players) {
-      if (p.sold_to_team_id) {
-        (map[p.sold_to_team_id] ??= []).push(p);
-      }
+      if (!p.sold_to_team_id) continue;
+      const bucket = (map[p.sold_to_team_id] ??= { bought: [], spent: 0 });
+      bucket.bought.push(p);
+      bucket.spent += p.selling_price ?? 0;
     }
     return map;
   }, [players]);
 
   if (teams.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-mint/20 bg-[#0A1410]/60 p-8 text-center text-sm text-cream/55">
+      <p className="rounded-2xl border border-dashed border-[#FFC93C]/20 bg-[#131A33]/60 p-8 text-center text-sm text-[#F0F4FF]/55">
         No teams configured.
       </p>
     );
@@ -37,20 +41,28 @@ export function TeamsRow({
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {teams.map((team) => {
-          const bought = boughtByTeam[team.id] ?? [];
-          const remaining =
-            team.max_players != null ? Math.max(0, team.max_players - bought.length) : null;
+          const bucket = statsByTeam[team.id] ?? { bought: [], spent: 0 };
+          const bought = bucket.bought;
+          const totalPoints = team.points_remaining + bucket.spent;
+          const spentPct =
+            totalPoints > 0 ? Math.min(100, (bucket.spent / totalPoints) * 100) : 0;
+          const slotsRemaining =
+            team.max_players != null
+              ? Math.max(0, team.max_players - bought.length)
+              : null;
           const initial = (team.team_name[0] ?? "?").toUpperCase();
+          const isFull = slotsRemaining !== null && slotsRemaining === 0;
 
           return (
             <button
               key={team.id}
               type="button"
               onClick={() => setSelectedTeam(team)}
-              className="group flex flex-col rounded-2xl border border-mint/12 bg-[#0A1410] p-4 text-left shadow-[0_0_30px_-16px_rgba(216,243,220,0.25)] transition hover:-translate-y-0.5 hover:border-mint/35 hover:shadow-[0_0_45px_-14px_rgba(216,243,220,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
+              className="group relative flex flex-col overflow-hidden rounded-2xl card-navy p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-[#FFC93C]/45 hover:shadow-[0_20px_55px_-20px_rgba(255,201,60,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFC93C] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1020]"
             >
+              {/* Top-row: logo + name */}
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-mint/35 bg-[#0F231A]">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border-2 border-[#FFC93C]/40 bg-[#0B1020]">
                   {team.photo_url ? (
                     <ZoomableImage
                       src={team.photo_url}
@@ -59,44 +71,52 @@ export function TeamsRow({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-base font-bold text-mint">
+                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-[#FFC93C]">
                       {initial}
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-cream">{team.team_name}</p>
+                  <p className="truncate font-[family-name:var(--font-display)] text-lg font-bold text-[#F0F4FF]">
+                    {team.team_name}
+                  </p>
                   {team.captain_name && (
-                    <p className="truncate text-xs text-cream/55">
+                    <p className="truncate text-xs text-[#F0F4FF]/50">
                       {team.captain_name}
                     </p>
                   )}
                 </div>
+                {isFull && (
+                  <span className="chip-live shrink-0 rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest">
+                    Full
+                  </span>
+                )}
               </div>
 
-              <div className="mt-3 flex items-end justify-between border-t border-mint/10 pt-3">
+              {/* Points — big gold number */}
+              <div className="mt-4 flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cream/45">
-                    Points
+                  <p className="text-[9px] font-extrabold uppercase tracking-[0.24em] text-[#F0F4FF]/40">
+                    Points left
                   </p>
                   <motion.p
                     key={String(team.points_remaining)}
-                    initial={{ scale: 1.15, color: "#C1121F" }}
-                    animate={{ scale: 1, color: "#D8F3DC" }}
-                    transition={{ duration: 0.5 }}
-                    className="font-[family-name:var(--font-numeric)] text-2xl font-bold"
+                    initial={{ scale: 1.15, color: "#FF4D6D" }}
+                    animate={{ scale: 1, color: "#FFC93C" }}
+                    transition={{ duration: 0.55 }}
+                    className="font-[family-name:var(--font-numeric)] text-3xl font-bold leading-none text-led-gold"
                   >
                     {team.points_remaining}
                   </motion.p>
                 </div>
-                {remaining !== null && (
+                {slotsRemaining !== null && (
                   <div className="text-right">
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cream/45">
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.24em] text-[#F0F4FF]/40">
                       Slots
                     </p>
-                    <p className="font-[family-name:var(--font-numeric)] text-lg font-bold text-cream/90">
-                      {remaining}
-                      <span className="text-xs text-cream/45">
+                    <p className="font-[family-name:var(--font-numeric)] text-lg font-bold leading-none text-[#F0F4FF]/90">
+                      {slotsRemaining}
+                      <span className="text-xs text-[#F0F4FF]/45">
                         {" "}
                         / {team.max_players}
                       </span>
@@ -105,25 +125,36 @@ export function TeamsRow({
                 )}
               </div>
 
+              {/* Spent progress bar */}
+              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#0B1020]">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${spentPct}%` }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full rounded-full bg-gradient-to-r from-[#FFC93C] to-[#FF4D6D]"
+                />
+              </div>
+
+              {/* Bought chips */}
               {bought.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
-                  {bought.slice(0, 4).map((p) => (
+                  {bought.slice(0, 3).map((p) => (
                     <span
                       key={p.id}
-                      className="rounded-full border border-mint/15 bg-mint/5 px-2 py-0.5 text-[10px] font-semibold text-mint/85"
+                      className="truncate rounded-full border border-[#FFC93C]/20 bg-[#FFC93C]/5 px-2 py-0.5 text-[10px] font-semibold text-[#FFE49A]"
                     >
                       {p.full_name}
                     </span>
                   ))}
-                  {bought.length > 4 && (
-                    <span className="rounded-full border border-mint/12 bg-mint/5 px-2 py-0.5 text-[10px] font-semibold text-mint/60">
-                      +{bought.length - 4} more
+                  {bought.length > 3 && (
+                    <span className="rounded-full border border-[#F0F4FF]/15 bg-[#0B1020] px-2 py-0.5 text-[10px] font-semibold text-[#F0F4FF]/55">
+                      +{bought.length - 3}
                     </span>
                   )}
                 </div>
               )}
 
-              <span className="mt-3 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint/60 transition group-hover:gap-2 group-hover:text-mint">
+              <span className="mt-3 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-[#FFC93C]/60 transition group-hover:gap-2 group-hover:text-[#FFC93C]">
                 View squad <span aria-hidden>→</span>
               </span>
             </button>
