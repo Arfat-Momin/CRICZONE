@@ -8,9 +8,9 @@ import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion
 /**
  * CRICZONE — Night Stadium Hero
  *
- * Drop a night-cricket image at:
- *   public/images/hero-night-cricket.jpg
- * If the file is missing, the dark gradient fallback keeps the page beautiful.
+ * Background image: public/images/hero-night-cricket.jpg
+ * Fallback gradient sits *behind* the image so a missing file
+ * never hides a present one.
  */
 
 const HERO_IMAGE = "/images/hero-night-cricket.jpg";
@@ -51,7 +51,18 @@ export function Hero() {
       ref={sectionRef}
       className="relative isolate flex min-h-[100svh] w-full items-center overflow-hidden bg-[#050A08] text-cream"
     >
-      {/* ============ LAYER 1: Background image ============ */}
+      {/* ============================================================
+          LAYER 1 — FALLBACK GRADIENT (deepest, only visible if image missing)
+          IMPORTANT: must come BEFORE the <Image> in DOM so image stacks on top.
+          ============================================================ */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-30 bg-[radial-gradient(ellipse_at_top,#0F231A_0%,#050A08_70%)]"
+      />
+
+      {/* ============================================================
+          LAYER 2 — HERO IMAGE (renders on top of fallback)
+          ============================================================ */}
       <motion.div
         aria-hidden
         className="absolute inset-0 -z-30"
@@ -67,13 +78,9 @@ export function Hero() {
         />
       </motion.div>
 
-      {/* ============ LAYER 2: Fallback gradient (visible if image fails) ============ */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-30 bg-[radial-gradient(ellipse_at_top,#0F231A_0%,#050A08_70%)]"
-      />
-
-      {/* ============ LAYER 3: Readability gradients ============ */}
+      {/* ============================================================
+          LAYER 3 — READABILITY OVERLAYS (above image, below content)
+          ============================================================ */}
       <div
         aria-hidden
         className="absolute inset-0 -z-20 bg-gradient-to-b from-[#050A08]/85 via-[#050A08]/55 to-[#050A08]"
@@ -83,13 +90,15 @@ export function Hero() {
         className="absolute inset-0 -z-20 bg-gradient-to-r from-[#1B4332]/45 via-transparent to-[#1B4332]/35"
       />
 
-      {/* ============ LAYER 4: Floodlight glow from top ============ */}
+      {/* Floodlight glow from top */}
       <div
         aria-hidden
         className="absolute inset-x-0 top-0 -z-20 h-[70%] bg-[radial-gradient(ellipse_at_top,rgba(255,232,184,0.16),transparent_60%)]"
       />
 
-      {/* ============ LAYER 5: Conic light beams ============ */}
+      {/* ============================================================
+          LAYER 4 — CONIC LIGHT BEAMS (stadium spotlights)
+          ============================================================ */}
       {!reduce && (
         <>
           <div
@@ -126,10 +135,14 @@ export function Hero() {
         </>
       )}
 
-      {/* ============ LAYER 6: Grain ============ */}
+      {/* ============================================================
+          LAYER 5 — GRAIN (filmic texture)
+          ============================================================ */}
       <div aria-hidden className="hero-grain absolute inset-0 -z-10" />
 
-      {/* ============ FLOATING CRICKET BALL ============ */}
+      {/* ============================================================
+          FLOATING CRICKET BALL
+          ============================================================ */}
       {!reduce && (
         <motion.div
           aria-hidden
@@ -147,7 +160,9 @@ export function Hero() {
         />
       )}
 
-      {/* ============ CONTENT ============ */}
+      {/* ============================================================
+          CONTENT
+          ============================================================ */}
       <motion.div
         className="relative z-10 mx-auto w-full max-w-7xl px-6 py-24 md:py-28 lg:py-32"
         style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
@@ -158,7 +173,6 @@ export function Hero() {
           animate="visible"
           className="max-w-3xl"
         >
-          {/* Badge */}
           <motion.div variants={itemVariants}>
             <span className="inline-flex items-center gap-2 rounded-full border border-mint/25 bg-mint/10 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-mint backdrop-blur">
               <span className="cz-pulse-dot inline-block h-2 w-2 rounded-full bg-sold" />
@@ -166,7 +180,6 @@ export function Hero() {
             </span>
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             variants={itemVariants}
             className="mt-6 font-[family-name:var(--font-display)] text-[2.6rem] font-bold leading-[1.02] tracking-tight text-cream text-glow-mint md:text-6xl lg:text-7xl"
@@ -178,7 +191,6 @@ export function Hero() {
             </span>
           </motion.h1>
 
-          {/* Subhead */}
           <motion.p
             variants={itemVariants}
             className="mt-6 max-w-2xl text-base leading-relaxed text-cream/75 md:text-lg"
@@ -189,7 +201,6 @@ export function Hero() {
             one link.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             variants={itemVariants}
             className="mt-10 flex flex-wrap items-center gap-3"
@@ -215,7 +226,6 @@ export function Hero() {
             </Link>
           </motion.div>
 
-          {/* Trust row */}
           <motion.div
             variants={itemVariants}
             className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-semibold uppercase tracking-widest text-cream/55"
@@ -236,7 +246,9 @@ export function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* ============ SCROLL CUE ============ */}
+      {/* ============================================================
+          SCROLL CUE
+          ============================================================ */}
       <div
         aria-hidden
         className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.3em] text-cream/40 md:flex"
@@ -249,7 +261,9 @@ export function Hero() {
         />
       </div>
 
-      {/* ============ BOTTOM FADE → NEXT SECTION ============ */}
+      {/* ============================================================
+          BOTTOM FADE
+          ============================================================ */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0A1410] to-transparent"
