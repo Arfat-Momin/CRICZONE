@@ -68,83 +68,108 @@ export function OnBlockStage({
 
       {/* ============================================================
           RIGHT — CURRENT BID
-          Layout: "Current Bid" label → big number (upper)
-                  → square team photo (middle) → team name (bottom)
+          Full-height distribution:
+            top:    "Current Bid" label
+            upper:  big bid number
+            middle: square team photo
+            bottom: team name
           ============================================================ */}
-      <div className="relative flex h-[260px] flex-col overflow-hidden rounded-2xl border border-mint/40 bg-gradient-to-br from-[#0F231A]/65 via-[#0A1410]/70 to-[#050A08]/75 p-4 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)] sm:h-[300px] sm:rounded-3xl sm:p-5 md:h-[340px] lg:h-[400px] lg:p-6 xl:h-[440px]">
-        {/* Top — label + big number, both anchored at the top */}
-        <div className="shrink-0 text-center">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
-            Current Bid
-          </p>
-
-          <motion.div
-            key={`num-${state?.current_bid_price ?? 0}`}
-            initial={reduce ? false : { scale: 0.92, opacity: 0.7 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 340, damping: 22 }}
-            className="mt-2 flex items-baseline justify-center gap-1 sm:mt-2.5 sm:gap-1.5"
-          >
-            <span className="font-[family-name:var(--font-numeric)] text-3xl font-bold leading-none text-mint text-glow-mint sm:text-4xl md:text-5xl">
-              {(state?.current_bid_price ?? 0) > 0
-                ? (state?.current_bid_price ?? 0).toFixed(1).replace(/\.0$/, "")
-                : "—"}
-            </span>
-            <span className="text-[9px] font-extrabold uppercase tracking-[0.28em] text-mint/65 sm:text-[10px] md:text-xs">
-              pts
-            </span>
-          </motion.div>
-        </div>
-
-        {/* Middle + bottom — photo (square) + team name, centered */}
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 sm:gap-3">
-          {currentHighestTeam ? (
-            <>
-              <motion.div
-                key={`photo-${currentHighestTeam.id}`}
-                initial={reduce ? false : { scale: 0.9, opacity: 0.6 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 280, damping: 22 }}
-                className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border-[3px] border-mint/50 bg-[#050A08] shadow-[0_0_35px_-8px_rgba(216,243,220,0.6)] sm:h-20 sm:w-20 sm:rounded-2xl md:h-24 md:w-24 lg:h-28 lg:w-28 xl:h-32 xl:w-32 xl:rounded-3xl"
-              >
-                {currentHighestTeam.photo_url ? (
-                  <ZoomableImage
-                    src={currentHighestTeam.photo_url}
-                    alt={currentHighestTeam.team_name}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xl font-bold text-mint sm:text-2xl md:text-3xl">
-                    {(currentHighestTeam.team_name[0] ?? "?").toUpperCase()}
-                  </div>
-                )}
-              </motion.div>
-
-              <motion.p
-                key={`name-${currentHighestTeam.id}`}
-                initial={reduce ? false : { y: 6, opacity: 0.7 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="line-clamp-2 max-w-full px-1 text-center font-[family-name:var(--font-display)] text-sm font-bold text-cream sm:text-base md:text-lg lg:text-xl"
-              >
-                {currentHighestTeam.team_name}
-              </motion.p>
-            </>
-          ) : (
-            <>
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-[3px] border-dashed border-cream/20 sm:h-20 sm:w-20 sm:rounded-2xl md:h-24 md:w-24 lg:h-28 lg:w-28 xl:h-32 xl:w-32 xl:rounded-3xl">
-                <span className="text-xl text-cream/25 sm:text-2xl md:text-3xl">
-                  ?
-                </span>
-              </div>
-              <span className="rounded-full border border-cream/15 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/45 sm:px-4 sm:py-1.5 sm:text-xs">
-                No bids yet
-              </span>
-            </>
-          )}
-        </div>
+      <div className="relative flex h-[290px] flex-col overflow-hidden rounded-2xl border border-mint/40 bg-gradient-to-br from-[#0F231A]/65 via-[#0A1410]/70 to-[#050A08]/75 px-4 py-5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)] sm:h-[330px] sm:rounded-3xl sm:px-5 sm:py-6 md:h-[360px] lg:h-[400px] lg:px-6 lg:py-8 xl:h-[440px] xl:py-10">
+        <CurrentBidContent
+          value={state?.current_bid_price ?? 0}
+          teamName={currentHighestTeam?.team_name ?? null}
+          teamPhoto={currentHighestTeam?.photo_url ?? null}
+          reduce={!!reduce}
+        />
       </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   CURRENT BID CONTENT — 4 rows distributed across full height
+   ============================================================ */
+function CurrentBidContent({
+  value,
+  teamName,
+  teamPhoto,
+  reduce,
+}: {
+  value: number;
+  teamName: string | null;
+  teamPhoto: string | null;
+  reduce: boolean;
+}) {
+  const display = value > 0 ? value.toFixed(1).replace(/\.0$/, "") : "—";
+  const initial = teamName?.[0]?.toUpperCase() ?? "?";
+
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-between">
+      {/* ============ TOP — label ============ */}
+      <p className="text-center text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint sm:text-xs sm:tracking-[0.34em]">
+        Current Bid
+      </p>
+
+      {/* ============ UPPER — bid number ============ */}
+      <motion.div
+        key={`num-${value}`}
+        initial={reduce ? false : { scale: 0.92, opacity: 0.7 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 340, damping: 22 }}
+        className="flex items-baseline justify-center gap-1.5 sm:gap-2"
+      >
+        <span className="font-[family-name:var(--font-numeric)] text-5xl font-bold leading-none text-mint text-glow-mint sm:text-6xl md:text-7xl lg:text-[5rem] xl:text-[5.5rem]">
+          {display}
+        </span>
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint/65 sm:text-xs md:text-sm">
+          pts
+        </span>
+      </motion.div>
+
+      {/* ============ MIDDLE — square team photo ============ */}
+      {teamName ? (
+        <motion.div
+          key={`photo-${teamName}`}
+          initial={reduce ? false : { scale: 0.9, opacity: 0.6 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 280, damping: 22 }}
+          className="h-[78px] w-[78px] shrink-0 overflow-hidden rounded-2xl border-[3px] border-mint/50 bg-[#050A08] shadow-[0_0_35px_-8px_rgba(216,243,220,0.6)] sm:h-[92px] sm:w-[92px] md:h-[108px] md:w-[108px] lg:h-[120px] lg:w-[120px] lg:rounded-3xl xl:h-[132px] xl:w-[132px] xl:rounded-[1.5rem]"
+        >
+          {teamPhoto ? (
+            <ZoomableImage
+              src={teamPhoto}
+              alt={teamName}
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-mint sm:text-3xl">
+              {initial}
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        <div className="flex h-[78px] w-[78px] shrink-0 items-center justify-center rounded-2xl border-[3px] border-dashed border-cream/20 sm:h-[92px] sm:w-[92px] md:h-[108px] md:w-[108px] lg:h-[120px] lg:w-[120px] lg:rounded-3xl xl:h-[132px] xl:w-[132px] xl:rounded-[1.5rem]">
+          <span className="text-2xl text-cream/25 sm:text-3xl">?</span>
+        </div>
+      )}
+
+      {/* ============ BOTTOM — team name ============ */}
+      {teamName ? (
+        <motion.p
+          key={`name-${teamName}`}
+          initial={reduce ? false : { y: 6, opacity: 0.7 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="line-clamp-2 w-full max-w-full px-1 text-center font-[family-name:var(--font-display)] text-base font-bold leading-tight text-cream sm:text-lg md:text-xl lg:text-2xl"
+        >
+          {teamName}
+        </motion.p>
+      ) : (
+        <span className="rounded-full border border-cream/15 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/45 sm:px-4 sm:py-1.5 sm:text-xs">
+          No bids yet
+        </span>
+      )}
     </div>
   );
 }
