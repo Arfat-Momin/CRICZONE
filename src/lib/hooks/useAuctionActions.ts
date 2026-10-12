@@ -130,3 +130,36 @@ export function computeNextBid(
   if (currentBid < 5) return currentBid + 0.5;
   return currentBid + 1;
 }
+export async function browserStartShuffle(
+  tournamentId: string,
+  shufflingName: string,
+): Promise<Ok<undefined> | Err> {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.rpc("start_shuffle", {
+      p_tournament_id: tournamentId,
+      p_shuffling_name: shufflingName,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return { ok: false, error: rpcErrorToMessage(e, "Start shuffle failed") };
+  }
+}
+
+export async function browserFinalizeOnBlock(
+  tournamentId: string,
+  playerId: string,
+): Promise<Ok<undefined> | Err> {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.rpc("finalize_on_block", {
+      p_tournament_id: tournamentId,
+      p_player_id: playerId,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return { ok: false, error: rpcErrorToMessage(e, "Finalize failed") };
+  }
+}

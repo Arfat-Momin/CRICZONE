@@ -7,11 +7,13 @@ import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/supabase";
 import type { GroupWithMembers } from "@/lib/queries/groups";
 import {
-  putOnBlockAction,
-  finalizeOnBlockAction,
   clearOnBlockAction,
   setBidModeAction,
 } from "@/lib/actions/auction";
+import {
+  browserStartShuffle,
+  browserFinalizeOnBlock,
+} from "@/lib/hooks/useAuctionActions";
 import { updateTournamentStatusAction } from "@/lib/actions/tournament";
 import { BiddingPad } from "./BiddingPad";
 import { GroupDrawButtons } from "./GroupDrawButtons";
@@ -27,6 +29,9 @@ type Props = {
   initialGroups: GroupWithMembers[];
 };
 
+// ⚡ Exactly 3 seconds — must match CardCascadeShuffle duration
+const SHUFFLE_DURATION_MS = 3000;
+
 export function LiveControlPanel({
   tournament: initialTournament,
   initialState,
@@ -41,7 +46,9 @@ export function LiveControlPanel({
   const [groups, setGroups] = useState<GroupWithMembers[]>(initialGroups);
   const [state, setState] = useState<Tables<"auction_state"> | null>(initialState);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(
+    null,
+  );
   const [manualPlayerId, setManualPlayerId] = useState("");
 
   const stateRef = useRef(state);
@@ -49,7 +56,7 @@ export function LiveControlPanel({
     stateRef.current = state;
   }, [state]);
 
-  // Realtime subscriptions
+  // ============ REALTIME ============
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -88,7 +95,8 @@ export function LiveControlPanel({
             });
           } else if (payload.eventType === "DELETE") {
             const oldRow = payload.old as Partial<Tables<"players">>;
-            if (oldRow.id) setPlayers((prev) => prev.filter((p) => p.id !== oldRow.id));
+            if (oldRow.id)
+              setPlayers((prev) => prev.filter((p) => p.id !== oldRow.id));
           }
         },
       )
@@ -114,7 +122,8 @@ export function LiveControlPanel({
             });
           } else if (payload.eventType === "DELETE") {
             const oldRow = payload.old as Partial<Tables<"teams">>;
-            if (oldRow.id) setTeams((prev) => prev.filter((t) => t.id !== oldRow.id));
+            if (oldRow.id)
+              setTeams((prev) => prev.filter((t) => t.id !== oldRow.id));
           }
         },
       )
@@ -139,24 +148,7 @@ export function LiveControlPanel({
     }
   }
 
-  // Optimistic bid: parent updates local state immediately, no server wait
-  function onOptimisticBid(nextBid: number, teamId: string) {
-    setState((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        current_bid_price: nextBid,
-        current_highest_team_id: teamId,
-      };
-    });
-  }
-
-  function onBidConfirmed() {
-    // Realtime will overwrite with the authoritative state; nothing else needed.
-    // If the RPC failed, realtime still has the previous value — parent state
-    // will reconcile on the next event.
-  }
-
+  // ============ AUCTION STATE ============
   async function goLive() {
     await withBusy(async () => {
       const r = await updateTournamentStatusAction(tournament.id, "live");
@@ -180,21 +172,43 @@ export function LiveControlPanel({
     });
   }
 
+  // ============ PUT ON BLOCK — direct RPC, exact 3s ============
   async function runPutOnBlock(playerId: string) {
-    await withBusy(async () => {
-      const start = await putOnBlockAction(tournament.id, playerId);
+    const player = players.find((p) => p.id === playerId);
+    if (!player) {
+      onMessage("err", "Player not found.");
+      return;
+    }
+
+    setBusy(true);
+    setMsg(null);
+
+    try {
+      // 1. Fire start_shuffle directly (no server-action round-trip)
+      const start = await browserStartShuffle(tournament.id, player.full_name);
       if (!start.ok) {
         onMessage("err", start.error);
         return;
       }
-      await new Promise((r) => setTimeout(r, 3200));
-      const fin = await finalizeOnBlockAction(tournament.id, playerId);
+
+      // 2. Exactly 3 seconds — matches the Card Cascade animation on the public side
+      await new Promise<void>((resolve) =>
+        window.setTimeout(resolve, SHUFFLE_DURATION_MS),
+      );
+
+      // 3. Finalize on block
+      const fin = await browserFinalizeOnBlock(tournament.id, playerId);
       if (!fin.ok) {
         onMessage("err", fin.error);
         return;
       }
-      onMessage("ok", `${start.data.playerName} is on the block.`);
-    });
+
+      onMessage("ok", `${player.full_name} is on the block.`);
+    } catch (e) {
+      onMessage("err", e instanceof Error ? e.message : "Unexpected error.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function drawRandom(pool: AdminPlayer[], label: string) {
@@ -244,6 +258,7 @@ export function LiveControlPanel({
     });
   }
 
+  // ============ DERIVED ============
   const onBlockPlayer = state?.current_player_id
     ? players.find((p) => p.id === state.current_player_id) ?? null
     : null;
@@ -257,7 +272,8 @@ export function LiveControlPanel({
     (p) => p.status === "pending" || p.status === "unsold",
   );
 
-  const blockLocked = !!onBlockPlayer;
+  const isShuffling = !!state?.shuffling_name;
+  const blockLocked = !!onBlockPlayer || isShuffling;
 
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
@@ -356,10 +372,16 @@ export function LiveControlPanel({
               </div>
 
               <div className="mt-3 text-sm text-[#1B4332]/75">
-                {state?.shuffling_name ? (
-                  <p>
+                {isShuffling ? (
+                  <p className="flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-sold" />
                     Shuffling:{" "}
-                    <span className="font-bold text-sold">{state.shuffling_name}</span>
+                    <span className="font-bold text-sold">
+                      {state?.shuffling_name}
+                    </span>
+                    <span className="text-xs text-[#1B4332]/50">
+                      (3s draw in progress…)
+                    </span>
                   </p>
                 ) : onBlockPlayer ? (
                   <>
@@ -468,8 +490,19 @@ export function LiveControlPanel({
                 state={state}
                 teams={teams}
                 players={players}
-                onOptimisticBid={onOptimisticBid}
-                onBidConfirmed={onBidConfirmed}
+                onOptimisticBid={(nextBid, teamId) => {
+                  setState((prev) => {
+                    if (!prev) return prev;
+                    return {
+                      ...prev,
+                      current_bid_price: nextBid,
+                      current_highest_team_id: teamId,
+                    };
+                  });
+                }}
+                onBidConfirmed={() => {
+                  // Realtime handles the authoritative state
+                }}
                 onBusy={withBusy}
                 onMessage={onMessage}
               />
@@ -511,7 +544,11 @@ function Stat({
   tone: "forest" | "sold" | "amber";
 }) {
   const color =
-    tone === "sold" ? "text-sold" : tone === "amber" ? "text-[#FFA000]" : "text-forest";
+    tone === "sold"
+      ? "text-sold"
+      : tone === "amber"
+        ? "text-[#FFA000]"
+        : "text-forest";
   return (
     <div className="rounded-xl border border-[#1B4332]/10 bg-white p-4 text-center">
       <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/50">

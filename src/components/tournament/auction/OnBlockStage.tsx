@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Tables } from "@/types/supabase";
 import { ZoomableImage } from "@/components/shared/ZoomableImage";
+import { CardCascadeShuffle } from "./CardCascadeShuffle";
 
 type Props = {
   state: Tables<"auction_state"> | null;
@@ -21,16 +22,16 @@ export function OnBlockStage({
   const reduce = useReducedMotion();
   const [shuffling, setShuffling] = useState<string | null>(null);
 
+  // React to shuffling_name changes from realtime
   useEffect(() => {
-    if (state?.shuffling_name && state.shuffling_name !== shuffling) {
+    if (state?.shuffling_name) {
       setShuffling(state.shuffling_name);
-    } else if (!state?.shuffling_name && state?.current_player_id) {
-      setShuffling(null);
-    } else if (!state?.shuffling_name && !state?.current_player_id) {
+    } else {
       setShuffling(null);
     }
-  }, [state?.shuffling_name, state?.current_player_id, shuffling]);
+  }, [state?.shuffling_name]);
 
+  // Pool of names to cycle through during the shuffle
   const rollPool = useMemo(() => {
     const names = players
       .filter((p) => p.status === "pending" || p.status === "unsold")
@@ -44,7 +45,11 @@ export function OnBlockStage({
       {/* ============ LEFT — ON THE BLOCK ============ */}
       <div className="relative min-h-[320px] overflow-hidden rounded-3xl border border-mint/35 bg-[#0A1410]/55 dot-grid shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_45px_-18px_rgba(216,243,220,0.35)]">
         {shuffling ? (
-          <ShuffleRoll target={shuffling} names={rollPool} reduce={!!reduce} />
+          <CardCascadeShuffle
+            target={shuffling}
+            names={rollPool}
+            reduce={!!reduce}
+          />
         ) : onBlockPlayer ? (
           <PlayerBlockCard player={onBlockPlayer} />
         ) : (
@@ -53,7 +58,7 @@ export function OnBlockStage({
       </div>
 
       {/* ============ RIGHT — CURRENT BID ============ */}
-      <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-mint/40 p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)]">
+      <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-mint/40 bg-gradient-to-br from-[#0F231A]/65 via-[#0A1410]/70 to-[#050A08]/75 p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)]">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
             Current Bid
@@ -232,71 +237,6 @@ function Pill({
       </span>
       <span className="font-semibold">{value}</span>
     </span>
-  );
-}
-
-function ShuffleRoll({
-  target,
-  names,
-  reduce,
-}: {
-  target: string;
-  names: string[];
-  reduce: boolean;
-}) {
-  const [display, setDisplay] = useState(target);
-
-  useEffect(() => {
-    if (reduce) {
-      setDisplay(target);
-      return;
-    }
-    let active = true;
-    const start = Date.now();
-    let i = 0;
-
-    function tick() {
-      if (!active) return;
-      const pick = names.length > 0 ? names[i % names.length] : target;
-      setDisplay(pick ?? target);
-      i++;
-      const elapsed = Date.now() - start;
-      let delay = 90;
-      if (elapsed > 1800) delay = 140 + (elapsed - 1800) * 0.12;
-      if (elapsed > 2600) delay = 230 + (elapsed - 2600) * 0.25;
-      setTimeout(tick, delay);
-    }
-    tick();
-    return () => {
-      active = false;
-    };
-  }, [names, target, reduce]);
-
-  return (
-    <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-      <span className="rounded-full bg-sold px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-white shadow-[0_0_20px_-6px_rgba(193,18,31,0.75)]">
-        Selecting player…
-      </span>
-      <motion.p
-        key={display}
-        initial={{ opacity: 0.4, y: -4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.15 }}
-        className="mt-5 font-[family-name:var(--font-display)] text-3xl font-bold text-cream text-glow-mint sm:text-5xl"
-      >
-        {display}
-      </motion.p>
-      <div className="mt-5 flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <motion.span
-            key={i}
-            animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
-            className="h-2 w-2 rounded-full bg-sold"
-          />
-        ))}
-      </div>
-    </div>
   );
 }
 
