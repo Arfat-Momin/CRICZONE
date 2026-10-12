@@ -45,9 +45,12 @@ export function OnBlockStage({
   }, [players, shuffling]);
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
-      {/* LEFT — On the Block */}
-      <div className="relative overflow-hidden rounded-2xl border border-mint/35 bg-[#0A1410]/55 dot-grid shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_45px_-18px_rgba(216,243,220,0.35)] sm:rounded-3xl">
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-[1.55fr_1fr] lg:gap-5 xl:gap-6">
+      {/* ============================================================
+          LEFT — ON THE BLOCK
+          Fixed responsive height — shuffle, player, empty all fill it.
+          ============================================================ */}
+      <div className="relative h-[290px] overflow-hidden rounded-2xl border border-mint/35 bg-[#0A1410]/55 dot-grid shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_45px_-18px_rgba(216,243,220,0.35)] sm:h-[330px] sm:rounded-3xl md:h-[360px] lg:h-[400px] xl:h-[440px]">
         {shuffling ? (
           <CardCascadeShuffle
             target={shuffling}
@@ -64,13 +67,17 @@ export function OnBlockStage({
         )}
       </div>
 
-      {/* RIGHT — Current Bid */}
-      <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-mint/40 bg-gradient-to-br from-[#0F231A]/65 via-[#0A1410]/70 to-[#050A08]/75 p-5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)] sm:rounded-3xl sm:p-6">
+      {/* ============================================================
+          RIGHT — CURRENT BID
+          Fixed responsive height — same as left on lg+ so the two
+          boxes align. Shorter on mobile so the page doesn't scroll.
+          ============================================================ */}
+      <div className="relative flex h-[200px] flex-col justify-between overflow-hidden rounded-2xl border border-mint/40 bg-gradient-to-br from-[#0F231A]/65 via-[#0A1410]/70 to-[#050A08]/75 p-4 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)] sm:h-[220px] sm:rounded-3xl sm:p-5 md:h-[240px] lg:h-[400px] lg:p-6 xl:h-[440px]">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
             Current Bid
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-cream/35">
+          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.24em] text-cream/35">
             Live · Instant
           </p>
         </div>
@@ -104,21 +111,21 @@ function BidNumber({
       initial={reduce ? false : { scale: 0.92, opacity: 0.7 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 340, damping: 22 }}
-      className="my-3 text-center sm:my-4"
+      className="my-1 text-center"
     >
-      <div className="flex items-baseline justify-center gap-2">
-        <span className="font-[family-name:var(--font-numeric)] text-5xl font-bold leading-none text-mint text-glow-mint sm:text-[5.5rem] md:text-[7rem]">
+      <div className="flex items-baseline justify-center gap-1.5 sm:gap-2">
+        <span className="font-[family-name:var(--font-numeric)] text-4xl font-bold leading-none text-mint text-glow-mint sm:text-5xl md:text-6xl lg:text-[6rem] xl:text-[7rem]">
           {display}
         </span>
-        <span className="text-xs font-extrabold uppercase tracking-[0.28em] text-mint/65 sm:text-sm md:text-base">
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint/65 sm:text-xs md:text-sm lg:text-base">
           pts
         </span>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-3 sm:mt-5">
+      <div className="mt-3 flex items-center justify-center gap-2 sm:mt-4 sm:gap-3">
         {teamName ? (
           <>
-            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-mint/45 bg-[#050A08] sm:h-10 sm:w-10">
+            <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border-2 border-mint/45 bg-[#050A08] sm:h-9 sm:w-9 lg:h-10 lg:w-10">
               {teamPhoto ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -127,17 +134,17 @@ function BidNumber({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-mint">
+                <div className="flex h-full w-full items-center justify-center text-xs font-bold text-mint sm:text-sm">
                   {initial}
                 </div>
               )}
             </div>
-            <span className="max-w-[12rem] truncate font-[family-name:var(--font-display)] text-lg font-bold text-cream sm:max-w-[16rem] sm:text-xl md:text-2xl">
+            <span className="max-w-[10rem] truncate font-[family-name:var(--font-display)] text-base font-bold text-cream sm:max-w-[13rem] sm:text-lg lg:text-xl xl:text-2xl">
               {teamName}
             </span>
           </>
         ) : (
-          <span className="rounded-full border border-cream/15 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/45 sm:px-4 sm:text-xs">
+          <span className="rounded-full border border-cream/15 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/45 sm:px-4 sm:py-1.5 sm:text-xs">
             No bids yet
           </span>
         )}
@@ -146,6 +153,9 @@ function BidNumber({
   );
 }
 
+/* ============================================================
+   PLAYER BLOCK CARD — compact so it fits the fixed-height frame
+   ============================================================ */
 function PlayerBlockCard({
   player,
   displayFields,
@@ -175,14 +185,15 @@ function PlayerBlockCard({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="flex h-full flex-col items-center gap-5 p-5 text-center sm:p-7 md:flex-row md:items-center md:gap-7 md:p-8 md:text-left"
+      className="flex h-full w-full flex-col items-center justify-center gap-2.5 p-4 text-center sm:gap-3 sm:p-5 md:flex-row md:items-center md:gap-6 md:p-6 md:text-left lg:gap-7 lg:p-7"
     >
+      {/* Photo + chip */}
       <div className="relative shrink-0">
-        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint md:absolute md:-left-2 md:-top-2 md:z-10 md:mb-0 md:bg-[#050A08]/95">
+        <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.22em] text-mint sm:px-3 sm:py-1 sm:text-[10px] md:absolute md:-left-2 md:-top-2 md:z-10 md:mb-0 md:bg-[#050A08]/95">
           ⚡ On the Block
         </span>
 
-        <div className="mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-2xl border-2 border-mint/45 shadow-[0_0_45px_-12px_rgba(216,243,220,0.55)] sm:max-w-[240px] md:mx-0 md:h-48 md:w-48 md:max-w-none lg:h-56 lg:w-56">
+        <div className="mx-auto aspect-square w-[110px] overflow-hidden rounded-xl border-2 border-mint/45 shadow-[0_0_35px_-10px_rgba(216,243,220,0.55)] sm:w-[130px] sm:rounded-2xl md:mx-0 md:h-40 md:w-40 lg:h-44 lg:w-44 xl:h-52 xl:w-52">
           <ZoomableImage
             src={photo}
             alt={player.full_name}
@@ -192,13 +203,14 @@ function PlayerBlockCard({
         </div>
       </div>
 
+      {/* Info */}
       <div className="min-w-0 w-full flex-1">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-cream text-glow-mint sm:text-3xl md:text-4xl lg:text-5xl">
+        <h2 className="line-clamp-2 font-[family-name:var(--font-display)] text-lg font-bold leading-tight text-cream text-glow-mint sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
           {player.full_name}
         </h2>
 
         {pills.length > 0 && (
-          <div className="mt-3 flex flex-wrap justify-center gap-2 md:mt-4 md:justify-start">
+          <div className="mt-2 flex flex-wrap justify-center gap-1.5 md:mt-3 md:justify-start lg:gap-2">
             {pills.map((p) => (
               <Pill key={p.label} label={p.label} value={p.value} tone="mint" />
             ))}
@@ -206,7 +218,7 @@ function PlayerBlockCard({
         )}
 
         {basePriceValue && (
-          <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/40 md:mt-5">
+          <p className="mt-2 text-[9px] font-extrabold uppercase tracking-[0.26em] text-cream/40 sm:text-[10px] md:mt-3 lg:mt-4">
             Base price ·{" "}
             <span className="text-mint/85">{basePriceValue}</span>
           </p>
@@ -231,9 +243,9 @@ function Pill({
       : "border-cream/15 text-cream/85";
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-lg border bg-[#050A08] px-2 py-1 text-[11px] sm:px-2.5 sm:text-xs ${toneCls}`}
+      className={`inline-flex items-center gap-1 rounded-md border bg-[#050A08] px-1.5 py-0.5 text-[10px] sm:rounded-lg sm:px-2 sm:py-1 sm:text-[11px] lg:text-xs ${toneCls}`}
     >
-      <span className="font-bold uppercase tracking-[0.14em] text-cream/45 sm:tracking-[0.18em]">
+      <span className="font-bold uppercase tracking-[0.12em] text-cream/45 sm:tracking-[0.16em]">
         {label}
       </span>
       <span className="font-semibold">{value}</span>
@@ -243,18 +255,18 @@ function Pill({
 
 function EmptyStage({ reduce }: { reduce: boolean }) {
   return (
-    <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 p-8 text-center sm:min-h-[320px]">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-6 text-center sm:gap-3 sm:p-8">
       <motion.div
         animate={reduce ? undefined : { rotate: [0, 8, -8, 0] }}
         transition={{ duration: 3, repeat: Infinity }}
-        className="text-5xl"
+        className="text-4xl sm:text-5xl"
       >
         🏏
       </motion.div>
-      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-cream sm:text-3xl">
+      <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-cream sm:text-2xl md:text-3xl">
         Awaiting next player
       </p>
-      <p className="max-w-xs text-sm text-cream/55">
+      <p className="max-w-xs text-xs text-cream/55 sm:text-sm">
         The auctioneer will draw the next name shortly.
       </p>
     </div>
