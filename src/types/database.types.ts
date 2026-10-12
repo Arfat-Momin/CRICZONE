@@ -21,6 +21,11 @@ export type Database = {
           current_highest_team_id: string | null
           current_player_id: string | null
           shuffling_name: string | null
+          star_base_price: number
+          star_bid_count: number
+          star_double_after_bids: number
+          star_double_enabled: boolean
+          star_increment: number
           tournament_id: string
           updated_at: string
         }
@@ -30,6 +35,11 @@ export type Database = {
           current_highest_team_id?: string | null
           current_player_id?: string | null
           shuffling_name?: string | null
+          star_base_price?: number
+          star_bid_count?: number
+          star_double_after_bids?: number
+          star_double_enabled?: boolean
+          star_increment?: number
           tournament_id: string
           updated_at?: string
         }
@@ -39,6 +49,11 @@ export type Database = {
           current_highest_team_id?: string | null
           current_player_id?: string | null
           shuffling_name?: string | null
+          star_base_price?: number
+          star_bid_count?: number
+          star_double_after_bids?: number
+          star_double_enabled?: boolean
+          star_increment?: number
           tournament_id?: string
           updated_at?: string
         }
@@ -435,6 +450,16 @@ export type Database = {
       }
       start_shuffle: {
         Args: { p_shuffling_name: string; p_tournament_id: string }
+        Returns: undefined
+      }
+      update_star_config: {
+        Args: {
+          p_base_price: number
+          p_double_after: number
+          p_double_enabled: boolean
+          p_increment: number
+          p_tournament_id: string
+        }
         Returns: undefined
       }
     }

@@ -73,7 +73,14 @@ export function BiddingPad({
   }, [teams, players]);
 
   async function onPlaceBid(teamId: string) {
-    const nextBid = computeNextBid(currentBid, bidMode);
+    const starConfig = {
+      basePrice: state?.star_base_price ?? 1000,
+      increment: state?.star_increment ?? 1000,
+      doubleEnabled: state?.star_double_enabled ?? false,
+      doubleAfterBids: state?.star_double_after_bids ?? 10,
+      bidCount: state?.star_bid_count ?? 0,
+    };
+    const nextBid = computeNextBid(currentBid, bidMode, starConfig);
     onOptimisticBid(nextBid, teamId);
 
     const r = await browserPlaceBid(tournamentId, teamId);

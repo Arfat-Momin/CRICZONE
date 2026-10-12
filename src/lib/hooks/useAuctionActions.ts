@@ -115,6 +115,14 @@ export async function browserRevertSale(
   }
 }
 
+export type StarConfig = {
+  basePrice: number;
+  increment: number;
+  doubleEnabled: boolean;
+  doubleAfterBids: number;
+  bidCount: number;
+};
+
 /**
  * Compute the next bid on the client (mirrors the SQL logic in `place_bid`).
  * Used for optimistic UI so the admin sees their bid instantly.
@@ -122,13 +130,45 @@ export async function browserRevertSale(
 export function computeNextBid(
   currentBid: number,
   mode: Tables<"auction_state">["bid_mode"],
+  starConfig?: StarConfig | null,
 ): number {
   if (mode === "star") {
-    return currentBid === 0 ? 1000 : currentBid + 1000;
+    // Fallback to legacy 1000-pt behavior if config is missing
+    if (!starConfig) {
+      return currentBid === 0 ? 1000 : currentBid + 1000;
+    }
+    if (currentBid === 0) return starConfig.basePrice;
+    const inc =
+      starConfig.doubleEnabled &&
+      starConfig.bidCount >= starConfig.doubleAfterBids
+        ? starConfig.increment * 2
+        : starConfig.increment;
+    return currentBid + inc;
   }
+  // Normal mode
   if (currentBid === 0) return 1;
   if (currentBid < 5) return currentBid + 0.5;
   return currentBid + 1;
+}
+
+export async function browserUpdateStarConfig(
+  tournamentId: string,
+  config: Omit<StarConfig, "bidCount">,
+): Promise<Ok<undefined> | Err> {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.rpc("update_star_config", {
+      p_tournament_id: tournamentId,
+      p_base_price: config.basePrice,
+      p_increment: config.increment,
+      p_double_enabled: config.doubleEnabled,
+      p_double_after: config.doubleAfterBids,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return { ok: false, error: rpcErrorToMessage(e, "Star config save failed") };
+  }
 }
 export async function browserStartShuffle(
   tournamentId: string,

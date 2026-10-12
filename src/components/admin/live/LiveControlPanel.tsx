@@ -20,6 +20,7 @@ import { GroupDrawButtons } from "./GroupDrawButtons";
 import { SoldPlayersList } from "./SoldPlayersList";
 import { SearchCombobox, type ComboboxOption } from "./SearchCombobox";
 import { BlockDisplayFieldsModal } from "./BlockDisplayFieldsModal";
+import { StarModeConfigModal } from "./StarModeConfigModal";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
 type AdminPlayer = Tables<"players"> & { mobile_no: string | null };
@@ -53,6 +54,7 @@ export function LiveControlPanel({
   );
   const [manualPlayerId, setManualPlayerId] = useState<string | null>(null);
   const [showDisplayModal, setShowDisplayModal] = useState(false);
+  const [showStarConfig, setShowStarConfig] = useState(false);
 
   const formConfig = useMemo(
     () => normalizeFormConfig(tournament.form_config, tournament.name),
@@ -388,6 +390,17 @@ export function LiveControlPanel({
                   >
                     {state?.bid_mode === "star" ? "★ Star Mode ON" : "Star Mode OFF"}
                   </button>
+                  {state?.bid_mode === "star" && (
+                    <button
+                      type="button"
+                      onClick={() => setShowStarConfig(true)}
+                      disabled={busy}
+                      title="Configure star mode settings"
+                      className="rounded-lg border border-[#7B1FA2]/40 bg-[#FAF5FF] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#7B1FA2] transition hover:bg-[#7B1FA2] hover:text-white disabled:opacity-50"
+                    >
+                      ⚙ Config
+                    </button>
+                  )}
                   {blockLocked && (
                     <button
                       type="button"
@@ -436,6 +449,22 @@ export function LiveControlPanel({
                         </>
                       )}
                     </p>
+                    {state?.bid_mode === "star" && (
+                      <p className="mt-1 text-[11px] font-semibold text-[#7B1FA2]">
+                        ★ Base {state.star_base_price} · +
+                        {state.star_double_enabled &&
+                        state.star_bid_count >= state.star_double_after_bids
+                          ? state.star_increment * 2
+                          : state.star_increment}{" "}
+                        per bid
+                        {state.star_double_enabled && (
+                          <>
+                            {" "}
+                            · {state.star_bid_count}/{state.star_double_after_bids} bids
+                          </>
+                        )}
+                      </p>
+                    )}
                   </>
                 ) : (
                   <p className="text-[#1B4332]/60">No player on the block.</p>
@@ -578,6 +607,15 @@ export function LiveControlPanel({
           tournamentId={tournament.id}
           initialConfig={formConfig}
           onClose={() => setShowDisplayModal(false)}
+        />
+      )}
+
+      {showStarConfig && (
+        <StarModeConfigModal
+          tournamentId={tournament.id}
+          state={state}
+          onClose={() => setShowStarConfig(false)}
+          onMessage={onMessage}
         />
       )}
     </main>

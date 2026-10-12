@@ -91,9 +91,41 @@ export function OnBlockStage({
                 : "rounded-full border border-cream/20 px-2 py-0.5 text-cream/60"
             }
           >
-            {state?.bid_mode === "star" ? "★ Star ×1000" : "Normal"}
+            {state?.bid_mode === "star" ? "★ Star" : "Normal"}
           </span>
         </div>
+
+        {state?.bid_mode === "star" && (
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-mint/70 sm:justify-end">
+            <span>
+              Base{" "}
+              <span className="font-[family-name:var(--font-numeric)] text-mint">
+                {state.star_base_price ?? 1000}
+              </span>
+            </span>
+            <span className="text-cream/20">·</span>
+            <span>
+              +
+              <span className="font-[family-name:var(--font-numeric)] text-mint">
+                {state.star_double_enabled &&
+                (state.star_bid_count ?? 0) >=
+                  (state.star_double_after_bids ?? 10)
+                  ? (state.star_increment ?? 1000) * 2
+                  : (state.star_increment ?? 1000)}
+              </span>{" "}
+              per bid
+            </span>
+            {state.star_double_enabled && (
+              <>
+                <span className="text-cream/20">·</span>
+                <span className="text-cream/45">
+                  {state.star_bid_count ?? 0}/
+                  {state.star_double_after_bids ?? 10} bids
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
