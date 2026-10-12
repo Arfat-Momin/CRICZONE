@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -18,6 +18,7 @@ import { updateTournamentStatusAction } from "@/lib/actions/tournament";
 import { BiddingPad } from "./BiddingPad";
 import { GroupDrawButtons } from "./GroupDrawButtons";
 import { SoldPlayersList } from "./SoldPlayersList";
+import { SearchCombobox, type ComboboxOption } from "./SearchCombobox";
 import { BlockDisplayFieldsModal } from "./BlockDisplayFieldsModal";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
@@ -31,7 +32,6 @@ type Props = {
   initialGroups: GroupWithMembers[];
 };
 
-// ⚡ Exactly 3 seconds — must match CardCascadeShuffle duration
 const SHUFFLE_DURATION_MS = 3000;
 
 export function LiveControlPanel({
@@ -51,13 +51,12 @@ export function LiveControlPanel({
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(
     null,
   );
-  const [manualPlayerId, setManualPlayerId] = useState("");
+  const [manualPlayerId, setManualPlayerId] = useState<string | null>(null);
   const [showDisplayModal, setShowDisplayModal] = useState(false);
 
-  // Normalize the current form config for the display fields modal
-  const formConfig = normalizeFormConfig(
-    tournament.form_config,
-    tournament.name,
+  const formConfig = useMemo(
+    () => normalizeFormConfig(tournament.form_config, tournament.name),
+    [tournament.form_config, tournament.name],
   );
 
   const stateRef = useRef(state);
@@ -181,7 +180,7 @@ export function LiveControlPanel({
     });
   }
 
-  // ============ PUT ON BLOCK — direct RPC, exact 3s ============
+  // ============ PUT ON BLOCK ============
   async function runPutOnBlock(playerId: string) {
     const player = players.find((p) => p.id === playerId);
     if (!player) {
@@ -193,25 +192,23 @@ export function LiveControlPanel({
     setMsg(null);
 
     try {
-      // 1. Fire start_shuffle directly (no server-action round-trip)
       const start = await browserStartShuffle(tournament.id, player.full_name);
       if (!start.ok) {
         onMessage("err", start.error);
         return;
       }
 
-      // 2. Exactly 3 seconds — matches the Card Cascade animation on the public side
       await new Promise<void>((resolve) =>
         window.setTimeout(resolve, SHUFFLE_DURATION_MS),
       );
 
-      // 3. Finalize on block
       const fin = await browserFinalizeOnBlock(tournament.id, playerId);
       if (!fin.ok) {
         onMessage("err", fin.error);
         return;
       }
 
+      setManualPlayerId(null);
       onMessage("ok", `${player.full_name} is on the block.`);
     } catch (e) {
       onMessage("err", e instanceof Error ? e.message : "Unexpected error.");
@@ -281,6 +278,20 @@ export function LiveControlPanel({
     (p) => p.status === "pending" || p.status === "unsold",
   );
 
+  // Combobox options for manual override — sorted alphabetically
+  const manualOptions: ComboboxOption[] = useMemo(() => {
+    return manualPool
+      .slice()
+      .sort((a, b) => a.full_name.localeCompare(b.full_name))
+      .map((p) => ({
+        id: p.id,
+        label: p.full_name,
+        meta: [p.category, p.status, p.current_team]
+          .filter(Boolean)
+          .join(" · "),
+      }));
+  }, [manualPool]);
+
   const isShuffling = !!state?.shuffling_name;
   const blockLocked = !!onBlockPlayer || isShuffling;
 
@@ -294,7 +305,16 @@ export function LiveControlPanel({
           >
             &larr; Tournament
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowDisplayModal(true)}
+              disabled={busy}
+              className="rounded-lg border border-success/40 bg-mint px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-success transition hover:bg-success hover:text-white disabled:opacity-50"
+              title="Configure which fields show on the on-block card"
+            >
+              ⚙ Display Fields
+            </button>
             <button
               type="button"
               onClick={() => router.refresh()}
@@ -349,6 +369,7 @@ export function LiveControlPanel({
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div>
+            {/* ============ CURRENT BLOCK ============ */}
             <section className="rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
@@ -422,6 +443,7 @@ export function LiveControlPanel({
               </div>
             </section>
 
+            {/* ============ PUT ON BLOCK ============ */}
             <section className="mt-6 rounded-2xl border border-[#1B4332]/10 bg-white p-6 shadow-sm">
               <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
                 Put Player on Block
@@ -461,31 +483,40 @@ export function LiveControlPanel({
                 />
               )}
 
-              <div className="mt-4">
-                <p className="mb-1 text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
-                  Manual Override
-                </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <select
+              {/* ============ MANUAL OVERRIDE (search) ============ */}
+              <div className="mt-5 rounded-xl border border-[#1B4332]/12 bg-[#FAFDF9] p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
+                      🔍 Manual Override
+                    </p>
+                    <p className="mt-0.5 text-xs text-[#1B4332]/55">
+                      Search any pending or unsold player to put on block.
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#1B4332]/8 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/60">
+                    {manualPool.length} available
+                  </span>
+                </div>
+
+                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <SearchCombobox
+                    options={manualOptions}
                     value={manualPlayerId}
-                    onChange={(e) => setManualPlayerId(e.target.value)}
+                    onChange={setManualPlayerId}
+                    placeholder="Search player by name, category, status…"
+                    searchPlaceholder="Type to filter…"
+                    emptyMessage="No players match"
+                    clearable
                     disabled={busy || blockLocked}
-                    className="min-w-[220px] rounded-lg border border-[#1B4332]/20 bg-[#FDFCF0] px-3 py-2 text-sm"
-                  >
-                    <option value="">— Manual select —</option>
-                    {manualPool.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.full_name} ({p.status})
-                      </option>
-                    ))}
-                  </select>
+                  />
                   <button
                     type="button"
                     onClick={() => {
                       if (manualPlayerId) void runPutOnBlock(manualPlayerId);
                     }}
                     disabled={busy || blockLocked || !manualPlayerId}
-                    className="rounded-lg bg-[#546E7A] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
+                    className="rounded-lg bg-[#546E7A] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
                   >
                     Put on Block
                   </button>
@@ -493,12 +524,14 @@ export function LiveControlPanel({
               </div>
             </section>
 
+            {/* ============ BIDDING PAD + MANUAL SELL ============ */}
             {onBlockPlayer && (
               <BiddingPad
                 tournamentId={tournament.id}
                 state={state}
                 teams={teams}
                 players={players}
+                onBlockPlayerName={onBlockPlayer.full_name}
                 onOptimisticBid={(nextBid, teamId) => {
                   setState((prev) => {
                     if (!prev) return prev;

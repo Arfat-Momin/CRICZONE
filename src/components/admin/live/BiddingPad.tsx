@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Tables } from "@/types/supabase";
 import {
   browserPlaceBid,
@@ -8,12 +9,14 @@ import {
   browserPassPlayer,
   computeNextBid,
 } from "@/lib/hooks/useAuctionActions";
+import { SearchCombobox, type ComboboxOption } from "./SearchCombobox";
 
 type Props = {
   tournamentId: string;
   state: Tables<"auction_state"> | null;
   teams: Tables<"teams">[];
   players: Tables<"players">[];
+  onBlockPlayerName: string | null;
   onOptimisticBid: (nextBid: number, teamId: string) => void;
   onBidConfirmed: () => void;
   onBusy: (fn: () => Promise<void>) => Promise<void>;
@@ -25,6 +28,7 @@ export function BiddingPad({
   state,
   teams,
   players,
+  onBlockPlayerName,
   onOptimisticBid,
   onBidConfirmed,
   onBusy,
@@ -34,15 +38,44 @@ export function BiddingPad({
   const highestTeamId = state?.current_highest_team_id ?? null;
   const bidMode = state?.bid_mode ?? "normal";
 
+  // ---- Manual sell state ----
+  const [manualTeamId, setManualTeamId] = useState<string | null>(null);
+  const [manualPrice, setManualPrice] = useState<string>("");
+
+  // Sync manual team to highest bidder when highest changes
+  useEffect(() => {
+    if (highestTeamId && !manualTeamId) {
+      setManualTeamId(highestTeamId);
+    }
+  }, [highestTeamId, manualTeamId]);
+
+  // Pre-fill price with current bid when it changes
+  useEffect(() => {
+    if (currentBid > 0 && manualPrice.trim() === "") {
+      setManualPrice(currentBid.toString());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentBid]);
+
+  const teamOptions: ComboboxOption[] = teams.map((t) => {
+    const bought = players.filter((p) => p.sold_to_team_id === t.id).length;
+    const slots =
+      t.max_players != null ? `${Math.max(0, t.max_players - bought)}/${t.max_players} slots` : "no cap";
+    return {
+      id: t.id,
+      label: t.team_name,
+      meta: `${t.points_remaining} pts · ${slots}`,
+    };
+  });
+
   async function onPlaceBid(teamId: string) {
-    // Optimistic: update the UI instantly
     const nextBid = computeNextBid(currentBid, bidMode);
     onOptimisticBid(nextBid, teamId);
 
     const r = await browserPlaceBid(tournamentId, teamId);
     if (!r.ok) {
       onMessage("err", r.error);
-      onBidConfirmed(); // revert — parent will resync from realtime
+      onBidConfirmed();
       return;
     }
     onMessage("ok", `Bid placed — now ${r.data.nextBid} pts.`);
@@ -86,86 +119,218 @@ export function BiddingPad({
     });
   }
 
-  return (
-    <section className="mt-6 rounded-2xl border-2 border-sold/30 bg-gradient-to-b from-[#FFF7F7] to-white p-6 shadow-md">
-      <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-        Bidding Pad
-      </h2>
-      <p className="mt-1 text-sm text-[#1B4332]/75">
-        Current bid:{" "}
-        <span className="font-[family-name:var(--font-numeric)] text-lg font-bold text-sold">
-          {currentBid} pts
-        </span>
-        {state?.bid_mode === "star" && (
-          <span className="ml-2 rounded-full bg-[#7B1FA2] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white">
-            Star Mode
-          </span>
-        )}
-      </p>
+  async function onManualSell() {
+    if (!state?.current_player_id) {
+      onMessage("err", "No player on block.");
+      return;
+    }
+    if (!manualTeamId) {
+      onMessage("err", "Select a team to sell to.");
+      return;
+    }
+    const price = Number.parseFloat(manualPrice);
+    if (!Number.isFinite(price) || price <= 0) {
+      onMessage("err", "Enter a valid price greater than 0.");
+      return;
+    }
+    await onBusy(async () => {
+      const r = await browserSellPlayer(
+        tournamentId,
+        state.current_player_id!,
+        manualTeamId,
+        price,
+      );
+      if (!r.ok) {
+        onMessage("err", r.error);
+        return;
+      }
+      onMessage("ok", "Player sold manually.");
+      setManualTeamId(null);
+      setManualPrice("");
+    });
+  }
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-        {teams.map((team) => {
-          const boughtCount = players.filter(
-            (p) => p.sold_to_team_id === team.id,
-          ).length;
-          const remaining =
-            team.max_players != null ? team.max_players - boughtCount : null;
-          const isHighest = team.id === highestTeamId;
-          const full = remaining !== null && remaining <= 0;
-          const canAfford = team.points_remaining > 0;
-          const disabled = isHighest || full || !canAfford;
-          return (
-            <button
-              key={team.id}
-              type="button"
-              onClick={() => onPlaceBid(team.id)}
-              disabled={disabled}
-              className={`rounded-xl border p-3 text-left transition active:scale-[0.97] ${
-                isHighest
-                  ? "border-success bg-mint"
-                  : "border-[#1B4332]/15 bg-white hover:border-[#2D6A4F]/40"
-              } disabled:opacity-50`}
-            >
-              <p className="truncate text-sm font-bold text-forest">
-                {team.team_name}
-              </p>
-              <p className="mt-0.5 text-xs text-[#1B4332]/60">
-                {team.points_remaining} pts
-                {remaining !== null && ` · ${remaining} slots`}
-              </p>
-              {isHighest && (
-                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-success">
-                  Highest
-                </p>
-              )}
-            </button>
-          );
-        })}
+  function useHighestBid() {
+    if (!highestTeamId || currentBid <= 0) {
+      onMessage("err", "No valid highest bid.");
+      return;
+    }
+    setManualTeamId(highestTeamId);
+    setManualPrice(currentBid.toString());
+  }
+
+  return (
+    <section className="mt-6 overflow-hidden rounded-2xl border-2 border-sold/25 bg-white shadow-sm">
+      {/* ============ Bidding Pad Header ============ */}
+      <div className="border-b border-[#1B4332]/8 bg-gradient-to-r from-[#FFF7F7] to-white px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
+            Bidding Pad
+          </h2>
+          <p className="text-sm text-[#1B4332]/75">
+            Current bid:{" "}
+            <span className="font-[family-name:var(--font-numeric)] text-lg font-bold text-sold">
+              {currentBid} pts
+            </span>
+            {state?.bid_mode === "star" && (
+              <span className="ml-2 rounded-full bg-[#7B1FA2] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white">
+                Star Mode
+              </span>
+            )}
+          </p>
+        </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      {/* ============ Team Buttons ============ */}
+      <div className="p-5">
+        <p className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/50">
+          Tap a team to raise the bid
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          {teams.map((team) => {
+            const boughtCount = players.filter(
+              (p) => p.sold_to_team_id === team.id,
+            ).length;
+            const remaining =
+              team.max_players != null ? team.max_players - boughtCount : null;
+            const isHighest = team.id === highestTeamId;
+            const full = remaining !== null && remaining <= 0;
+            const canAfford = team.points_remaining > 0;
+            const disabled = isHighest || full || !canAfford;
+            return (
+              <button
+                key={team.id}
+                type="button"
+                onClick={() => onPlaceBid(team.id)}
+                disabled={disabled}
+                className={`rounded-xl border p-3 text-left transition active:scale-[0.97] ${
+                  isHighest
+                    ? "border-success bg-mint"
+                    : "border-[#1B4332]/15 bg-white hover:border-[#2D6A4F]/40"
+                } disabled:opacity-50`}
+              >
+                <p className="truncate text-sm font-bold text-forest">
+                  {team.team_name}
+                </p>
+                <p className="mt-0.5 text-xs text-[#1B4332]/60">
+                  {team.points_remaining} pts
+                  {remaining !== null && ` · ${remaining} slots`}
+                </p>
+                {isHighest && (
+                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-success">
+                    Highest
+                  </p>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ============ Actions ============ */}
+      <div className="border-t border-[#1B4332]/8 px-5 py-4">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onRevertBid}
+            className="rounded-lg border border-[#1B4332]/20 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-mint"
+          >
+            Revert Last Bid
+          </button>
+          <button
+            type="button"
+            onClick={onSellToHighest}
+            disabled={!highestTeamId || currentBid <= 0}
+            className="rounded-lg bg-success px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
+          >
+            Sell to Highest
+          </button>
+          <button
+            type="button"
+            onClick={onPass}
+            className="rounded-lg border border-sold/40 bg-sold/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-sold transition hover:bg-sold hover:text-white"
+          >
+            Pass (Unsold)
+          </button>
+        </div>
+      </div>
+
+      {/* ============ Manual Sell ============ */}
+      <div className="border-t-2 border-dashed border-[#1B4332]/12 bg-[#FAFDF9] px-5 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="flex items-center gap-2 font-[family-name:var(--font-display)] text-base font-bold text-forest">
+              ✋ Manual Sell
+            </h3>
+            <p className="mt-0.5 text-xs text-[#1B4332]/60">
+              Sell the current player at a custom price to any team.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={useHighestBid}
+            disabled={!highestTeamId || currentBid <= 0}
+            className="rounded-lg border border-success/40 bg-mint px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-success transition hover:bg-success hover:text-white disabled:opacity-40"
+          >
+            Use highest bid
+          </button>
+        </div>
+
+        {onBlockPlayerName && (
+          <div className="mt-4 rounded-lg border border-[#1B4332]/12 bg-white px-3 py-2.5 text-sm">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/45">
+              Selling
+            </span>
+            <p className="mt-0.5 font-[family-name:var(--font-display)] text-base font-bold text-forest">
+              {onBlockPlayerName}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
+              Team
+            </label>
+            <SearchCombobox
+              options={teamOptions}
+              value={manualTeamId}
+              onChange={setManualTeamId}
+              placeholder="Search team…"
+              searchPlaceholder="Type to filter teams…"
+              emptyMessage="No teams match"
+              clearable
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
+              Price (pts)
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              min="0.5"
+              value={manualPrice}
+              onChange={(e) => setManualPrice(e.target.value)}
+              placeholder="e.g. 2.5"
+              className="w-full rounded-lg border border-[#1B4332]/20 bg-white px-3 py-2.5 text-sm text-forest outline-none transition focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/20"
+            />
+          </div>
+        </div>
+
         <button
           type="button"
-          onClick={onRevertBid}
-          className="rounded-lg border border-[#1B4332]/20 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-mint"
+          onClick={onManualSell}
+          disabled={!manualTeamId || !manualPrice.trim()}
+          className="mt-4 w-full rounded-lg bg-sold px-4 py-3 text-xs font-extrabold uppercase tracking-widest text-white shadow-sm transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Revert Last Bid
+          Confirm Manual Sell
         </button>
-        <button
-          type="button"
-          onClick={onSellToHighest}
-          disabled={!highestTeamId || currentBid <= 0}
-          className="rounded-lg bg-success px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-50"
-        >
-          Sell to Highest
-        </button>
-        <button
-          type="button"
-          onClick={onPass}
-          className="rounded-lg border border-sold/40 bg-sold/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-sold transition hover:bg-sold hover:text-white"
-        >
-          Pass (Unsold)
-        </button>
+
+        <p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-[#1B4332]/45">
+          Tip: you can also pick any pending player above via Manual Override
+        </p>
       </div>
     </section>
   );
