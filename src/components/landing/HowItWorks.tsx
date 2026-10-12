@@ -38,51 +38,42 @@ export function HowItWorks() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden bg-[#050A08] py-20 md:py-28"
+      className="relative overflow-hidden bg-transparent py-14 sm:py-16 md:py-20"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[60%] bg-[radial-gradient(ellipse_at_top,rgba(216,243,220,0.08),transparent_60%)]"
-      />
-      <div className="relative mx-auto max-w-7xl px-6">
-        <div className="mb-14 text-center">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-mint">
-            The Flow
-          </span>
-          <h2 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-cream md:text-4xl">
-            From kickoff to final bid
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-cream/60">
-            A tournament lives through four clean stages. Everything is real-time
-            and visible to anyone with the link.
-          </p>
-        </div>
-
-        <div className="mb-12 h-[2px] w-full overflow-hidden rounded-full bg-cream/10">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Progress rail */}
+        <div className="mb-10 h-[2px] w-full overflow-hidden rounded-full bg-cream/10 sm:mb-14">
           <motion.div
             className="h-full origin-left bg-gradient-to-r from-mint via-success to-[#FFA000]"
             style={reduce ? { scaleX: 1 } : { scaleX }}
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Steps grid */}
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, i) => (
             <motion.div
               key={step.n}
               initial={reduce ? false : { opacity: 0, y: 30 }}
               whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative rounded-2xl border border-mint/12 glass-dark p-6 transition hover:border-mint/35"
+              transition={{
+                duration: 0.6,
+                delay: i * 0.08,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="group relative flex flex-col rounded-2xl border border-mint/12 bg-[#050A08]/60 p-5 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-mint/35 hover:shadow-[0_20px_60px_-20px_rgba(216,243,220,0.3)] sm:p-6"
             >
+              {/* Top glow on hover */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 -top-20 h-32 bg-[radial-gradient(ellipse_at_center,rgba(216,243,220,0.16),transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                className="pointer-events-none absolute inset-x-0 -top-16 h-24 bg-[radial-gradient(ellipse_at_center,rgba(216,243,220,0.15),transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
               />
-              <span className="relative font-[family-name:var(--font-display)] text-4xl font-bold text-mint/30">
+
+              <span className="relative font-[family-name:var(--font-display)] text-3xl font-bold text-mint/30 sm:text-4xl">
                 {step.n}
               </span>
-              <h3 className="relative mt-3 text-lg font-bold text-cream">
+              <h3 className="relative mt-3 text-base font-bold text-cream sm:text-lg">
                 {step.title}
               </h3>
               <p className="relative mt-2 text-sm leading-relaxed text-cream/60">

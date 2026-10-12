@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
-import { SummaryView } from "@/components/tournament/SummaryView";
+import { NightBackdrop } from "@/components/shared/NightBackdrop";
 import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
+import { SummaryView } from "@/components/tournament/SummaryView";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 
-export const revalidate = 300; // Archived data changes rarely
+export const revalidate = 300;
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -34,19 +35,25 @@ export default async function ArchiveDetailPage({ params }: Props) {
 
   return (
     <MaintenanceGate>
-      <Navbar />
-      <main>
-        <div className="mx-auto max-w-7xl px-6 pt-8">
-          <Link
-            href="/archive"
-            className="text-xs font-bold uppercase tracking-wider text-[#2D6A4F] hover:underline"
-          >
-            &larr; Back to Archive
-          </Link>
-        </div>
-        <SummaryView tournament={tournament} players={players} teams={teams} />
-      </main>
-      <Footer />
+      <NightBackdrop>
+        <Navbar />
+        <main className="pt-16 sm:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Link
+              href="/archive"
+              className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-mint/80 transition hover:gap-2 hover:text-mint"
+            >
+              <span aria-hidden>←</span> Back to Archive
+            </Link>
+          </div>
+          <SummaryView
+            tournament={tournament}
+            players={players}
+            teams={teams}
+          />
+        </main>
+        <Footer />
+      </NightBackdrop>
     </MaintenanceGate>
   );
 }

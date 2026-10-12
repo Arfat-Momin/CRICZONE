@@ -7,7 +7,7 @@ export async function PastAuctions() {
   const archives = await getArchivedTournaments(6);
 
   return (
-    <section className="relative bg-[#0A1410] py-20 md:py-28">
+    <section className="relative bg-[#0A1410] py-14 sm:py-16 md:py-24">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(45,106,79,0.3),transparent_60%)]"
@@ -19,7 +19,7 @@ export async function PastAuctions() {
               <span className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-mint">
                 Hall of Fame
               </span>
-              <h2 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold text-cream md:text-4xl">
+              <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-cream sm:text-3xl md:text-4xl">
                 Past Auctions
               </h2>
             </div>

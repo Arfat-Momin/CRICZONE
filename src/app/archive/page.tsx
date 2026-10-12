@@ -19,53 +19,98 @@ export default async function ArchivePage() {
 
   return (
     <MaintenanceGate>
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-        <Reveal>
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#2D6A4F]">
-            Archive
-          </span>
-          <h1 className="mt-2 text-4xl font-bold text-forest md:text-5xl">
-            Every auction we&apos;ve run
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm text-[#1B4332]/65">
-            A permanent record of each completed tournament — final squads, prices, and
-            rankings.
-          </p>
-        </Reveal>
+      <div className="min-h-screen w-full bg-[#0A1410] text-cream">
+        <Navbar />
 
-        {archives.length === 0 ? (
-          <Reveal>
-            <div className="mt-14 rounded-2xl border border-dashed border-[#1B4332]/20 bg-white/60 p-12 text-center text-[#1B4332]/60">
-              No archived tournaments yet.
-            </div>
-          </Reveal>
-        ) : (
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {archives.map((t, i) => (
-              <Reveal key={t.id} delay={i * 40}>
-                <Link
-                  href={`/archive/${t.slug}`}
-                  className="block rounded-xl border border-[#1B4332]/10 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-[#2D6A4F]/40 hover:shadow-md"
-                >
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#2D6A4F]/70">
-                    {t.auction_start_at
-                      ? format(new Date(t.auction_start_at), "MMM d, yyyy")
-                      : "Archived"}
+        <main className="relative isolate overflow-hidden">
+          {/* Ambient forest glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[60%]"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(45,106,79,0.35), transparent 70%)",
+            }}
+          />
+
+          <div className="mx-auto max-w-7xl px-4 pt-20 pb-12 sm:px-6 sm:pt-24 sm:pb-16 md:pt-28 md:pb-20">
+            {/* Page header */}
+            <Reveal>
+              <div className="text-center">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
+                  Archive
+                </span>
+                <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-cream text-glow-mint sm:text-4xl md:text-5xl lg:text-6xl">
+                  Every auction we&rsquo;ve run
+                </h1>
+                <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-cream/60 sm:text-base">
+                  A permanent record of each completed tournament — final
+                  squads, prices, and rankings.
+                </p>
+              </div>
+            </Reveal>
+
+            {/* Grid */}
+            {archives.length === 0 ? (
+              <Reveal>
+                <div className="mx-auto mt-14 max-w-xl rounded-2xl border border-dashed border-mint/20 bg-[#050A08]/60 p-10 text-center backdrop-blur-sm sm:mt-20 sm:p-12">
+                  <p className="text-4xl" aria-hidden>
+                    🏏
                   </p>
-                  <h2 className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-                    {t.name}
-                  </h2>
-                  {t.venue && (
-                    <p className="mt-1 text-xs text-[#1B4332]/60">{t.venue}</p>
-                  )}
-                </Link>
+                  <p className="mt-4 text-base font-semibold text-cream/80">
+                    No archived tournaments yet
+                  </p>
+                  <p className="mt-2 text-sm text-cream/50">
+                    Once a tournament ends and is archived, it will appear here.
+                  </p>
+                </div>
               </Reveal>
-            ))}
+            ) : (
+              <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+                {archives.map((t, i) => (
+                  <Reveal key={t.id} delay={i * 50}>
+                    <Link
+                      href={`/archive/${t.slug}`}
+                      className="group block h-full overflow-hidden rounded-2xl border border-mint/12 bg-[#050A08]/60 p-5 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-mint/40 hover:bg-[#050A08]/80 hover:shadow-[0_20px_60px_-20px_rgba(216,243,220,0.3)] sm:p-6"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="rounded-full border border-mint/20 bg-mint/5 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-mint/80">
+                          Archived
+                        </span>
+                        <span
+                          aria-hidden
+                          className="text-mint/40 transition group-hover:translate-x-0.5 group-hover:text-mint"
+                        >
+                          →
+                        </span>
+                      </div>
+
+                      <h2 className="mt-4 line-clamp-2 font-[family-name:var(--font-display)] text-lg font-bold leading-snug text-cream sm:text-xl">
+                        {t.name}
+                      </h2>
+
+                      <div className="mt-3 space-y-1 text-xs text-cream/55 sm:text-sm">
+                        {t.auction_start_at && (
+                          <p>
+                            📅{" "}
+                            {format(
+                              new Date(t.auction_start_at),
+                              "MMM d, yyyy",
+                            )}
+                          </p>
+                        )}
+                        {t.venue && <p className="line-clamp-1">📍 {t.venue}</p>}
+                      </div>
+                    </Link>
+                  </Reveal>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </main>
-      <Footer />
+        </main>
+
+        <Footer />
+      </div>
     </MaintenanceGate>
   );
 }
