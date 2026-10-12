@@ -16,6 +16,7 @@ type Props = {
   currentHighestTeam: Tables<"teams"> | null;
   players: Tables<"players">[];
   blockDisplayFields: DisplayField[];
+  shuffleEnabled?: boolean;
 };
 
 export function OnBlockStage({
@@ -24,17 +25,20 @@ export function OnBlockStage({
   currentHighestTeam,
   players,
   blockDisplayFields,
+  shuffleEnabled = true,
 }: Props) {
   const reduce = useReducedMotion();
   const [shuffling, setShuffling] = useState<string | null>(null);
 
   useEffect(() => {
-    if (state?.shuffling_name) {
+    // Respect the admin's shuffle toggle — when disabled, never enter
+    // the shuffle state, even if shuffling_name is briefly set.
+    if (shuffleEnabled && state?.shuffling_name) {
       setShuffling(state.shuffling_name);
     } else {
       setShuffling(null);
     }
-  }, [state?.shuffling_name]);
+  }, [state?.shuffling_name, shuffleEnabled]);
 
   const rollPool = useMemo(() => {
     const names = players

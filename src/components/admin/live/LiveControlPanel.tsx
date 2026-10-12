@@ -13,6 +13,7 @@ import {
 import {
   browserStartShuffle,
   browserFinalizeOnBlock,
+  browserSetShuffleEnabled,
 } from "@/lib/hooks/useAuctionActions";
 import { updateTournamentStatusAction } from "@/lib/actions/tournament";
 import { BiddingPad } from "./BiddingPad";
@@ -199,6 +200,25 @@ export function LiveControlPanel({
     });
   }
 
+  // ============ SHUFFLE TOGGLE ============
+  async function onToggleShuffle() {
+    const current = state?.shuffle_enabled ?? true;
+    const next = !current;
+    await withBusy(async () => {
+      const r = await browserSetShuffleEnabled(tournament.id, next);
+      if (!r.ok) {
+        onMessage("err", r.error);
+        return;
+      }
+      onMessage(
+        "ok",
+        next
+          ? "Shuffle animation ENABLED — players will roll for 3s."
+          : "Shuffle animation DISABLED — players will appear instantly.",
+      );
+    });
+  }
+
   // ============ PUT ON BLOCK ============
   async function runPutOnBlock(playerId: string) {
     const player = players.find((p) => p.id === playerId);
@@ -211,20 +231,35 @@ export function LiveControlPanel({
     setMsg(null);
 
     try {
-      const start = await browserStartShuffle(tournament.id, player.full_name);
-      if (!start.ok) {
-        onMessage("err", start.error);
-        return;
-      }
+      const shuffleOn = stateRef.current?.shuffle_enabled ?? true;
 
-      await new Promise<void>((resolve) =>
-        window.setTimeout(resolve, SHUFFLE_DURATION_MS),
-      );
+      if (shuffleOn) {
+        // ---- Shuffle flow: start_shuffle → 3s wait → finalize ----
+        const start = await browserStartShuffle(
+          tournament.id,
+          player.full_name,
+        );
+        if (!start.ok) {
+          onMessage("err", start.error);
+          return;
+        }
 
-      const fin = await browserFinalizeOnBlock(tournament.id, playerId);
-      if (!fin.ok) {
-        onMessage("err", fin.error);
-        return;
+        await new Promise<void>((resolve) =>
+          window.setTimeout(resolve, SHUFFLE_DURATION_MS),
+        );
+
+        const fin = await browserFinalizeOnBlock(tournament.id, playerId);
+        if (!fin.ok) {
+          onMessage("err", fin.error);
+          return;
+        }
+      } else {
+        // ---- Direct flow: skip shuffle, straight to finalize ----
+        const fin = await browserFinalizeOnBlock(tournament.id, playerId);
+        if (!fin.ok) {
+          onMessage("err", fin.error);
+          return;
+        }
       }
 
       setManualPlayerId(null);
@@ -313,7 +348,9 @@ export function LiveControlPanel({
   const isShuffling = !!state?.shuffling_name;
   const blockLocked = !!onBlockPlayer || isShuffling;
 
-  const isEnded = tournament.status === "ended" || tournament.status === "archived";
+  const isEnded =
+    tournament.status === "ended" || tournament.status === "archived";
+  const shuffleEnabled = state?.shuffle_enabled ?? true;
 
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
@@ -419,6 +456,25 @@ export function LiveControlPanel({
                   Current Block
                 </h2>
                 <div className="flex flex-wrap gap-2">
+                  {/* ⭐ SHUFFLE TOGGLE */}
+                  <button
+                    type="button"
+                    onClick={onToggleShuffle}
+                    disabled={busy}
+                    title={
+                      shuffleEnabled
+                        ? "Shuffle animation is ON — players roll for 3s. Click to disable."
+                        : "Shuffle animation is OFF — players appear instantly. Click to enable."
+                    }
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition ${
+                      shuffleEnabled
+                        ? "border-[#2D6A4F]/50 bg-mint text-success"
+                        : "border-[#C1121F]/40 bg-[#FFF1F1] text-sold"
+                    } disabled:opacity-50`}
+                  >
+                    {shuffleEnabled ? "🎬 Shuffle ON" : "⏩ Shuffle OFF"}
+                  </button>
+
                   <button
                     type="button"
                     onClick={onToggleBidMode}

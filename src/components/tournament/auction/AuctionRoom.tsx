@@ -209,6 +209,7 @@ export function AuctionRoom({
             currentHighestTeam={currentHighestTeam}
             players={players}
             blockDisplayFields={blockDisplayFields}
+            shuffleEnabled={state?.shuffle_enabled ?? true}
           />
         </div>
       </section>

@@ -20,6 +20,7 @@ export type Database = {
           current_bid_price: number
           current_highest_team_id: string | null
           current_player_id: string | null
+          shuffle_enabled: boolean
           shuffling_name: string | null
           star_base_price: number
           star_bid_count: number
@@ -34,6 +35,7 @@ export type Database = {
           current_bid_price?: number
           current_highest_team_id?: string | null
           current_player_id?: string | null
+          shuffle_enabled?: boolean
           shuffling_name?: string | null
           star_base_price?: number
           star_bid_count?: number
@@ -48,6 +50,7 @@ export type Database = {
           current_bid_price?: number
           current_highest_team_id?: string | null
           current_player_id?: string | null
+          shuffle_enabled?: boolean
           shuffling_name?: string | null
           star_base_price?: number
           star_bid_count?: number
@@ -446,6 +449,10 @@ export type Database = {
           p_team_id: string
           p_tournament_id: string
         }
+        Returns: undefined
+      }
+      set_shuffle_enabled: {
+        Args: { p_enabled: boolean; p_tournament_id: string }
         Returns: undefined
       }
       start_shuffle: {

@@ -203,3 +203,22 @@ export async function browserFinalizeOnBlock(
     return { ok: false, error: rpcErrorToMessage(e, "Finalize failed") };
   }
 }
+export async function browserSetShuffleEnabled(
+  tournamentId: string,
+  enabled: boolean,
+): Promise<Ok<undefined> | Err> {
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.rpc("set_shuffle_enabled", {
+      p_tournament_id: tournamentId,
+      p_enabled: enabled,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return {
+      ok: false,
+      error: rpcErrorToMessage(e, "Shuffle toggle failed"),
+    };
+  }
+}
