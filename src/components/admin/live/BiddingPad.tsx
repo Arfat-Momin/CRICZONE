@@ -46,14 +46,10 @@ export function BiddingPad({
   const [manualTeamId, setManualTeamId] = useState<string | null>(null);
   const [manualPrice, setManualPrice] = useState<string>("");
 
-  // Sync manual team to highest bidder when highest changes (only if none picked)
   useEffect(() => {
-    if (highestTeamId && !manualTeamId) {
-      setManualTeamId(highestTeamId);
-    }
+    if (highestTeamId && !manualTeamId) setManualTeamId(highestTeamId);
   }, [highestTeamId, manualTeamId]);
 
-  // Pre-fill price with current bid when it changes
   useEffect(() => {
     if (currentBid > 0 && manualPrice.trim() === "") {
       setManualPrice(currentBid.toString());
@@ -61,14 +57,11 @@ export function BiddingPad({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBid]);
 
-  // Highest team object (for last-bid awareness line)
   const highestTeam = useMemo(
-    () =>
-      highestTeamId ? teams.find((t) => t.id === highestTeamId) ?? null : null,
+    () => (highestTeamId ? teams.find((t) => t.id === highestTeamId) ?? null : null),
     [highestTeamId, teams],
   );
 
-  // Reusable star config passed to computeNextBid
   const starConfig = useMemo(
     () => ({
       basePrice: state?.star_base_price ?? 1000,
@@ -86,13 +79,11 @@ export function BiddingPad({
     ],
   );
 
-  // The bid that would be placed next
   const nextBidValue = useMemo(
     () => computeNextBid(currentBid, bidMode, starConfig),
     [currentBid, bidMode, starConfig],
   );
 
-  // ---- Team rows for the manual sell list ----
   const teamRows = useMemo(() => {
     return teams
       .slice()
@@ -111,7 +102,6 @@ export function BiddingPad({
   // ---- Actions ----
   async function onPlaceBid(teamId: string) {
     onOptimisticBid(nextBidValue, teamId);
-
     const r = await browserPlaceBid(tournamentId, teamId);
     if (!r.ok) {
       onMessage("err", r.error);
@@ -199,7 +189,6 @@ export function BiddingPad({
     setManualPrice(currentBid.toString());
   }
 
-  // ---- Render ----
   return (
     <section className="mt-6 overflow-hidden rounded-2xl border-2 border-sold/25 bg-white shadow-sm">
       {/* ============ Header ============ */}
@@ -221,7 +210,7 @@ export function BiddingPad({
           </p>
         </div>
 
-        {/* ⭐ Last-bid awareness strip */}
+        {/* Last-bid awareness strip */}
         {highestTeam && currentBid > 0 ? (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-success/35 bg-gradient-to-r from-mint/70 to-mint/30 px-3.5 py-2.5">
             <div className="flex min-w-0 items-center gap-2.5">
@@ -257,6 +246,16 @@ export function BiddingPad({
             </p>
           </div>
         )}
+
+        {/* Next bid preview */}
+        <p className="mt-2 text-[11px] font-bold uppercase tracking-wider text-[#1B4332]/55">
+          Next bid will be{" "}
+          <span className="font-[family-name:var(--font-numeric)] text-forest">
+            {nextBidValue} pts
+          </span>
+          {" "}·{" "}
+          {bidMode === "star" ? "Star mode" : "Normal mode"}
+        </p>
       </div>
 
       {/* ============ Team Buttons ============ */}
@@ -264,7 +263,7 @@ export function BiddingPad({
         <p className="mb-3 text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/50">
           Tap a team to raise the bid
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
           {teams.map((team) => {
             const boughtCount = players.filter(
               (p) => p.sold_to_team_id === team.id,
@@ -282,49 +281,70 @@ export function BiddingPad({
             );
             const maxBidLabel = formatMaxBid(maxBid);
             const isSquadFull = maxBid === SQUAD_FULL;
+
             const cannotAfford = team.points_remaining < nextBidValue;
             const exceedsMax = maxBid !== SQUAD_FULL && nextBidValue > maxBid;
+            const wouldHitMaxExactly = maxBid !== SQUAD_FULL && nextBidValue === maxBid;
 
             const isDisabled =
               isHighest || isFull || cannotAfford || exceedsMax;
 
-            const tooltip = isHighest
-              ? `Already highest at ${currentBid} pts — wait for another team to bid, or use "Sell to Highest"`
-              : isFull
-                ? "Squad is full"
-                : cannotAfford
-                  ? `Needs ${nextBidValue} pts (has ${team.points_remaining})`
-                  : exceedsMax
-                    ? `Next bid ${nextBidValue} exceeds max ${maxBidLabel}`
-                    : `Place bid — ${nextBidValue} pts (max ${maxBidLabel})`;
-
-            // Highest bidder — distinctive winning style
+            // ====== HIGHEST BIDDER — distinctive winning card ======
             if (isHighest) {
               return (
                 <div
                   key={team.id}
-                  title={tooltip}
-                  className="flex flex-col rounded-xl border-2 border-success bg-gradient-to-br from-mint via-mint/80 to-mint/60 p-3 text-left"
+                  title={`Already highest at ${currentBid} pts — wait for another team to bid, or use "Sell to Highest"`}
+                  className="flex flex-col rounded-xl border-2 border-success bg-gradient-to-br from-mint via-mint/80 to-mint/60 p-3.5 text-left"
                 >
-                  <div className="flex w-full items-start justify-between gap-1.5">
+                  <div className="flex w-full items-start justify-between gap-2">
                     <p className="min-w-0 flex-1 truncate text-sm font-bold text-forest">
                       {team.team_name}
                     </p>
-                    <span className="shrink-0 rounded-full bg-success px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white">
+                    <span className="shrink-0 rounded-full bg-success px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white">
                       ✓ Highest
                     </span>
                   </div>
-                  <p className="mt-0.5 text-xs font-semibold text-forest/70">
+                  <p className="mt-1 text-xs font-semibold text-forest/75">
                     Bid:{" "}
                     <span className="font-[family-name:var(--font-numeric)] text-success">
                       {currentBid} pts
                     </span>
                   </p>
-                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-success/80">
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-success/45 bg-white/60 px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-success">
+                      <span className="font-[family-name:var(--font-numeric)] text-[10px] opacity-70">
+                        MAX
+                      </span>
+                      {maxBidLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-[10px] font-extrabold uppercase tracking-wider text-success/80">
                     Cannot bid against self
                   </p>
                 </div>
               );
+            }
+
+            // ====== Disabled reason + badge tone ======
+            let reasonText: string | null = null;
+            let badgeTone =
+              "border-[#2D6A4F]/40 bg-mint/70 text-success";
+
+            if (isSquadFull || isFull) {
+              reasonText = "Squad Full — cannot bid";
+              badgeTone = "border-sold/45 bg-sold/15 text-sold";
+            } else if (cannotAfford) {
+              reasonText = `Needs ${nextBidValue} pts · has ${team.points_remaining}`;
+              badgeTone = "border-sold/45 bg-sold/15 text-sold";
+            } else if (exceedsMax) {
+              reasonText = `Max limit ${maxBidLabel} — next bid ${nextBidValue} exceeds it`;
+              badgeTone = "border-sold/45 bg-sold/15 text-sold";
+            } else if (wouldHitMaxExactly) {
+              reasonText = `This will be their final bid (hits max)`;
+              badgeTone = "border-[#FFA000]/55 bg-[#FFA000]/15 text-[#B87333]";
+            } else if (maxBid === 0) {
+              badgeTone = "border-[#FFA000]/45 bg-[#FFA000]/15 text-[#B87333]";
             }
 
             return (
@@ -333,46 +353,43 @@ export function BiddingPad({
                 type="button"
                 onClick={() => onPlaceBid(team.id)}
                 disabled={isDisabled}
-                title={tooltip}
-                className="flex flex-col rounded-xl border border-[#1B4332]/15 bg-white p-3 text-left transition hover:border-[#2D6A4F]/40 active:scale-[0.97] disabled:opacity-50"
+                title={
+                  isDisabled
+                    ? reasonText ?? "Cannot bid"
+                    : `Place bid — ${nextBidValue} pts (max ${maxBidLabel})`
+                }
+                className="flex flex-col rounded-xl border border-[#1B4332]/15 bg-white p-3.5 text-left transition hover:border-[#2D6A4F]/40 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-65"
               >
-                <div className="flex w-full items-start justify-between gap-1.5">
+                <div className="flex w-full items-start justify-between gap-2">
                   <p className="min-w-0 flex-1 truncate text-sm font-bold text-forest">
                     {team.team_name}
                   </p>
+                  {/* ⭐ BIGGER MAX BID BADGE */}
                   <span
-                    className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${
-                      isSquadFull
-                        ? "border-sold/40 bg-sold/15 text-sold"
-                        : maxBid === 0
-                          ? "border-[#FFA000]/40 bg-[#FFA000]/15 text-[#B87333]"
-                          : "border-[#2D6A4F]/40 bg-mint/70 text-success"
-                    }`}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-wider sm:px-2.5 sm:py-1 sm:text-xs ${badgeTone}`}
                   >
-                    {isSquadFull
-                      ? "Full"
-                      : maxBid === 0
-                        ? "Max 0"
-                        : `Max ${maxBidLabel}`}
+                    <span className="font-[family-name:var(--font-numeric)] text-[10px] opacity-70">
+                      MAX
+                    </span>
+                    {isSquadFull ? "0" : maxBidLabel}
                   </span>
                 </div>
-                <p className="mt-0.5 text-xs text-[#1B4332]/60">
+
+                <p className="mt-1 text-xs text-[#1B4332]/60">
                   {team.points_remaining} pts
-                  {remaining !== null && ` · ${remaining} slot${remaining === 1 ? "" : "s"}`}
+                  {remaining !== null &&
+                    ` · ${remaining} slot${remaining === 1 ? "" : "s"}`}
                 </p>
-                {isFull && !isSquadFull && (
-                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-sold">
-                    Squad Full
-                  </p>
-                )}
-                {!isFull && cannotAfford && (
-                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-sold">
-                    Needs {nextBidValue}
-                  </p>
-                )}
-                {!isFull && !cannotAfford && exceedsMax && (
-                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-sold">
-                    Would exceed max
+
+                {reasonText && (
+                  <p
+                    className={`mt-1.5 rounded-md px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider ${
+                      isDisabled
+                        ? "bg-sold/10 text-sold"
+                        : "bg-[#FFA000]/10 text-[#B87333]"
+                    }`}
+                  >
+                    {reasonText}
                   </p>
                 )}
               </button>
@@ -441,7 +458,6 @@ export function BiddingPad({
           </div>
         )}
 
-        {/* Price */}
         <div className="mt-4">
           <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
             Price (pts)
@@ -457,7 +473,6 @@ export function BiddingPad({
           />
         </div>
 
-        {/* Team list */}
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <label className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
@@ -481,67 +496,69 @@ export function BiddingPad({
               </p>
             ) : (
               <ul className="divide-y divide-[#1B4332]/8">
-                {teamRows.map(({ team, remaining, isFull, cannotAfford, disabled }) => {
-                  const selected = team.id === manualTeamId;
-                  const isHighestTeam = team.id === highestTeamId;
-                  return (
-                    <li key={team.id}>
-                      <button
-                        type="button"
-                        onClick={() => !disabled && setManualTeamId(team.id)}
-                        disabled={disabled}
-                        className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
-                          disabled
-                            ? "cursor-not-allowed opacity-50"
-                            : selected
-                              ? "bg-mint"
-                              : "hover:bg-[#FAFDF9]"
-                        }`}
-                      >
-                        <span
-                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition ${
-                            selected
-                              ? "border-success bg-success"
-                              : "border-[#1B4332]/25 bg-white"
+                {teamRows.map(
+                  ({ team, remaining, isFull, cannotAfford, disabled }) => {
+                    const selected = team.id === manualTeamId;
+                    const isHighestTeam = team.id === highestTeamId;
+                    return (
+                      <li key={team.id}>
+                        <button
+                          type="button"
+                          onClick={() => !disabled && setManualTeamId(team.id)}
+                          disabled={disabled}
+                          className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
+                            disabled
+                              ? "cursor-not-allowed opacity-50"
+                              : selected
+                                ? "bg-mint"
+                                : "hover:bg-[#FAFDF9]"
                           }`}
                         >
-                          {selected && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                          )}
-                        </span>
+                          <span
+                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                              selected
+                                ? "border-success bg-success"
+                                : "border-[#1B4332]/25 bg-white"
+                            }`}
+                          >
+                            {selected && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                            )}
+                          </span>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-bold text-forest">
-                              {team.team_name}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-bold text-forest">
+                                {team.team_name}
+                              </p>
+                              {isHighestTeam && (
+                                <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-success">
+                                  Highest
+                                </span>
+                              )}
+                              {isFull && (
+                                <span className="shrink-0 rounded-full bg-sold/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-sold">
+                                  Full
+                                </span>
+                              )}
+                              {cannotAfford && !isFull && (
+                                <span className="shrink-0 rounded-full bg-sold/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-sold">
+                                  No pts
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-0.5 text-[11px] text-[#1B4332]/55">
+                              {team.points_remaining} pts
+                              {remaining !== null &&
+                                ` · ${remaining} slot${remaining === 1 ? "" : "s"} left`}
+                              {team.captain_name && ` · ${team.captain_name}`}
                             </p>
-                            {isHighestTeam && (
-                              <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-success">
-                                Highest
-                              </span>
-                            )}
-                            {isFull && (
-                              <span className="shrink-0 rounded-full bg-sold/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-sold">
-                                Full
-                              </span>
-                            )}
-                            {cannotAfford && !isFull && (
-                              <span className="shrink-0 rounded-full bg-sold/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-sold">
-                                No pts
-                              </span>
-                            )}
                           </div>
-                          <p className="mt-0.5 text-[11px] text-[#1B4332]/55">
-                            {team.points_remaining} pts
-                            {remaining !== null &&
-                              ` · ${remaining} slot${remaining === 1 ? "" : "s"} left`}
-                            {team.captain_name && ` · ${team.captain_name}`}
-                          </p>
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
+                        </button>
+                      </li>
+                    );
+                  },
+                )}
               </ul>
             )}
           </div>

@@ -14,7 +14,6 @@ import {
 type Props = {
   teams: Tables<"teams">[];
   players: Tables<"players">[];
-  /** Current auction state — drives max bid calc (mode + star base). */
   bidMode: "normal" | "star";
   starBasePrice: number;
 };
@@ -57,7 +56,6 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
           const initial = (team.team_name[0] ?? "?").toUpperCase();
           const isFull = slotsRemaining !== null && slotsRemaining === 0;
 
-          // ⭐ Max bid — star/normal aware
           const maxBid = calculateMaxBid(
             team.points_remaining,
             slotsRemaining,
@@ -67,6 +65,13 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
           const maxBidLabel = formatMaxBid(maxBid);
           const isSquadFull = maxBid === SQUAD_FULL;
 
+          // Badge colour tone
+          const badgeTone = isSquadFull
+            ? "border-sold/45 bg-sold/15 text-sold"
+            : maxBid === 0
+              ? "border-[#FFA000]/45 bg-[#FFA000]/15 text-[#FFA000]"
+              : "border-mint/45 bg-mint/10 text-mint";
+
           return (
             <button
               key={team.id}
@@ -74,7 +79,7 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
               onClick={() => setSelectedTeam(team)}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-mint/12 bg-[#0A1410] p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-mint/40 hover:shadow-[0_20px_55px_-20px_rgba(216,243,220,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
             >
-              {/* ── Row 1: logo + name + MAX BID ────────────────── */}
+              {/* Row 1: logo + name + MAX BID */}
               <div className="flex items-start gap-3">
                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border-2 border-mint/40 bg-[#050A08]">
                   {team.photo_url ? (
@@ -92,37 +97,30 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className="truncate font-[family-name:var(--font-display)] text-base font-bold leading-tight text-cream sm:text-lg">
-                      {team.team_name}
+                  <p className="truncate font-[family-name:var(--font-display)] text-base font-bold leading-tight text-cream sm:text-lg">
+                    {team.team_name}
+                  </p>
+                  {team.captain_name && (
+                    <p className="mt-0.5 truncate text-xs text-cream/50">
+                      {team.captain_name}
                     </p>
-                    {/* ⭐ MAX BID BADGE */}
+                  )}
+                  {/* ⭐ BIGGER, RESPONSIVE MAX BID BADGE */}
+                  <div className="mt-2">
                     <span
-                      className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider sm:text-[10px] ${
-                        isSquadFull
-                          ? "border-sold/40 bg-sold/15 text-sold"
-                          : maxBid === 0
-                            ? "border-[#FFA000]/40 bg-[#FFA000]/15 text-[#FFA000]"
-                            : "border-mint/40 bg-mint/10 text-mint"
-                      }`}
+                      className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider sm:px-3 sm:text-[13px] md:text-sm ${badgeTone}`}
                       title={
                         isSquadFull
                           ? "Squad is full — cannot place more bids"
                           : `Maximum this team can bid on the current player (reserves ${bidMode === "star" ? starBasePrice : 1} pt per remaining slot)`
                       }
                     >
-                      {isSquadFull
-                        ? "Squad Full"
-                        : maxBid === 0
-                          ? "Max 0"
-                          : `Max ${maxBidLabel}`}
+                      <span className="font-[family-name:var(--font-numeric)] text-[10px] opacity-70 sm:text-[11px]">
+                        MAX
+                      </span>
+                      <span>{maxBidLabel}</span>
                     </span>
                   </div>
-                  {team.captain_name && (
-                    <p className="mt-0.5 truncate text-xs text-cream/50">
-                      {team.captain_name}
-                    </p>
-                  )}
                 </div>
 
                 {isFull && !isSquadFull && (
@@ -132,7 +130,7 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
                 )}
               </div>
 
-              {/* ── Row 2: points + slots ──────────────────────── */}
+              {/* Row 2: points + slots */}
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-[0.24em] text-cream/40">
@@ -164,7 +162,7 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
                 )}
               </div>
 
-              {/* ── Spent progress bar ─────────────────────────── */}
+              {/* Spent progress bar */}
               <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#050A08]">
                 <motion.div
                   initial={{ width: 0 }}
@@ -174,7 +172,7 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
                 />
               </div>
 
-              {/* ── Bought chips ───────────────────────────────── */}
+              {/* Bought chips */}
               {bought.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {bought.slice(0, 3).map((p) => (
