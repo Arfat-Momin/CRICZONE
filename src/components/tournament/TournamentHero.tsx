@@ -21,9 +21,7 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
 
   return (
     <section className="relative isolate overflow-hidden border-b border-mint/10">
-      {/* ============================================================
-          STADIUM BACKGROUND (same image as the landing hero)
-          ============================================================ */}
+      {/* Stadium background */}
       <div aria-hidden className="absolute inset-0 -z-30 bg-[#050A08]">
         <Image
           src={HERO_IMAGE}
@@ -36,10 +34,7 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
       </div>
 
       {/* Readability overlays */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-20 bg-[#050A08]/72"
-      />
+      <div aria-hidden className="absolute inset-0 -z-20 bg-[#050A08]/75" />
       <div
         aria-hidden
         className="absolute inset-x-0 top-0 -z-20 h-[55%]"
@@ -50,16 +45,14 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
       />
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 -z-20 h-24 bg-gradient-to-t from-[#050A08] to-transparent"
+        className="absolute inset-x-0 bottom-0 -z-20 h-20 bg-gradient-to-t from-[#050A08] to-transparent sm:h-24"
       />
 
-      {/* ============================================================
-          CENTERED CONTENT
-          ============================================================ */}
-      <div className="relative mx-auto flex max-w-3xl flex-col items-center px-6 py-14 text-center md:py-16 lg:py-20">
-        {/* Poster thumbnail — centered above the title */}
+      {/* Centered content */}
+      <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-8 text-center sm:px-6 sm:py-12 md:py-16 lg:py-20">
+        {/* Poster */}
         {tournament.poster_url && (
-          <div className="mb-5 h-24 w-24 overflow-hidden rounded-2xl border-2 border-mint/40 shadow-[0_0_45px_-12px_rgba(216,243,220,0.55)] sm:h-28 sm:w-28 md:h-32 md:w-32">
+          <div className="mb-4 h-20 w-20 overflow-hidden rounded-2xl border-2 border-mint/40 shadow-[0_0_40px_-12px_rgba(216,243,220,0.55)] sm:mb-5 sm:h-28 sm:w-28 md:h-32 md:w-32">
             <ZoomableImage
               src={tournament.poster_url}
               alt={`${tournament.name} poster`}
@@ -71,7 +64,7 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
 
         {/* Status badge */}
         <span
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] sm:px-4 sm:py-1.5 sm:text-xs ${
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.24em] sm:gap-2 sm:px-4 sm:py-1.5 sm:text-[10px] md:text-xs ${
             isLive
               ? "bg-sold text-white shadow-[0_0_24px_-4px_rgba(193,18,31,0.7)]"
               : "border border-mint/30 bg-mint/10 text-mint"
@@ -83,16 +76,17 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
           {STATUS_LABEL[tournament.status] ?? "Tournament"}
         </span>
 
-        {/* Title — NO glow */}
-        <h1 className="mt-4 font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-cream sm:text-4xl md:text-5xl lg:text-6xl">
+        {/* Title — no glow */}
+        <h1 className="mt-3 w-full break-words font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-cream sm:mt-4 sm:text-3xl md:text-4xl lg:text-5xl">
           {tournament.name}
         </h1>
 
-        {/* Info row — venue + date, centered */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-cream/70 sm:text-base">
+        {/* Info row */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-cream/70 sm:mt-4 sm:gap-x-5 sm:text-sm md:text-base">
           {tournament.venue && (
-            <span className="inline-flex items-center gap-1.5">
-              <span aria-hidden>📍</span> {tournament.venue}
+            <span className="inline-flex max-w-full items-center gap-1.5">
+              <span aria-hidden>📍</span>
+              <span className="truncate">{tournament.venue}</span>
             </span>
           )}
           {startIso && (
@@ -105,8 +99,8 @@ export function TournamentHero({ tournament }: { tournament: Tables<"tournaments
 
         {/* Countdown */}
         {startIso && !isLive && !isFinished && (
-          <div className="mt-8 flex flex-col items-center sm:mt-10">
-            <p className="mb-3 text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint/80 sm:text-xs">
+          <div className="mt-6 flex flex-col items-center sm:mt-8 md:mt-10">
+            <p className="mb-2 text-[9px] font-extrabold uppercase tracking-[0.28em] text-mint/80 sm:mb-3 sm:text-[10px] md:text-xs">
               Auction begins in
             </p>
             <CountdownTimer targetIso={startIso} />

@@ -72,7 +72,7 @@ export default async function TournamentPage({ params }: Props) {
         <TournamentStatusBridge tournamentId={tournament.id} />
         <NightBackdrop>
           <Navbar />
-          <main>
+          <main className="pt-14 sm:pt-16">
             <SummaryView tournament={tournament} players={players} teams={teams} />
           </main>
           <Footer />
@@ -94,12 +94,12 @@ export default async function TournamentPage({ params }: Props) {
         <Navbar />
         <RosterRealtimeBridge tournamentId={tournament.id} />
 
-        <main>
+        <main className="pt-14 sm:pt-16">
           <TournamentHero tournament={tournament} />
 
           {registrationOpen && (
-            <section className="mx-auto max-w-7xl px-6 pt-8">
-              <div className="flex flex-col items-start gap-3 rounded-2xl border border-mint/20 bg-gradient-to-r from-mint/10 to-transparent p-5 sm:flex-row sm:items-center sm:justify-between">
+            <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 sm:pt-8">
+              <div className="flex flex-col items-start gap-3 rounded-2xl border border-mint/20 bg-gradient-to-r from-mint/10 to-transparent p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-wider text-mint">
                     Want to play?
@@ -110,7 +110,7 @@ export default async function TournamentPage({ params }: Props) {
                 </div>
                 <Link
                   href={`/t/${tournament.slug}/register`}
-                  className="rounded-xl bg-mint px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-forest shadow-[0_10px_35px_-10px_rgba(216,243,220,0.6)] transition hover:-translate-y-0.5 hover:bg-cream"
+                  className="w-full rounded-xl bg-mint px-5 py-2.5 text-center text-xs font-bold uppercase tracking-widest text-forest shadow-[0_10px_35px_-10px_rgba(216,243,220,0.6)] transition hover:-translate-y-0.5 hover:bg-cream sm:w-auto"
                 >
                   Register as a player &rarr;
                 </Link>
@@ -118,17 +118,17 @@ export default async function TournamentPage({ params }: Props) {
             </section>
           )}
 
-          <div className="mx-auto max-w-7xl px-6 py-10 md:py-14">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 md:py-12">
             <TeamGrid teams={teams} />
 
-            <section className={teams.length > 0 ? "mt-14" : ""}>
-              <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-cream md:text-3xl">
+            <section className={teams.length > 0 ? "mt-10 sm:mt-14" : ""}>
+              <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-cream sm:text-2xl md:text-3xl">
                 Players
               </h2>
-              <p className="mt-1 text-sm text-cream/55">
+              <p className="mt-1 text-xs text-cream/55 sm:text-sm">
                 {players.length} registered
               </p>
-              <div className="mt-6">
+              <div className="mt-4 sm:mt-6">
                 <RosterGrid players={players} displayFields={displayFields} />
               </div>
             </section>

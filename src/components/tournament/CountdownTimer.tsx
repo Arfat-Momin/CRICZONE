@@ -35,7 +35,7 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
 
   if (parts === null) {
     return (
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
         <Unit value={null} label="Days" />
         <Unit value={null} label="Hours" />
         <Unit value={null} label="Mins" />
@@ -46,14 +46,14 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
 
   if (parts.done) {
     return (
-      <p className="text-base font-semibold text-mint">
+      <p className="text-sm font-semibold text-mint sm:text-base">
         Auction will start soon — please wait.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
       <Unit value={parts.days} label="Days" />
       <Unit value={parts.hours} label="Hours" />
       <Unit value={parts.minutes} label="Mins" />
@@ -64,11 +64,11 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
 
 function Unit({ value, label }: { value: number | null; label: string }) {
   return (
-    <div className="min-w-[72px] rounded-xl border border-mint/12 bg-[#0A1410] px-3 py-3 text-center shadow-[0_0_30px_-12px_rgba(216,243,220,0.35)]">
-      <span className="block font-[family-name:var(--font-numeric)] text-2xl font-bold tabular-nums text-mint md:text-3xl">
+    <div className="min-w-[58px] rounded-xl border border-mint/12 bg-[#0A1410] px-2 py-2 text-center shadow-[0_0_25px_-12px_rgba(216,243,220,0.35)] sm:min-w-[72px] sm:px-3 sm:py-3">
+      <span className="block font-[family-name:var(--font-numeric)] text-xl font-bold tabular-nums text-mint sm:text-2xl md:text-3xl">
         {value === null ? "--" : String(value).padStart(2, "0")}
       </span>
-      <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-cream/45">
+      <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[0.18em] text-cream/45 sm:mt-1 sm:text-[10px] sm:tracking-[0.2em]">
         {label}
       </span>
     </div>

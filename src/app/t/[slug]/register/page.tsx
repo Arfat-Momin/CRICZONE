@@ -34,8 +34,9 @@ export default async function RegisterPage({ params }: Props) {
   return (
     <NightBackdrop>
       <Navbar />
-      <main className="mx-auto max-w-2xl px-6 py-12 md:py-16">
-        <div className="flex items-center gap-4">
+      <main className="mx-auto max-w-2xl px-4 pt-14 pb-12 sm:px-6 sm:pt-16 sm:pb-16">
+        {/* Header with poster */}
+        <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:gap-4 sm:text-left">
           {tournament.poster_url && (
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-mint/30 shadow-[0_0_40px_-10px_rgba(216,243,220,0.35)]">
               <ZoomableImage
@@ -46,19 +47,21 @@ export default async function RegisterPage({ params }: Props) {
               />
             </div>
           )}
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 w-full">
             <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint/80">
               {tournament.name}
             </span>
-            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-cream text-glow-mint md:text-3xl">
+            <h1 className="mt-1 break-words font-[family-name:var(--font-display)] text-2xl font-bold text-cream sm:text-3xl">
               {config.title}
             </h1>
           </div>
         </div>
 
-        <p className="mt-4 text-sm text-cream/65">{config.description}</p>
+        <p className="mt-4 text-center text-sm text-cream/65 sm:text-left">
+          {config.description}
+        </p>
 
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           {open ? (
             <RegistrationForm
               tournamentId={tournament.id}
@@ -66,11 +69,11 @@ export default async function RegisterPage({ params }: Props) {
               config={config}
             />
           ) : (
-            <div className="rounded-2xl border border-dashed border-mint/20 bg-[#0A1410]/60 p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-mint/20 bg-[#0A1410]/60 p-8 text-center sm:p-10">
               <p className="text-3xl" aria-hidden>
                 🔒
               </p>
-              <p className="mt-3 text-lg font-semibold text-cream/85">
+              <p className="mt-3 text-base font-semibold text-cream/85 sm:text-lg">
                 Registration Closed
               </p>
               <p className="mt-1 text-sm text-cream/55">

@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 /**
- * Performance note: no `backdrop-blur` here.
- * Backdrop-filter on a sticky header forces the browser to composite
- * everything below it on every scroll frame. A solid dark bar after
- * scroll feels faster and looks just as clean on the night theme.
+ * Mobile-first responsive navbar.
+ *
+ * Below `md` (768px): only logo + compact "Live" CTA visible.
+ *   "How It Works" and "Archive" are hidden on small screens to
+ *   prevent overlap. They remain reachable via the footer.
+ *
+ * The header is `fixed`, so pages that don't start with a full-
+ * height hero must add `pt-14 sm:pt-16` to their content wrapper.
  */
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -15,7 +19,6 @@ export function Navbar() {
   useEffect(() => {
     let raf = 0;
     function onScroll() {
-      // Throttle with rAF — avoids running on every scroll event
       if (raf) return;
       raf = window.requestAnimationFrame(() => {
         setScrolled(window.scrollY > 24);
@@ -38,15 +41,18 @@ export function Navbar() {
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6">
+        {/* Logo */}
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight text-cream text-glow-mint"
+          className="shrink-0 font-[family-name:var(--font-display)] text-base font-bold tracking-tight text-cream sm:text-xl"
         >
           CRICZONE
         </Link>
+
+        {/* Right side */}
         <ul className="flex items-center gap-1 text-sm font-semibold text-cream/85">
-          <li>
+          <li className="hidden md:block">
             <Link
               href="/how-it-works"
               className="rounded-lg px-3 py-2 transition-colors hover:bg-mint/10 hover:text-mint"
@@ -54,7 +60,7 @@ export function Navbar() {
               How It Works
             </Link>
           </li>
-          <li>
+          <li className="hidden md:block">
             <Link
               href="/archive"
               className="rounded-lg px-3 py-2 transition-colors hover:bg-mint/10 hover:text-mint"
@@ -65,9 +71,10 @@ export function Navbar() {
           <li>
             <Link
               href="#tournaments"
-              className="ml-2 rounded-lg bg-mint px-3.5 py-2 text-forest transition-colors hover:bg-cream"
+              className="inline-flex items-center justify-center rounded-lg bg-mint px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-forest transition-colors hover:bg-cream sm:px-3.5 sm:py-2 sm:text-sm"
             >
-              Live Now
+              <span className="hidden sm:inline">Live Now</span>
+              <span className="sm:hidden">Live</span>
             </Link>
           </li>
         </ul>
