@@ -41,7 +41,6 @@ export function AuctionRoom({
 
   const [projectionOpen, setProjectionOpen] = useState(false);
 
-  // Keyboard 'P' → projection
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (projectionOpen) return;
@@ -56,7 +55,6 @@ export function AuctionRoom({
     return () => document.removeEventListener("keydown", onKey);
   }, [projectionOpen]);
 
-  // Fullscreen sync
   useEffect(() => {
     if (typeof document === "undefined") return;
     if (projectionOpen) {
@@ -86,19 +84,14 @@ export function AuctionRoom({
       else if (p.status === "unsold") unsold++;
     }
     const total = players.length;
-    const lotNumber = Math.min(
-      sold + unsold + (onBlockPlayer ? 1 : 0),
-      total,
-    );
+    const lotNumber = Math.min(sold + unsold + (onBlockPlayer ? 1 : 0), total);
     return { pending, sold, unsold, total, lotNumber };
   }, [players, onBlockPlayer]);
 
   return (
     <>
-      {/* ============================================================
-          FIXED HERO BACKGROUND — same image as landing hero
-          ============================================================ */}
-      <div aria-hidden className="fixed inset-0 z-0">
+      {/* ============ FIXED HERO BACKGROUND ============ */}
+      <div aria-hidden className="fixed inset-0 z-0 bg-[#0B1020]">
         <Image
           src={HERO_IMAGE}
           alt=""
@@ -107,24 +100,23 @@ export function AuctionRoom({
           sizes="100vw"
           className="object-cover object-center"
         />
-        {/* Readability overlays */}
-        <div className="absolute inset-0 bg-[#0B1020]/85" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0B1020]/70 via-[#0B1020]/80 to-[#0B1020]" />
-        {/* Warm floodlight glow at top (matches landing hero) */}
+        {/* Single readability overlay — much lighter than before */}
+        <div className="absolute inset-0 bg-[#0B1020]/70" />
+        {/* Stronger at bottom for section legibility */}
+        <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0B1020] via-[#0B1020]/70 to-transparent" />
+        {/* Warm floodlight bloom at top (matches landing hero) */}
         <div
           className="absolute inset-x-0 top-0 h-[45%]"
           style={{
             background:
-              "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.14), transparent 65%)",
+              "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.18), transparent 65%)",
           }}
         />
       </div>
 
-      {/* ============================================================
-          CONTENT (above background)
-          ============================================================ */}
+      {/* ============ CONTENT ============ */}
       <div className="relative z-10 min-h-screen w-full text-[#F0F4FF]">
-        <header className="sticky top-0 z-40 bg-[#0B1020]/85">
+        <header className="sticky top-0 z-40 bg-[#0B1020]/75">
           <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-4 md:px-6">
             <div className="flex min-w-0 items-center gap-3">
               {tournament.poster_url && (
@@ -167,11 +159,9 @@ export function AuctionRoom({
             </button>
           </div>
 
-          {/* Broadcast gradient bar */}
           <div className="h-[2px] w-full bg-gradient-to-r from-[#FFC93C] via-[#FF4D6D] to-[#00D9FF]" />
 
-          {/* Info strip */}
-          <div className="border-b border-[#FFC93C]/10 bg-[#0B1020]/60 px-4 py-1.5 md:px-6">
+          <div className="border-b border-[#FFC93C]/10 bg-[#0B1020]/55 px-4 py-1.5 md:px-6">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F0F4FF]/45">
               <span className="truncate">
                 {tournament.venue ? `📍 ${tournament.venue}` : "🏏 CRICZONE · LIVE"}

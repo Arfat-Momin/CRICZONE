@@ -24,7 +24,7 @@ const TRAIL_GLOW: React.CSSProperties = {
 };
 
 const BOX_BASE =
-  "relative overflow-hidden rounded-3xl border border-[#FFC93C]/25 bg-[#131A33]/80 shadow-2xl";
+  "relative overflow-hidden rounded-3xl border border-[#FFC93C]/25 bg-[#131A33]/75 shadow-2xl";
 
 export function ProjectionMode({
   open,
@@ -90,10 +90,8 @@ export function ProjectionMode({
           aria-modal="true"
           aria-label="Live projection board"
         >
-          {/* ============================================================
-              BACKGROUND — same hero image as auction page
-              ============================================================ */}
-          <div aria-hidden className="absolute inset-0 z-0">
+          {/* ============ BG ============ */}
+          <div aria-hidden className="absolute inset-0 z-0 bg-[#0B1020]">
             <Image
               src={HERO_IMAGE}
               alt=""
@@ -102,23 +100,19 @@ export function ProjectionMode({
               sizes="100vw"
               className="object-cover object-center"
             />
-            <div className="absolute inset-0 bg-[#0B1020]/85" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0B1020]/65 via-[#0B1020]/80 to-[#0B1020]" />
-            {/* Warm floodlight at top */}
+            <div className="absolute inset-0 bg-[#0B1020]/70" />
+            <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0B1020] via-[#0B1020]/70 to-transparent" />
             <div
               className="absolute inset-x-0 top-0 h-[45%]"
               style={{
                 background:
-                  "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.16), transparent 65%)",
+                  "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.2), transparent 65%)",
               }}
             />
           </div>
 
-          {/* ============================================================
-              CONTENT
-              ============================================================ */}
+          {/* ============ CONTENT ============ */}
           <div className="relative z-10 flex h-full flex-col">
-            {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-4 md:px-10 md:py-6">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="chip-live inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.24em] md:text-xs">
@@ -133,19 +127,16 @@ export function ProjectionMode({
                 type="button"
                 onClick={onClose}
                 className="shrink-0 rounded-lg border border-[#F0F4FF]/20 bg-[#0B1020]/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#F0F4FF]/80 transition hover:bg-[#F0F4FF]/15 md:text-xs"
-                aria-label="Exit projection"
               >
                 Exit (Esc)
               </button>
             </div>
 
-            {/* Content */}
             <div className="flex flex-1 items-center justify-center px-4 pb-6 md:px-8 md:pb-10">
               {shuffling ? (
                 <ShufflingBox name={shuffling} reduce={!!reduce} />
               ) : onBlockPlayer ? (
                 <div className="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-[1.4fr_1fr] md:gap-6 lg:gap-8">
-                  {/* LEFT — Player */}
                   <div className={BOX_BASE + " flex flex-col"}>
                     <BorderTrail size={150} style={TRAIL_GLOW} />
                     <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 px-6 py-8 text-center md:gap-6 md:py-12">
@@ -178,7 +169,6 @@ export function ProjectionMode({
                     </div>
                   </div>
 
-                  {/* RIGHT — Bid + Team */}
                   <div className="grid grid-rows-2 gap-4 md:gap-6 lg:gap-8">
                     <div className={BOX_BASE + " flex flex-col"}>
                       <BorderTrail size={110} delay={0.2} style={TRAIL_GLOW} />
