@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Tables } from "@/types/supabase";
 import {
   browserPlaceBid,
@@ -9,7 +9,6 @@ import {
   browserPassPlayer,
   computeNextBid,
 } from "@/lib/hooks/useAuctionActions";
-import { SearchCombobox, type ComboboxOption } from "./SearchCombobox";
 
 type Props = {
   tournamentId: string;
@@ -42,7 +41,7 @@ export function BiddingPad({
   const [manualTeamId, setManualTeamId] = useState<string | null>(null);
   const [manualPrice, setManualPrice] = useState<string>("");
 
-  // Sync manual team to highest bidder when highest changes
+  // Sync manual team to highest bidder when highest changes (only if none picked)
   useEffect(() => {
     if (highestTeamId && !manualTeamId) {
       setManualTeamId(highestTeamId);
@@ -57,16 +56,21 @@ export function BiddingPad({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBid]);
 
-  const teamOptions: ComboboxOption[] = teams.map((t) => {
-    const bought = players.filter((p) => p.sold_to_team_id === t.id).length;
-    const slots =
-      t.max_players != null ? `${Math.max(0, t.max_players - bought)}/${t.max_players} slots` : "no cap";
-    return {
-      id: t.id,
-      label: t.team_name,
-      meta: `${t.points_remaining} pts · ${slots}`,
-    };
-  });
+  // Teams sorted by name, with derived meta
+  const teamRows = useMemo(() => {
+    return teams
+      .slice()
+      .sort((a, b) => a.team_name.localeCompare(b.team_name))
+      .map((t) => {
+        const bought = players.filter((p) => p.sold_to_team_id === t.id).length;
+        const remaining =
+          t.max_players != null ? Math.max(0, t.max_players - bought) : null;
+        const isFull = remaining !== null && remaining === 0;
+        const cannotAfford = t.points_remaining <= 0;
+        const disabled = isFull || cannotAfford;
+        return { team: t, bought, remaining, isFull, cannotAfford, disabled };
+      });
+  }, [teams, players]);
 
   async function onPlaceBid(teamId: string) {
     const nextBid = computeNextBid(currentBid, bidMode);
@@ -287,35 +291,110 @@ export function BiddingPad({
           </div>
         )}
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
-              Team
+        {/* Price */}
+        <div className="mt-4">
+          <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
+            Price (pts)
+          </label>
+          <input
+            type="number"
+            step="0.5"
+            min="0.5"
+            value={manualPrice}
+            onChange={(e) => setManualPrice(e.target.value)}
+            placeholder="e.g. 2.5"
+            className="w-full rounded-lg border border-[#1B4332]/20 bg-white px-3 py-2.5 text-sm text-forest outline-none transition focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/20"
+          />
+        </div>
+
+        {/* Team list */}
+        <div className="mt-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <label className="text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
+              Select Team
             </label>
-            <SearchCombobox
-              options={teamOptions}
-              value={manualTeamId}
-              onChange={setManualTeamId}
-              placeholder="Search team…"
-              searchPlaceholder="Type to filter teams…"
-              emptyMessage="No teams match"
-              clearable
-            />
+            {manualTeamId && (
+              <button
+                type="button"
+                onClick={() => setManualTeamId(null)}
+                className="text-[10px] font-bold uppercase tracking-wider text-sold hover:underline"
+              >
+                Clear selection
+              </button>
+            )}
           </div>
 
-          <div>
-            <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-widest text-[#1B4332]/60">
-              Price (pts)
-            </label>
-            <input
-              type="number"
-              step="0.5"
-              min="0.5"
-              value={manualPrice}
-              onChange={(e) => setManualPrice(e.target.value)}
-              placeholder="e.g. 2.5"
-              className="w-full rounded-lg border border-[#1B4332]/20 bg-white px-3 py-2.5 text-sm text-forest outline-none transition focus:border-[#2D6A4F] focus:ring-2 focus:ring-[#2D6A4F]/20"
-            />
+          <div className="max-h-64 overflow-y-auto rounded-lg border border-[#1B4332]/15 bg-white">
+            {teamRows.length === 0 ? (
+              <p className="px-3 py-4 text-center text-xs text-[#1B4332]/50">
+                No teams configured.
+              </p>
+            ) : (
+              <ul className="divide-y divide-[#1B4332]/8">
+                {teamRows.map(({ team, remaining, isFull, cannotAfford, disabled }) => {
+                  const selected = team.id === manualTeamId;
+                  const isHighest = team.id === highestTeamId;
+                  return (
+                    <li key={team.id}>
+                      <button
+                        type="button"
+                        onClick={() => !disabled && setManualTeamId(team.id)}
+                        disabled={disabled}
+                        className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
+                          disabled
+                            ? "cursor-not-allowed opacity-50"
+                            : selected
+                              ? "bg-mint"
+                              : "hover:bg-[#FAFDF9]"
+                        }`}
+                      >
+                        {/* Radio indicator */}
+                        <span
+                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                            selected
+                              ? "border-success bg-success"
+                              : "border-[#1B4332]/25 bg-white"
+                          }`}
+                        >
+                          {selected && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                          )}
+                        </span>
+
+                        {/* Info */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-bold text-forest">
+                              {team.team_name}
+                            </p>
+                            {isHighest && (
+                              <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-success">
+                                Highest
+                              </span>
+                            )}
+                            {isFull && (
+                              <span className="shrink-0 rounded-full bg-sold/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-sold">
+                                Full
+                              </span>
+                            )}
+                            {cannotAfford && !isFull && (
+                              <span className="shrink-0 rounded-full bg-sold/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-sold">
+                                No pts
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 text-[11px] text-[#1B4332]/55">
+                            {team.points_remaining} pts
+                            {remaining !== null && ` · ${remaining} slot${remaining === 1 ? "" : "s"} left`}
+                            {team.captain_name && ` · ${team.captain_name}`}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -327,10 +406,6 @@ export function BiddingPad({
         >
           Confirm Manual Sell
         </button>
-
-        <p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-[#1B4332]/45">
-          Tip: you can also pick any pending player above via Manual Override
-        </p>
       </div>
     </section>
   );
