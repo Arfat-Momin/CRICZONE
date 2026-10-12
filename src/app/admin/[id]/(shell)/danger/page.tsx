@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
+import { getTournamentHeader } from "@/lib/queries/tournament-header";
 import { DangerZone } from "@/components/admin/DangerZone";
 
 export const dynamic = "force-dynamic";
@@ -12,14 +13,9 @@ export default async function DangerPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: tournament } = await supabase
-    .from("tournaments")
-    .select("id, name")
-    .eq("id", id)
-    .maybeSingle();
-  if (!tournament) notFound();
-
-  const [playersRes, teamsRes] = await Promise.all([
+  // Cached header + counts in parallel
+  const [tournament, playersRes, teamsRes] = await Promise.all([
+    getTournamentHeader(id),
     supabase
       .from("players")
       .select("id", { count: "exact", head: true })
@@ -29,6 +25,8 @@ export default async function DangerPage({ params }: Props) {
       .select("id", { count: "exact", head: true })
       .eq("tournament_id", id),
   ]);
+
+  if (!tournament) notFound();
 
   return (
     <DangerZone

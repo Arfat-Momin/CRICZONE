@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
+import { getTournamentHeader } from "@/lib/queries/tournament-header";
 import { GroupsSection } from "@/components/admin/GroupsSection";
 import { getTournamentGroups } from "@/lib/queries/groups";
 
@@ -13,14 +14,9 @@ export default async function GroupsPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: tournament } = await supabase
-    .from("tournaments")
-    .select("id, grouping_enabled")
-    .eq("id", id)
-    .maybeSingle();
-  if (!tournament) notFound();
-
-  const [groups, playersRes] = await Promise.all([
+  // Cached header + groups + players in parallel
+  const [tournament, groups, playersRes] = await Promise.all([
+    getTournamentHeader(id),
     getTournamentGroups(id),
     supabase
       .from("players")
@@ -29,10 +25,19 @@ export default async function GroupsPage({ params }: Props) {
       .order("full_name", { ascending: true }),
   ]);
 
+  if (!tournament) notFound();
+
   const players = (playersRes.data ?? []).map((p) => ({
     ...p,
     mobile_no: null as string | null,
   }));
+
+  // grouping_enabled is not in the header; fetch just that flag
+  const { data: flag } = await supabase
+    .from("tournaments")
+    .select("grouping_enabled")
+    .eq("id", id)
+    .maybeSingle();
 
   return (
     <div>
@@ -46,7 +51,7 @@ export default async function GroupsPage({ params }: Props) {
       </header>
       <GroupsSection
         tournamentId={tournament.id}
-        groupingEnabled={tournament.grouping_enabled}
+        groupingEnabled={flag?.grouping_enabled === true}
         players={players}
         groups={groups}
       />

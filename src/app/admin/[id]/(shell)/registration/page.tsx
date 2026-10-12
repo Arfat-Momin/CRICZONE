@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
+import { getTournamentHeader } from "@/lib/queries/tournament-header";
 import { FormBuilderSection } from "@/components/admin/forms/FormBuilderSection";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
@@ -13,14 +14,22 @@ export default async function RegistrationPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: tournament } = await supabase
-    .from("tournaments")
-    .select("id, name, form_config")
-    .eq("id", id)
-    .maybeSingle();
+  // Cached header + form_config in parallel
+  const [tournament, formRes] = await Promise.all([
+    getTournamentHeader(id),
+    supabase
+      .from("tournaments")
+      .select("form_config")
+      .eq("id", id)
+      .maybeSingle(),
+  ]);
+
   if (!tournament) notFound();
 
-  const formConfig = normalizeFormConfig(tournament.form_config, tournament.name);
+  const formConfig = normalizeFormConfig(
+    formRes.data?.form_config ?? null,
+    tournament.name,
+  );
 
   return (
     <div>

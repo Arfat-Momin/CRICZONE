@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import { createClient } from "@/lib/supabase/server";
+import { getTournamentHeader } from "@/lib/queries/tournament-header";
 import { AdminTournamentShell } from "@/components/admin/AdminTournamentShell";
 
 export const dynamic = "force-dynamic";
@@ -13,17 +13,20 @@ type Props = {
 export default async function ShellLayout({ children, params }: Props) {
   await requireAdmin();
   const { id } = await params;
-  const supabase = await createClient();
-
-  const { data: tournament } = await supabase
-    .from("tournaments")
-    .select("id, name, slug, status, venue")
-    .eq("id", id)
-    .maybeSingle();
-
+  const tournament = await getTournamentHeader(id);
   if (!tournament) notFound();
 
   return (
-    <AdminTournamentShell tournament={tournament}>{children}</AdminTournamentShell>
+    <AdminTournamentShell
+      tournament={{
+        id: tournament.id,
+        name: tournament.name,
+        slug: tournament.slug,
+        status: tournament.status,
+        venue: tournament.venue,
+      }}
+    >
+      {children}
+    </AdminTournamentShell>
   );
 }

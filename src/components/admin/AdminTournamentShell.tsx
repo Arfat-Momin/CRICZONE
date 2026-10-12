@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useTransition } from "react";
+import { NavProgress } from "./NavProgress";
 
 type ShellTournament = {
   id: string;
@@ -37,6 +39,8 @@ export function AdminTournamentShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const base = `/admin/${tournament.id}`;
 
   const navItems: NavItem[] = [
@@ -54,16 +58,29 @@ export function AdminTournamentShell({
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
+  // Prefetch every shell route ONCE on mount so clicks are instant.
+  useEffect(() => {
+    navItems.forEach((item) => {
+      if (item.href !== pathname) router.prefetch(item.href);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, router]);
+
   const statusCls = STATUS_CLS[tournament.status] ?? STATUS_CLS.draft;
   const publicUrl = `/t/${tournament.slug}`;
 
   return (
     <div className="min-h-screen w-full bg-[#FDFCF0]">
+      {/* Top progress bar shows during every route change */}
+      <NavProgress />
+
+      {/* Header */}
       <header className="sticky top-0 z-30 border-b border-[#1B4332]/10 bg-white/85 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
           <div className="flex items-center justify-between gap-3">
             <Link
               href="/admin/dashboard"
+              prefetch
               className="text-xs font-bold uppercase tracking-wider text-[#2D6A4F] hover:underline"
             >
               ← All Tournaments
@@ -95,7 +112,9 @@ export function AdminTournamentShell({
         </div>
       </header>
 
+      {/* Body */}
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:flex-row md:px-6 md:py-8">
+        {/* Sidebar */}
         <nav className="md:sticky md:top-32 md:w-56 md:shrink-0 md:self-start">
           <ul className="flex flex-row gap-1 overflow-x-auto pb-1 md:flex-col md:gap-1 md:overflow-visible md:pb-0">
             {navItems.map((item) => {
@@ -108,7 +127,11 @@ export function AdminTournamentShell({
               else if (item.accent) colorCls = "text-[#2D6A4F] hover:bg-mint";
               return (
                 <li key={item.href} className="shrink-0">
-                  <Link href={item.href} prefetch={true} className={`${baseCls} ${colorCls}`}>
+                  <Link
+                    href={item.href}
+                    prefetch
+                    className={`${baseCls} ${colorCls}`}
+                  >
                     <span aria-hidden>{item.icon}</span>
                     <span>{item.label}</span>
                   </Link>
@@ -118,7 +141,13 @@ export function AdminTournamentShell({
           </ul>
         </nav>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        {/* Content */}
+        <main
+          className="min-w-0 flex-1 transition-opacity duration-150"
+          style={{ opacity: isPending ? 0.6 : 1 }}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

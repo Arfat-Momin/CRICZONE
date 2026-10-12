@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
+import { getTournamentHeader } from "@/lib/queries/tournament-header";
 import { CreateTeamForm } from "@/components/admin/CreateTeamForm";
 import { DeleteTeamButton } from "@/components/admin/DeleteTeamButton";
 
@@ -13,8 +14,9 @@ export default async function TeamsPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [tournamentRes, teamsRes] = await Promise.all([
-    supabase.from("tournaments").select("id, name").eq("id", id).maybeSingle(),
+  // Cached header (shared with shell layout) + teams in parallel
+  const [tournament, teamsRes] = await Promise.all([
+    getTournamentHeader(id),
     supabase
       .from("teams")
       .select("*")
@@ -22,8 +24,7 @@ export default async function TeamsPage({ params }: Props) {
       .order("team_name", { ascending: true }),
   ]);
 
-  if (!tournamentRes.data) notFound();
-  const tournament = tournamentRes.data;
+  if (!tournament) notFound();
   const safeTeams = teamsRes.data ?? [];
 
   return (

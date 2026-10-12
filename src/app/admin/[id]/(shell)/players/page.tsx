@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
+import { getTournamentHeader } from "@/lib/queries/tournament-header";
 import { AdminPlayerSection } from "@/components/admin/AdminPlayerSection";
 import { TournamentActionsBar } from "@/components/admin/TournamentActionsBar";
 import type { Tables } from "@/types/supabase";
@@ -17,12 +18,9 @@ export default async function PlayersPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [tournamentRes, playersRes] = await Promise.all([
-    supabase
-      .from("tournaments")
-      .select("id, name, slug")
-      .eq("id", id)
-      .maybeSingle(),
+  // Cached header + players in parallel
+  const [tournament, playersRes] = await Promise.all([
+    getTournamentHeader(id),
     supabase
       .from("players")
       .select("*, player_contacts(mobile_no)")
@@ -30,8 +28,7 @@ export default async function PlayersPage({ params }: Props) {
       .order("registered_at", { ascending: false }),
   ]);
 
-  if (!tournamentRes.data) notFound();
-  const tournament = tournamentRes.data;
+  if (!tournament) notFound();
 
   const players = ((playersRes.data ?? []) as unknown as PlayerRow[]).map((p) => {
     const contacts = p.player_contacts;
