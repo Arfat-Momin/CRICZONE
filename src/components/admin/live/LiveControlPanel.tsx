@@ -182,6 +182,23 @@ export function LiveControlPanel({
     });
   }
 
+  async function resumeAuction() {
+    if (
+      !confirm(
+        "Resume this auction?\n\nThe auction will go back to LIVE state. All players, teams, points, sold/unsold lists and settings are preserved. Viewers will see the live auction room again.",
+      )
+    )
+      return;
+    await withBusy(async () => {
+      const r = await updateTournamentStatusAction(tournament.id, "live");
+      if (!r.ok) onMessage("err", r.error);
+      else {
+        setTournament((t) => ({ ...t, status: "live" }));
+        onMessage("ok", "Auction resumed — LIVE again.");
+      }
+    });
+  }
+
   // ============ PUT ON BLOCK ============
   async function runPutOnBlock(playerId: string) {
     const player = players.find((p) => p.id === playerId);
@@ -280,7 +297,6 @@ export function LiveControlPanel({
     (p) => p.status === "pending" || p.status === "unsold",
   );
 
-  // Combobox options for manual override — sorted alphabetically
   const manualOptions: ComboboxOption[] = useMemo(() => {
     return manualPool
       .slice()
@@ -297,10 +313,12 @@ export function LiveControlPanel({
   const isShuffling = !!state?.shuffling_name;
   const blockLocked = !!onBlockPlayer || isShuffling;
 
+  const isEnded = tournament.status === "ended" || tournament.status === "archived";
+
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
       <header className="border-b border-[#1B4332]/10 bg-white/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
           <Link
             href={`/admin/${tournament.id}`}
             className="text-sm font-bold text-[#2D6A4F] hover:underline"
@@ -328,7 +346,8 @@ export function LiveControlPanel({
             <span className="hidden text-xs font-semibold uppercase tracking-wider text-[#1B4332]/60 sm:inline">
               {tournament.status}
             </span>
-            {tournament.status !== "live" && tournament.status !== "ended" && (
+
+            {tournament.status !== "live" && !isEnded && (
               <button
                 type="button"
                 onClick={goLive}
@@ -348,6 +367,16 @@ export function LiveControlPanel({
                 End Auction
               </button>
             )}
+            {isEnded && (
+              <button
+                type="button"
+                onClick={resumeAuction}
+                disabled={busy}
+                className="rounded-lg bg-success px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_0_0_2px_rgba(45,106,79,0.25)] transition hover:brightness-110 disabled:opacity-50"
+              >
+                ▶ Resume Auction
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -356,6 +385,18 @@ export function LiveControlPanel({
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-forest">
           {tournament.name} — Live Control
         </h1>
+
+        {isEnded && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-[#FFA000]/40 bg-[#FFA000]/10 px-4 py-2.5">
+            <span className="rounded-full bg-[#FFA000] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white">
+              Auction {tournament.status}
+            </span>
+            <p className="text-sm font-semibold text-[#B87333]">
+              This auction is not live. Click <strong>Resume Auction</strong> above
+              to reopen it — all players, teams, points and lists are preserved.
+            </p>
+          </div>
+        )}
 
         {msg && (
           <div
@@ -377,7 +418,7 @@ export function LiveControlPanel({
                 <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
                   Current Block
                 </h2>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={onToggleBidMode}
@@ -512,7 +553,6 @@ export function LiveControlPanel({
                 />
               )}
 
-              {/* ============ MANUAL OVERRIDE (search) ============ */}
               <div className="mt-5 rounded-xl border border-[#1B4332]/12 bg-[#FAFDF9] p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
@@ -553,7 +593,7 @@ export function LiveControlPanel({
               </div>
             </section>
 
-            {/* ============ BIDDING PAD + MANUAL SELL ============ */}
+            {/* ============ BIDDING PAD ============ */}
             {onBlockPlayer && (
               <BiddingPad
                 tournamentId={tournament.id}

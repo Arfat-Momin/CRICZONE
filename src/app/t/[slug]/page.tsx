@@ -10,6 +10,7 @@ import { TournamentHero } from "@/components/tournament/TournamentHero";
 import { RosterGrid } from "@/components/tournament/RosterGrid";
 import { TeamGrid } from "@/components/tournament/TeamGrid";
 import { RosterRealtimeBridge } from "@/components/tournament/RosterRealtimeBridge";
+import { TournamentStatusBridge } from "@/components/tournament/TournamentStatusBridge";
 import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
 import { SummaryView } from "@/components/tournament/SummaryView";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
@@ -39,17 +40,20 @@ export default async function TournamentPage({ params }: Props) {
   const { tournament, players, teams, state } = data;
   const config = normalizeFormConfig(tournament.form_config, tournament.name);
 
-  const displayFields = buildDisplayFields(config.cardDisplayFields, config.formFields);
+  const displayFields = buildDisplayFields(
+    config.cardDisplayFields,
+    config.formFields,
+  );
   const blockDisplayFields = buildDisplayFields(
     config.auctionBlockDisplayFields,
     config.formFields,
   );
 
   // ============ LIVE — immersive auction room ============
-  // (AuctionRoom owns its own fixed hero background image.)
   if (tournament.status === "live") {
     return (
       <MaintenanceGate>
+        <TournamentStatusBridge tournamentId={tournament.id} />
         <AuctionRoom
           tournament={tournament}
           initialPlayers={players}
@@ -65,6 +69,7 @@ export default async function TournamentPage({ params }: Props) {
   if (tournament.status === "ended" || tournament.status === "archived") {
     return (
       <MaintenanceGate>
+        <TournamentStatusBridge tournamentId={tournament.id} />
         <NightBackdrop>
           <Navbar />
           <main>
@@ -84,6 +89,7 @@ export default async function TournamentPage({ params }: Props) {
 
   return (
     <MaintenanceGate>
+      <TournamentStatusBridge tournamentId={tournament.id} />
       <NightBackdrop>
         <Navbar />
         <RosterRealtimeBridge tournamentId={tournament.id} />
