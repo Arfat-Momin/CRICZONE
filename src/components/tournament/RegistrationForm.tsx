@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { registerPlayerAction } from "@/lib/actions/register";
+import { checkMobileAvailableAction } from "@/lib/actions/check-mobile";
 import { PhotoDropzone } from "./PhotoDropzone";
 import type { FormConfig, FormFieldDef } from "@/lib/tournament/form-config";
 
@@ -10,6 +11,13 @@ type Props = {
   tournamentName: string;
   config: FormConfig;
 };
+
+type MobileStatus =
+  | { kind: "idle" }
+  | { kind: "checking" }
+  | { kind: "available" }
+  | { kind: "taken" }
+  | { kind: "error"; message: string };
 
 function blankValues(config: FormConfig): Record<string, string> {
   const v: Record<string, string> = {};
@@ -32,6 +40,71 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [mobileStatus, setMobileStatus] = useState<MobileStatus>({
+    kind: "idle",
+  });
+
+  const mobileCheckTimer = useRef<number | null>(null);
+  const mobileCheckSeq = useRef(0);
+
+  // Detect whether the form even has a mobile field
+  const mobileField = config.formFields.find((f) => f.id === "mobileNo");
+  const mobileValue = values["mobileNo"] ?? "";
+
+  // ---- Live mobile uniqueness check (debounced) ----
+  useEffect(() => {
+    if (!mobileField) return;
+
+    // Clear any in-flight timer
+    if (mobileCheckTimer.current !== null) {
+      window.clearTimeout(mobileCheckTimer.current);
+      mobileCheckTimer.current = null;
+    }
+
+    const digits = mobileValue.replace(/\D/g, "");
+
+    if (!digits) {
+      setMobileStatus({ kind: "idle" });
+      return;
+    }
+    if (digits.length < 10) {
+      setMobileStatus({ kind: "idle" });
+      return;
+    }
+
+    // Kick off a debounced check
+    setMobileStatus({ kind: "checking" });
+    const seq = ++mobileCheckSeq.current;
+
+    mobileCheckTimer.current = window.setTimeout(async () => {
+      try {
+        const r = await checkMobileAvailableAction(tournamentId, digits);
+        // Ignore stale responses (user typed again while we were checking)
+        if (seq !== mobileCheckSeq.current) return;
+
+        if (!r.ok) {
+          setMobileStatus({ kind: "error", message: r.error });
+          return;
+        }
+        setMobileStatus(
+          r.available ? { kind: "available" } : { kind: "taken" },
+        );
+      } catch (e) {
+        if (seq !== mobileCheckSeq.current) return;
+        setMobileStatus({
+          kind: "error",
+          message: e instanceof Error ? e.message : "Check failed.",
+        });
+      }
+    }, 400);
+
+    return () => {
+      if (mobileCheckTimer.current !== null) {
+        window.clearTimeout(mobileCheckTimer.current);
+        mobileCheckTimer.current = null;
+      }
+    };
+  }, [mobileValue, mobileField, tournamentId]);
 
   function setValue(id: string, val: string) {
     setValues((prev) => ({ ...prev, [id]: val }));
@@ -43,9 +116,32 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
     });
   }
 
+  // Mobile blocker: submit disabled while checking / taken / error / invalid
+  const mobileBlocksSubmit =
+    !!mobileField &&
+    mobileField.required &&
+    mobileStatus.kind !== "available";
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setGlobalError(null);
+
+    // Hard stop if the mobile is not confirmed available
+    if (mobileBlocksSubmit) {
+      if (mobileStatus.kind === "checking") {
+        setGlobalError("Please wait — still checking your mobile number…");
+      } else if (mobileStatus.kind === "taken") {
+        setGlobalError(
+          "This mobile number is already registered for this tournament.",
+        );
+      } else if (mobileStatus.kind === "error") {
+        setGlobalError(mobileStatus.message);
+      } else {
+        setGlobalError("Please enter a valid 10-digit mobile number.");
+      }
+      return;
+    }
+
     setBusy(true);
     try {
       const result = await registerPlayerAction({
@@ -87,6 +183,8 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
             setPhoto(null);
             setFieldErrors({});
             setGlobalError(null);
+            setMobileStatus({ kind: "idle" });
+            mobileCheckSeq.current++;
           }}
           className="mt-5 rounded-lg border border-mint/25 bg-mint/5 px-4 py-2 text-sm font-semibold text-mint transition hover:bg-mint/15"
         >
@@ -108,6 +206,7 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
           value={values[field.id] ?? ""}
           onChange={(v) => setValue(field.id, v)}
           error={fieldErrors[field.id]}
+          mobileStatus={field.id === "mobileNo" ? mobileStatus : undefined}
         />
       ))}
 
@@ -136,10 +235,16 @@ export function RegistrationForm({ tournamentId, tournamentName, config }: Props
 
       <button
         type="submit"
-        disabled={busy}
+        disabled={busy || mobileBlocksSubmit}
         className="w-full rounded-xl bg-mint px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-forest shadow-[0_14px_50px_-12px_rgba(216,243,220,0.75)] transition hover:-translate-y-0.5 hover:bg-cream disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
-        {busy ? "Submitting…" : "Submit Registration"}
+        {busy
+          ? "Submitting…"
+          : mobileStatus.kind === "checking"
+            ? "Checking mobile…"
+            : mobileBlocksSubmit && mobileStatus.kind === "taken"
+              ? "Mobile already registered"
+              : "Submit Registration"}
       </button>
     </form>
   );
@@ -150,11 +255,13 @@ function FieldRenderer({
   value,
   onChange,
   error,
+  mobileStatus,
 }: {
   field: FormFieldDef;
   value: string;
   onChange: (v: string) => void;
   error?: string;
+  mobileStatus?: MobileStatus;
 }) {
   const inputId = `field-${field.id}`;
   const base =
@@ -247,6 +354,42 @@ function FieldRenderer({
         {field.required && <span className="ml-1 text-sold">*</span>}
       </label>
       {inputEl}
+
+      {/* Live mobile feedback */}
+      {mobileStatus && mobileStatus.kind !== "idle" && (
+        <p
+          className={`mt-1.5 flex items-center gap-1.5 text-xs font-bold ${
+            mobileStatus.kind === "available"
+              ? "text-success"
+              : mobileStatus.kind === "checking"
+                ? "text-mint/70"
+                : "text-sold"
+          }`}
+        >
+          {mobileStatus.kind === "checking" && (
+            <>
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-mint/25 border-t-mint" />
+              Checking availability…
+            </>
+          )}
+          {mobileStatus.kind === "available" && (
+            <>
+              <span aria-hidden>✓</span> Mobile available
+            </>
+          )}
+          {mobileStatus.kind === "taken" && (
+            <>
+              <span aria-hidden>✗</span> This mobile number is already registered for this tournament.
+            </>
+          )}
+          {mobileStatus.kind === "error" && (
+            <>
+              <span aria-hidden>⚠</span> {mobileStatus.message}
+            </>
+          )}
+        </p>
+      )}
+
       {error && <p className="mt-1.5 text-xs font-semibold text-sold">{error}</p>}
     </div>
   );
