@@ -9,6 +9,7 @@ import { TeamsRow } from "./TeamsRow";
 import { PlayerTabs } from "./PlayerTabs";
 import { SoldPopup, UnsoldBanner } from "./SoldPopup";
 import { ProjectionMode } from "./ProjectionMode";
+import type { DisplayField } from "@/lib/tournament/player-field-value";
 
 const HERO_IMAGE = "/images/hero-night-cricket.jpg";
 
@@ -17,6 +18,7 @@ type Props = {
   initialPlayers: Tables<"players">[];
   initialTeams: Tables<"teams">[];
   initialState: Tables<"auction_state"> | null;
+  blockDisplayFields: DisplayField[];
 };
 
 export function AuctionRoom({
@@ -24,6 +26,7 @@ export function AuctionRoom({
   initialPlayers,
   initialTeams,
   initialState,
+  blockDisplayFields,
 }: Props) {
   const {
     state,
@@ -205,6 +208,7 @@ export function AuctionRoom({
             onBlockPlayer={onBlockPlayer}
             currentHighestTeam={currentHighestTeam}
             players={players}
+            blockDisplayFields={blockDisplayFields}
           />
         </div>
       </section>

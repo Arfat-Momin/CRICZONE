@@ -24,8 +24,10 @@ export type FormConfig = {
   title: string;
   description: string;
   formFields: FormFieldDef[];
-  /** Field IDs to display on player cards (roster + auction block). */
+  /** Field IDs shown on the small roster cards + modal. */
   cardDisplayFields: string[];
+  /** Field IDs shown on the big "on the block" card during live auction. */
+  auctionBlockDisplayFields: string[];
 };
 
 export const DEFAULT_FORM_FIELDS: FormFieldDef[] = [
@@ -41,6 +43,13 @@ export const DEFAULT_FORM_FIELDS: FormFieldDef[] = [
 
 export const DEFAULT_CARD_DISPLAY_FIELDS: string[] = [
   "category",
+  "currentTeam",
+  "basePrice",
+];
+
+export const DEFAULT_AUCTION_BLOCK_DISPLAY_FIELDS: string[] = [
+  "category",
+  "jerseyNo",
   "currentTeam",
   "basePrice",
 ];
@@ -67,6 +76,13 @@ const VALID_TYPES: FormFieldType[] = [
   "photo",
 ];
 
+function normalizeStringArray(v: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(v)) return fallback;
+  const arr = v.filter((x): x is string => typeof x === "string" && x.length > 0);
+  // Empty array is a valid choice (show nothing) — preserve it.
+  return arr;
+}
+
 export function normalizeFormConfig(
   raw: Json | null | undefined,
   tournamentName: string,
@@ -77,6 +93,7 @@ export function normalizeFormConfig(
     description: "Fill in your details to enter the auction roster.",
     formFields: DEFAULT_FORM_FIELDS,
     cardDisplayFields: DEFAULT_CARD_DISPLAY_FIELDS,
+    auctionBlockDisplayFields: DEFAULT_AUCTION_BLOCK_DISPLAY_FIELDS,
   };
 
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fallback;
@@ -84,7 +101,9 @@ export function normalizeFormConfig(
 
   const enabled = obj.enabled !== false;
   const title =
-    typeof obj.title === "string" && obj.title.trim() ? obj.title.trim() : fallback.title;
+    typeof obj.title === "string" && obj.title.trim()
+      ? obj.title.trim()
+      : fallback.title;
   const description =
     typeof obj.description === "string" && obj.description.trim()
       ? obj.description.trim()
@@ -120,23 +139,21 @@ export function normalizeFormConfig(
     if (parsed.length > 0) formFields = parsed;
   }
 
-  let cardDisplayFields: string[] = DEFAULT_CARD_DISPLAY_FIELDS;
-  if (Array.isArray(obj.cardDisplayFields)) {
-    const ids = obj.cardDisplayFields.filter(
-      (x): x is string => typeof x === "string" && x.length > 0,
-    );
-    if (ids.length > 0) cardDisplayFields = ids;
-    else cardDisplayFields = [];
-  }
+  const cardDisplayFields = normalizeStringArray(
+    obj.cardDisplayFields,
+    DEFAULT_CARD_DISPLAY_FIELDS,
+  );
+  const auctionBlockDisplayFields = normalizeStringArray(
+    obj.auctionBlockDisplayFields,
+    DEFAULT_AUCTION_BLOCK_DISPLAY_FIELDS,
+  );
 
-  return { enabled, title, description, formFields, cardDisplayFields };
-}
-
-export function humanizeFieldId(id: string): string {
-  return id
-    .replace(/^custom_/, "")
-    .replace(/_[a-z0-9]{6,}$/, "") // strip random suffix
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
+  return {
+    enabled,
+    title,
+    description,
+    formFields,
+    cardDisplayFields,
+    auctionBlockDisplayFields,
+  };
 }

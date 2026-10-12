@@ -212,6 +212,9 @@ export async function updateFormConfigAction(
     const cardFields = Array.isArray(formConfig.cardDisplayFields)
       ? formConfig.cardDisplayFields
       : [];
+    const blockFields = Array.isArray(formConfig.auctionBlockDisplayFields)
+      ? formConfig.auctionBlockDisplayFields
+      : [];
 
     if (fields.length === 0) {
       return { ok: false, error: "Form must have at least one field." };
@@ -223,6 +226,7 @@ export async function updateFormConfigAction(
       description,
       formFields: fields,
       cardDisplayFields: cardFields,
+      auctionBlockDisplayFields: blockFields,
     } as unknown as Json;
 
     const { data: updated, error } = await supabase

@@ -14,6 +14,7 @@ import { AuctionRoom } from "@/components/tournament/auction/AuctionRoom";
 import { SummaryView } from "@/components/tournament/SummaryView";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
+import { buildDisplayFields } from "@/lib/tournament/player-field-value";
 
 export const dynamic = "force-dynamic";
 
@@ -38,14 +39,11 @@ export default async function TournamentPage({ params }: Props) {
   const { tournament, players, teams, state } = data;
   const config = normalizeFormConfig(tournament.form_config, tournament.name);
 
-  const displayFields = config.cardDisplayFields
-    .map((id) => {
-      const field = config.formFields.find((f) => f.id === id);
-      if (field) return { id, label: field.label };
-      if (id === "basePrice") return { id, label: "Base Price" };
-      return null;
-    })
-    .filter((x): x is { id: string; label: string } => x !== null);
+  const displayFields = buildDisplayFields(config.cardDisplayFields, config.formFields);
+  const blockDisplayFields = buildDisplayFields(
+    config.auctionBlockDisplayFields,
+    config.formFields,
+  );
 
   // ============ LIVE — immersive auction room ============
   // (AuctionRoom owns its own fixed hero background image.)
@@ -57,6 +55,7 @@ export default async function TournamentPage({ params }: Props) {
           initialPlayers={players}
           initialTeams={teams}
           initialState={state}
+          blockDisplayFields={blockDisplayFields}
         />
       </MaintenanceGate>
     );

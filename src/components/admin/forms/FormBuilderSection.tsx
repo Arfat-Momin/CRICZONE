@@ -7,8 +7,8 @@ import { FormPreviewModal } from "./FormPreviewModal";
 import {
   DEFAULT_FORM_FIELDS,
   DEFAULT_CARD_DISPLAY_FIELDS,
+  DEFAULT_AUCTION_BLOCK_DISPLAY_FIELDS,
   LOCKED_FIELD_IDS,
-  humanizeFieldId,
   type FormConfig,
   type FormFieldDef,
   type FormFieldType,
@@ -53,11 +53,6 @@ export function FormBuilderSection({
   const [showPreview, setShowPreview] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newType, setNewType] = useState<FormFieldType>("text");
-
-  const customFieldIds = useMemo(
-    () => config.formFields.filter((f) => !LOCKED_FIELD_IDS.has(f.id)).map((f) => f.id),
-    [config.formFields],
-  );
 
   const displayableFields = useMemo(() => {
     const items: { id: string; label: string }[] = [];
@@ -104,7 +99,13 @@ export function FormBuilderSection({
       if (!f || LOCKED_FIELD_IDS.has(f.id)) return c;
       const next = c.formFields.filter((_, i) => i !== index);
       const card = c.cardDisplayFields.filter((id) => id !== f.id);
-      return { ...c, formFields: next, cardDisplayFields: card };
+      const block = c.auctionBlockDisplayFields.filter((id) => id !== f.id);
+      return {
+        ...c,
+        formFields: next,
+        cardDisplayFields: card,
+        auctionBlockDisplayFields: block,
+      };
     });
   }
 
@@ -134,14 +135,28 @@ export function FormBuilderSection({
     });
   }
 
+  function toggleBlockField(id: string, on: boolean) {
+    setConfig((c) => {
+      const set = new Set(c.auctionBlockDisplayFields);
+      if (on) set.add(id);
+      else set.delete(id);
+      return { ...c, auctionBlockDisplayFields: Array.from(set) };
+    });
+  }
+
   function resetToDefaults() {
-    if (!confirm("Reset form to default CRICZONE fields? Custom fields will be removed.")) {
+    if (
+      !confirm(
+        "Reset form to default CRICZONE fields? Custom fields will be removed.",
+      )
+    ) {
       return;
     }
     setConfig((c) => ({
       ...c,
       formFields: DEFAULT_FORM_FIELDS,
       cardDisplayFields: DEFAULT_CARD_DISPLAY_FIELDS,
+      auctionBlockDisplayFields: DEFAULT_AUCTION_BLOCK_DISPLAY_FIELDS,
     }));
   }
 
@@ -166,7 +181,7 @@ export function FormBuilderSection({
   }
 
   return (
-    <section className="mt-12">
+    <section className="mt-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest">
@@ -378,7 +393,6 @@ export function FormBuilderSection({
             })}
           </ul>
 
-          {/* Add new field */}
           <div className="mt-5 rounded-xl border border-dashed border-[#9c27b0]/40 bg-[#FDF6FF]/40 p-3">
             <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-[#7B1FA2]">
               Add Custom Field
@@ -415,14 +429,15 @@ export function FormBuilderSection({
           </div>
         </div>
 
-        {/* RIGHT — card display + save */}
+        {/* RIGHT — display configurations + save */}
         <div className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
+          {/* Roster card display */}
           <div className="rounded-2xl border border-[#1B4332]/10 bg-white p-5 shadow-sm">
             <h3 className="font-[family-name:var(--font-display)] text-lg font-bold text-forest">
-              Card Display
+              🃏 Roster Card Display
             </h3>
             <p className="mt-1 text-xs text-[#1B4332]/60">
-              Tick fields to show on the player roster card and auction block.
+              Fields shown on the small player card in the roster list.
             </p>
 
             <div className="mt-4 space-y-1.5">
@@ -445,17 +460,48 @@ export function FormBuilderSection({
                       className="h-3.5 w-3.5 accent-[#1565C0]"
                     />
                     <span className="font-semibold text-forest">{f.label}</span>
-                    {!LOCKED_FIELD_IDS.has(f.id) && f.id !== "basePrice" && (
-                      <span className="ml-auto text-[9px] font-bold uppercase tracking-wider text-[#7B1FA2]">
-                        Custom
-                      </span>
-                    )}
                   </label>
                 );
               })}
             </div>
           </div>
 
+          {/* Auction block display */}
+          <div className="rounded-2xl border border-mint/30 bg-[#F0FBF4] p-5 shadow-sm">
+            <h3 className="font-[family-name:var(--font-display)] text-lg font-bold text-forest">
+              ⚡ Auction Block Display
+            </h3>
+            <p className="mt-1 text-xs text-[#1B4332]/60">
+              Fields shown on the big on-the-block player card during live auction.
+            </p>
+
+            <div className="mt-4 space-y-1.5">
+              {displayableFields.map((f) => {
+                const checked = config.auctionBlockDisplayFields.includes(f.id);
+                return (
+                  <label
+                    key={f.id}
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition ${
+                      checked
+                        ? "border-success bg-mint"
+                        : "border-[#1B4332]/10 bg-white hover:border-[#2D6A4F]/40"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => toggleBlockField(f.id, e.target.checked)}
+                      disabled={busy}
+                      className="h-3.5 w-3.5 accent-[#2D6A4F]"
+                    />
+                    <span className="font-semibold text-forest">{f.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Save */}
           <div className="rounded-2xl border border-[#1B4332]/10 bg-white p-5 shadow-sm">
             {error && (
               <p className="mb-3 rounded-lg border border-sold/30 bg-sold/10 px-3 py-2 text-xs font-semibold text-sold">
@@ -476,11 +522,6 @@ export function FormBuilderSection({
             >
               {busy ? "Saving…" : "Save Form Settings"}
             </button>
-
-            <p className="mt-3 text-[10px] leading-relaxed text-[#1B4332]/50">
-              Custom fields save into each player&apos;s record. Existing data is never
-              lost — fields removed from the form remain in storage.
-            </p>
           </div>
         </div>
       </div>

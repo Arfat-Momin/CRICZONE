@@ -18,6 +18,8 @@ import { updateTournamentStatusAction } from "@/lib/actions/tournament";
 import { BiddingPad } from "./BiddingPad";
 import { GroupDrawButtons } from "./GroupDrawButtons";
 import { SoldPlayersList } from "./SoldPlayersList";
+import { BlockDisplayFieldsModal } from "./BlockDisplayFieldsModal";
+import { normalizeFormConfig } from "@/lib/tournament/form-config";
 
 type AdminPlayer = Tables<"players"> & { mobile_no: string | null };
 
@@ -50,6 +52,13 @@ export function LiveControlPanel({
     null,
   );
   const [manualPlayerId, setManualPlayerId] = useState("");
+  const [showDisplayModal, setShowDisplayModal] = useState(false);
+
+  // Normalize the current form config for the display fields modal
+  const formConfig = normalizeFormConfig(
+    tournament.form_config,
+    tournament.name,
+  );
 
   const stateRef = useRef(state);
   useEffect(() => {
@@ -530,6 +539,14 @@ export function LiveControlPanel({
           </div>
         </div>
       </div>
+
+      {showDisplayModal && (
+        <BlockDisplayFieldsModal
+          tournamentId={tournament.id}
+          initialConfig={formConfig}
+          onClose={() => setShowDisplayModal(false)}
+        />
+      )}
     </main>
   );
 }

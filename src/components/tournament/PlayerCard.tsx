@@ -2,35 +2,12 @@
 
 import type { Tables } from "@/types/supabase";
 import { ZoomableImage } from "@/components/shared/ZoomableImage";
+import {
+  getPlayerFieldValue,
+  type DisplayField,
+} from "@/lib/tournament/player-field-value";
 
-export type DisplayField = { id: string; label: string };
-
-function getFieldValue(
-  player: Tables<"players">,
-  fieldId: string,
-): string | null {
-  switch (fieldId) {
-    case "category":
-      return player.category ?? null;
-    case "currentTeam":
-      return player.current_team ?? null;
-    case "jerseyNo":
-      return player.jersey_no != null ? `#${player.jersey_no}` : null;
-    case "jerseySize":
-      return player.jersey_size ?? null;
-    case "basePrice":
-      return player.base_price != null ? `${player.base_price} pts` : null;
-    default: {
-      const cf = player.custom_fields;
-      if (cf && typeof cf === "object" && !Array.isArray(cf)) {
-        const v = (cf as Record<string, unknown>)[fieldId];
-        if (v == null) return null;
-        return String(v);
-      }
-      return null;
-    }
-  }
-}
+export type { DisplayField };
 
 export function PlayerCard({
   player,
@@ -45,7 +22,10 @@ export function PlayerCard({
     player.photo_url || "https://placehold.co/200x200/0A1410/D8F3DC?text=%3F";
 
   const pills = displayFields
-    .map((f) => ({ label: f.label, value: getFieldValue(player, f.id) }))
+    .map((f) => ({
+      label: f.label,
+      value: getPlayerFieldValue(player, f.id),
+    }))
     .filter((x): x is { label: string; value: string } => !!x.value);
 
   return (
