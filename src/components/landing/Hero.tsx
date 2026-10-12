@@ -7,12 +7,8 @@ import { motion, useReducedMotion } from "framer-motion";
 /**
  * CRICZONE — Simple Centered Hero
  *
- * Restored original layout. Two targeted changes only:
- *   · Removed text-glow-mint / text-glow-warm classes
- *   · Trust strip tuned for mobile (fits one line, wraps cleanly on tiny screens)
- *
- * Everything else (padding, headline size, CTA side-by-side, scroll cue,
- * entrance animation) is unchanged from before Phase 53.
+ * Adds a soft contact pill below the trust strip so prospective
+ * organizers can reach Arfat without hunting through pages.
  */
 
 const HERO_IMAGE = "/images/hero-night-cricket.jpg";
@@ -124,7 +120,7 @@ export function Hero() {
           </span>
         </motion.div>
 
-        {/* Headline — NO glow */}
+        {/* Headline */}
         <motion.h1
           variants={reduce ? undefined : itemVariants}
           className="mt-7 font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.02] tracking-[-0.02em] text-cream sm:text-6xl lg:text-7xl"
@@ -143,7 +139,7 @@ export function Hero() {
           Run, watch, and celebrate live auctions — from one link.
         </motion.p>
 
-        {/* CTAs — side by side, unchanged */}
+        {/* CTAs */}
         <motion.div
           variants={reduce ? undefined : itemVariants}
           className="mt-10 flex flex-wrap items-center justify-center gap-3"
@@ -166,7 +162,7 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Trust strip — ONLY THIS changed for mobile */}
+        {/* Trust strip */}
         <motion.ul
           variants={reduce ? undefined : itemVariants}
           className="mt-12 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[9px] font-extrabold uppercase tracking-[0.14em] text-cream/55 sm:gap-x-5 sm:text-[10px] sm:tracking-[0.22em]"
@@ -181,9 +177,33 @@ export function Hero() {
             </li>
           ))}
         </motion.ul>
+
+        {/* ⭐ Contact pill */}
+        <motion.div
+          variants={reduce ? undefined : itemVariants}
+          className="mt-10 flex justify-center"
+        >
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 rounded-2xl border border-mint/20 bg-[#050A08]/60 px-4 py-2.5 text-center text-[11px] sm:text-xs">
+            <span className="font-bold uppercase tracking-[0.2em] text-cream/55">
+              Organising an auction?
+            </span>
+            <span className="hidden h-3 w-px bg-cream/15 sm:inline-block" aria-hidden />
+            <span className="font-[family-name:var(--font-display)] font-bold text-cream">
+              Talk to Arfat Momin
+            </span>
+            <span className="hidden h-3 w-px bg-cream/15 sm:inline-block" aria-hidden />
+            <a
+              href="tel:+917709551877"
+              className="inline-flex items-center gap-1.5 font-[family-name:var(--font-numeric)] font-bold tracking-wider text-mint transition hover:text-cream"
+            >
+              <span aria-hidden>📞</span>
+              <span>7709551877</span>
+            </a>
+          </div>
+        </motion.div>
       </motion.div>
 
-      {/* Scroll cue — unchanged */}
+      {/* Scroll cue */}
       <div
         aria-hidden
         className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.3em] text-cream/40 md:flex"
