@@ -42,7 +42,7 @@ export function OnBlockStage({
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
       {/* ============ LEFT — ON THE BLOCK ============ */}
-      <div className="relative min-h-[320px] overflow-hidden rounded-3xl border border-mint/20 bg-[#0A1410]/85 dot-grid shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_45px_-18px_rgba(216,243,220,0.25)]">
+      <div className="relative min-h-[320px] overflow-hidden rounded-3xl border border-mint/35 bg-[#0A1410]/55 dot-grid shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_45px_-18px_rgba(216,243,220,0.35)]">
         {shuffling ? (
           <ShuffleRoll target={shuffling} names={rollPool} reduce={!!reduce} />
         ) : onBlockPlayer ? (
@@ -53,7 +53,7 @@ export function OnBlockStage({
       </div>
 
       {/* ============ RIGHT — CURRENT BID ============ */}
-      <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-mint/25 bg-gradient-to-br from-[#0F231A] via-[#0A1410] to-[#050A08] p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.28)]">
+      <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-mint/40 p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.4)]">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
             Current Bid

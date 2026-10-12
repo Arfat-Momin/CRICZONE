@@ -170,13 +170,13 @@ export function AuctionRoom({
             sizes="100vw"
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-[#050A08]/72" />
+          <div className="absolute inset-0 bg-[#050A08]/55" />
           {/* Warm floodlight at top — matches landing hero */}
           <div
             className="absolute inset-x-0 top-0 h-[45%]"
             style={{
               background:
-                "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,232,184,0.16), transparent 65%)",
+                "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,232,184,0.22), transparent 65%)",
             }}
           />
           {/* Blend into the solid dark green below */}
