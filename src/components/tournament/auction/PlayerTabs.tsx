@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Tables } from "@/types/supabase";
+import { ZoomableImage } from "@/components/shared/ZoomableImage";
 
 type Tab = "pending" | "sold" | "unsold";
 
@@ -31,7 +32,6 @@ export function PlayerTabs({
 
   return (
     <div>
-      {/* Tabs — scrollable on mobile if needed */}
       <div className="-mx-1 overflow-x-auto pb-1">
         <div className="mx-1 inline-flex min-w-full flex-wrap gap-1 rounded-xl border border-mint/15 bg-[#0A1410] p-1 sm:min-w-0">
           <TabBtn
@@ -85,17 +85,17 @@ export function PlayerTabs({
                     className="flex items-center justify-between gap-2 rounded-lg border border-mint/12 bg-[#0A1410] p-2 transition hover:border-mint/35 sm:gap-3 sm:rounded-xl sm:p-3"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-                      {p.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.photo_url}
-                          alt=""
+                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-mint/25 sm:h-10 sm:w-10">
+                        <ZoomableImage
+                          src={
+                            p.photo_url ||
+                            "https://placehold.co/200x200/0A1410/D8F3DC?text=%3F"
+                          }
+                          alt={p.full_name}
                           loading="lazy"
-                          className="h-8 w-8 shrink-0 rounded-full border border-mint/25 object-cover sm:h-10 sm:w-10"
+                          className="h-full w-full object-cover object-top"
                         />
-                      ) : (
-                        <div className="h-8 w-8 shrink-0 rounded-full bg-mint/10 sm:h-10 sm:w-10" />
-                      )}
+                      </div>
                       <div className="min-w-0">
                         <p className="truncate text-xs font-semibold text-cream sm:text-sm">
                           {p.full_name}
@@ -182,6 +182,7 @@ function MiniCard({
 }) {
   const photo =
     player.photo_url || "https://placehold.co/200x200/0A1410/D8F3DC?text=%3F";
+
   return (
     <div
       className={`flex flex-col items-center rounded-lg border p-1.5 text-center transition hover:-translate-y-0.5 sm:rounded-xl sm:p-2 ${
@@ -191,10 +192,10 @@ function MiniCard({
       }`}
     >
       <div className="h-10 w-10 overflow-hidden rounded-full border border-mint/25 sm:h-12 sm:w-12">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {/* Click opens the high-res lightbox */}
+        <ZoomableImage
           src={photo}
-          alt=""
+          alt={player.full_name}
           loading="lazy"
           className="h-full w-full object-cover object-top"
         />

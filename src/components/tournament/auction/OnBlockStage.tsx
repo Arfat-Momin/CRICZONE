@@ -79,7 +79,6 @@ export function OnBlockStage({
           value={state?.current_bid_price ?? 0}
           teamName={currentHighestTeam?.team_name ?? null}
           teamPhoto={currentHighestTeam?.photo_url ?? null}
-          mode={state?.bid_mode ?? "normal"}
         />
 
         <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.24em]">
@@ -103,12 +102,10 @@ function BidNumber({
   value,
   teamName,
   teamPhoto,
-  mode,
 }: {
   value: number;
   teamName: string | null;
   teamPhoto: string | null;
-  mode: "normal" | "star";
 }) {
   const reduce = useReducedMotion();
   const display = value > 0 ? value.toFixed(1).replace(/\.0$/, "") : "—";
@@ -158,11 +155,6 @@ function BidNumber({
           </span>
         )}
       </div>
-      {mode === "star" && (
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.24em] text-mint/55">
-          ★ Star mode active
-        </p>
-      )}
     </motion.div>
   );
 }
@@ -198,7 +190,6 @@ function PlayerBlockCard({
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="flex h-full flex-col items-center gap-5 p-5 text-center sm:p-7 md:flex-row md:items-center md:gap-7 md:p-8 md:text-left"
     >
-      {/* Photo + chip */}
       <div className="relative shrink-0">
         <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint md:absolute md:-left-2 md:-top-2 md:z-10 md:mb-0 md:bg-[#050A08]/95">
           ⚡ On the Block
@@ -214,7 +205,6 @@ function PlayerBlockCard({
         </div>
       </div>
 
-      {/* Info */}
       <div className="min-w-0 w-full flex-1">
         <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-cream text-glow-mint sm:text-3xl md:text-4xl lg:text-5xl">
           {player.full_name}
