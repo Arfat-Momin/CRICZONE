@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteTournamentAction } from "@/lib/actions/tournament";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 export function DeleteTournamentButton({
   tournamentId,
@@ -12,19 +13,33 @@ export function DeleteTournamentButton({
   tournamentName: string;
 }) {
   const router = useRouter();
+  const dialogs = useAppDialogs();
   const [busy, setBusy] = useState(false);
 
   async function onDelete() {
-    const confirmation = prompt(
-      `This will permanently delete "${tournamentName}" along with all its teams and players.\n\nType DELETE (all caps) to confirm:`,
-    );
-    if (confirmation !== "DELETE") return;
+    const typed = await dialogs.prompt({
+      title: "Delete this tournament?",
+      description:
+        "This permanently removes the tournament, all its players, teams, groups, and history.",
+      confirmLabel: "Delete Tournament",
+      tone: "danger",
+      input: {
+        label: `Type the tournament name to confirm`,
+        placeholder: tournamentName,
+        expectedValue: tournamentName,
+      },
+    });
+    if (typed === null) return;
 
     setBusy(true);
     const result = await deleteTournamentAction(tournamentId);
     setBusy(false);
     if (!result.ok) {
-      alert(result.error);
+      await dialogs.alert({
+        title: "Could not delete tournament",
+        description: result.error,
+        tone: "danger",
+      });
       return;
     }
     router.push("/admin/dashboard");

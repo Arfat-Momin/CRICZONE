@@ -23,6 +23,7 @@ import { SearchCombobox, type ComboboxOption } from "./SearchCombobox";
 import { BlockDisplayFieldsModal } from "./BlockDisplayFieldsModal";
 import { StarModeConfigModal } from "./StarModeConfigModal";
 import { normalizeFormConfig } from "@/lib/tournament/form-config";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 type AdminPlayer = Tables<"players"> & { mobile_no: string | null };
 
@@ -61,6 +62,8 @@ export function LiveControlPanel({
     () => normalizeFormConfig(tournament.form_config, tournament.name),
     [tournament.form_config, tournament.name],
   );
+
+  const dialogs = useAppDialogs();
 
   const stateRef = useRef(state);
   useEffect(() => {
@@ -172,7 +175,13 @@ export function LiveControlPanel({
   }
 
   async function endAuction() {
-    if (!confirm("End the auction? No more bids can be placed.")) return;
+    const endOk = await dialogs.confirm({
+      title: "End the auction?",
+      description: "No more bids can be placed once the auction ends.",
+      confirmLabel: "End Auction",
+      tone: "danger",
+    });
+    if (!endOk) return;
     await withBusy(async () => {
       const r = await updateTournamentStatusAction(tournament.id, "ended");
       if (!r.ok) onMessage("err", r.error);
@@ -184,12 +193,14 @@ export function LiveControlPanel({
   }
 
   async function resumeAuction() {
-    if (
-      !confirm(
-        "Resume this auction?\n\nThe auction will go back to LIVE state. All players, teams, points, sold/unsold lists and settings are preserved. Viewers will see the live auction room again.",
-      )
-    )
-      return;
+    const resumeOk = await dialogs.confirm({
+      title: "Resume this auction?",
+      description:
+        "The auction will go back to LIVE state. All players, teams, points, sold/unsold lists and settings are preserved. Viewers will see the live auction room again.",
+      confirmLabel: "Resume Auction",
+      tone: "primary",
+    });
+    if (!resumeOk) return;
     await withBusy(async () => {
       const r = await updateTournamentStatusAction(tournament.id, "live");
       if (!r.ok) onMessage("err", r.error);
@@ -291,13 +302,14 @@ export function LiveControlPanel({
   }
 
   async function onClearBlock() {
-    if (
-      !confirm(
-        "Clear the current block?\n\nAny on-block player will return to Pending and bid history will be cleared.",
-      )
-    ) {
-      return;
-    }
+    const clearOk = await dialogs.confirm({
+      title: "Clear the current block?",
+      description:
+        "Any on-block player will return to Pending and bid history will be cleared.",
+      confirmLabel: "Clear Block",
+      tone: "warning",
+    });
+    if (!clearOk) return;
     await withBusy(async () => {
       const r = await clearOnBlockAction(tournament.id);
       if (!r.ok) onMessage("err", r.error);

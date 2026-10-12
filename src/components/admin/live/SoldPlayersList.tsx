@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Tables } from "@/types/supabase";
 import { browserRevertSale } from "@/lib/hooks/useAuctionActions";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 type Props = {
   tournamentId: string;
@@ -20,6 +21,7 @@ export function SoldPlayersList({
   onMessage,
 }: Props) {
   const [search, setSearch] = useState("");
+  const dialogs = useAppDialogs();
 
   const teamsById = useMemo(() => {
     const m: Record<string, Tables<"teams">> = {};
@@ -52,13 +54,14 @@ export function SoldPlayersList({
   }, [allSold, search, teamsById]);
 
   async function onRevert(playerId: string, playerName: string) {
-    if (
-      !confirm(
-        `Revert the sale of "${playerName}"?\n\nThe team will be refunded and the player will return to Pending.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await dialogs.confirm({
+      title: `Revert sale of "${playerName}"?`,
+      description:
+        "The team will be refunded and the player will return to Pending status.",
+      confirmLabel: "Revert Sale",
+      tone: "warning",
+    });
+    if (!ok) return;
     await onBusy(async () => {
       const r = await browserRevertSale(tournamentId, playerId);
       if (!r.ok) onMessage("err", r.error);

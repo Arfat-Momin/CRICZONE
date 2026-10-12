@@ -9,6 +9,7 @@ import {
   clearTournamentDataAction,
   deleteTournamentAction,
 } from "@/lib/actions/tournament";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 type AdminPlayer = Tables<"players"> & { mobile_no: string | null };
 
@@ -26,6 +27,7 @@ export function DangerZone({
   teams,
 }: Props) {
   const router = useRouter();
+  const dialogs = useAppDialogs();
 
   // ---------- Clear data ----------
   const [confirmClear, setConfirmClear] = useState(false);
@@ -130,22 +132,27 @@ export function DangerZone({
       ? teams.find((t) => t.id === player.sold_to_team_id)?.team_name
       : null;
 
-    const lines = [`Delete "${player.full_name}"?`, ""];
+    const descLines: string[] = [];
     if (player.status === "sold" && teamName && (player.selling_price ?? 0) > 0) {
-      lines.push(
+      descLines.push(
         `⚠️ This player was SOLD to ${teamName} for ${player.selling_price} pts.`,
       );
-      lines.push(`The team will be refunded ${player.selling_price} pts.`);
-      lines.push("");
+      descLines.push(`The team will be refunded ${player.selling_price} pts.`);
     }
     if (player.status === "on_block") {
-      lines.push(`⚠️ This player is currently ON THE BLOCK.`);
-      lines.push(`The current block will be cleared.`);
-      lines.push("");
+      descLines.push(`⚠️ This player is currently ON THE BLOCK.`);
+      descLines.push(`The current block will be cleared.`);
     }
-    lines.push("This cannot be undone.");
+    if (descLines.length > 0) descLines.push("");
+    descLines.push("This cannot be undone.");
 
-    if (!confirm(lines.join("\n"))) return;
+    const ok = await dialogs.confirm({
+      title: `Delete "${player.full_name}"?`,
+      description: descLines.join("\n"),
+      confirmLabel: "Delete Player",
+      tone: "danger",
+    });
+    if (!ok) return;
 
     setDeletingPlayerId(player.id);
     setMsg(null);
@@ -165,19 +172,25 @@ export function DangerZone({
   async function onDeleteTeam(team: Tables<"teams">) {
     const bought = players.filter((p) => p.sold_to_team_id === team.id);
 
-    const lines = [`Delete team "${team.team_name}"?`, ""];
+    const descLines: string[] = [];
     if (bought.length > 0) {
-      lines.push(
+      descLines.push(
         `⚠️ This team has bought ${bought.length} player${bought.length === 1 ? "" : "s"}.`,
       );
-      lines.push(
+      descLines.push(
         `They will return to Pending status (removed from this team).`,
       );
-      lines.push("");
+      descLines.push("");
     }
-    lines.push("This cannot be undone.");
+    descLines.push("This cannot be undone.");
 
-    if (!confirm(lines.join("\n"))) return;
+    const ok = await dialogs.confirm({
+      title: `Delete team "${team.team_name}"?`,
+      description: descLines.join("\n"),
+      confirmLabel: "Delete Team",
+      tone: "danger",
+    });
+    if (!ok) return;
 
     setDeletingTeamId(team.id);
     setMsg(null);

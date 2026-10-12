@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateFormConfigAction } from "@/lib/actions/tournament";
 import { FormPreviewModal } from "./FormPreviewModal";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 import {
   DEFAULT_FORM_FIELDS,
   DEFAULT_CARD_DISPLAY_FIELDS,
@@ -53,6 +54,7 @@ export function FormBuilderSection({
   const [showPreview, setShowPreview] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newType, setNewType] = useState<FormFieldType>("text");
+  const dialogs = useAppDialogs();
 
   const displayableFields = useMemo(() => {
     const items: { id: string; label: string }[] = [];
@@ -144,14 +146,15 @@ export function FormBuilderSection({
     });
   }
 
-  function resetToDefaults() {
-    if (
-      !confirm(
-        "Reset form to default CRICZONE fields? Custom fields will be removed.",
-      )
-    ) {
-      return;
-    }
+  async function resetToDefaults() {
+    const ok = await dialogs.confirm({
+      title: "Reset form to defaults?",
+      description:
+        "Custom fields will be removed and the default CRICZONE fields will be restored.",
+      confirmLabel: "Reset Form",
+      tone: "warning",
+    });
+    if (!ok) return;
     setConfig((c) => ({
       ...c,
       formFields: DEFAULT_FORM_FIELDS,

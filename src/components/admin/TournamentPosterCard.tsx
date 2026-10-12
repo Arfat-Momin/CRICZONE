@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updatePosterAction } from "@/lib/actions/tournament";
 import { PhotoDropzone } from "@/components/tournament/PhotoDropzone";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 type Props = {
   tournamentId: string;
@@ -12,6 +13,7 @@ type Props = {
 
 export function TournamentPosterCard({ tournamentId, currentPosterUrl }: Props) {
   const router = useRouter();
+  const dialogs = useAppDialogs();
   const [poster, setPoster] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,14 @@ export function TournamentPosterCard({ tournamentId, currentPosterUrl }: Props) 
   }
 
   async function onRemove() {
-    if (!confirm("Remove the tournament poster?")) return;
+    const ok = await dialogs.confirm({
+      title: "Remove the tournament poster?",
+      description: "You can upload a new one at any time.",
+      confirmLabel: "Remove Poster",
+      tone: "warning",
+    });
+    if (!ok) return;
+
     setBusy(true);
     setError(null);
     setSuccess(null);

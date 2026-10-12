@@ -3,27 +3,38 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setSiteStateAction, type SiteState } from "@/lib/actions/site";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 export function SiteMaintenanceToggle({ current }: { current: SiteState }) {
   const router = useRouter();
+  const dialogs = useAppDialogs();
   const [value, setValue] = useState<SiteState>(current);
   const [pending, start] = useTransition();
 
   function onChange(next: SiteState) {
     if (next === value) return;
-    if (
-      next === "maintenance" &&
-      !confirm(
-        "Enable maintenance mode?\n\nThe public site will be hidden. Only /admin remains accessible.",
-      )
-    ) {
-      return;
-    }
-    setValue(next);
+
     start(async () => {
+      // Confirm before going offline
+      if (next === "maintenance") {
+        const ok = await dialogs.confirm({
+          title: "Enable maintenance mode?",
+          description:
+            "The public site will be hidden behind a maintenance page. Only /admin remains accessible. Localhost is never affected.",
+          confirmLabel: "Go Offline",
+          tone: "warning",
+        });
+        if (!ok) return;
+      }
+
+      setValue(next);
       const r = await setSiteStateAction(next);
       if (!r.ok) {
-        alert(r.error);
+        await dialogs.alert({
+          title: "Could not update site status",
+          description: r.error,
+          tone: "danger",
+        });
         setValue(current);
         return;
       }
@@ -71,6 +82,10 @@ export function SiteMaintenanceToggle({ current }: { current: SiteState }) {
           Go Offline
         </button>
       </div>
+
+      <p className="mt-3 text-[10px] font-semibold uppercase tracking-wider text-[#1B4332]/45">
+        Localhost is always online · production only
+      </p>
     </div>
   );
 }

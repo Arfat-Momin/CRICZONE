@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Tables } from "@/types/supabase";
 import { createGroupAction, deleteGroupAction } from "@/lib/actions/group";
 import { setGroupingModeAction } from "@/lib/actions/tournament";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 type AdminPlayer = Tables<"players"> & { mobile_no: string | null };
 type Group = Tables<"player_groups"> & { player_ids: string[] };
@@ -25,6 +26,7 @@ export function GroupsSection({
   const router = useRouter();
   const [mode, setMode] = useState(groupingEnabled);
   const [modePending, startModeTransition] = useTransition();
+  const dialogs = useAppDialogs();
 
   const [name, setName] = useState("");
   const [search, setSearch] = useState("");
@@ -103,7 +105,13 @@ export function GroupsSection({
   }
 
   async function onDelete(groupId: string, groupName: string) {
-    if (!confirm(`Remove group "${groupName}"? Players will be unassigned.`)) return;
+    const ok = await dialogs.confirm({
+      title: `Remove group "${groupName}"?`,
+      description: "Any players in this group will be unassigned.",
+      confirmLabel: "Remove Group",
+      tone: "warning",
+    });
+    if (!ok) return;
     setBusy(true);
     try {
       const r = await deleteGroupAction(groupId, tournamentId);
@@ -122,7 +130,7 @@ export function GroupsSection({
     startModeTransition(async () => {
       const r = await setGroupingModeAction(tournamentId, next);
       if (!r.ok) {
-        alert(r.error);
+        await dialogs.alert({ title: "Action failed", description: String(r.error), tone: "danger" });
         setMode(groupingEnabled);
         return;
       }

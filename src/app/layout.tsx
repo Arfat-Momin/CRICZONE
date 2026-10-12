@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display, Oswald } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ConfirmProvider } from "@/components/shared/ConfirmProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -58,7 +59,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="antialiased">
-        {children}
+        <ConfirmProvider>{children}</ConfirmProvider>
         <Toaster position="top-center" richColors />
       </body>
     </html>

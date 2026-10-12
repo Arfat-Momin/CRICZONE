@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteTeamAction } from "@/lib/actions/team";
+import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 
 export function DeleteTeamButton({
   teamId,
@@ -14,14 +15,26 @@ export function DeleteTeamButton({
   teamName: string;
 }) {
   const router = useRouter();
+  const dialogs = useAppDialogs();
   const [busy, setBusy] = useState(false);
 
   async function onDelete() {
-    if (!confirm(`Delete "${teamName}"? This cannot be undone.`)) return;
+    const ok = await dialogs.confirm({
+      title: `Delete "${teamName}"?`,
+      description: "This action cannot be undone.",
+      confirmLabel: "Delete Team",
+      tone: "danger",
+    });
+    if (!ok) return;
+
     setBusy(true);
     const result = await deleteTeamAction(teamId, tournamentId);
     if (!result.ok) {
-      alert(result.error);
+      await dialogs.alert({
+        title: "Could not delete team",
+        description: result.error,
+        tone: "danger",
+      });
     } else {
       router.refresh();
     }
