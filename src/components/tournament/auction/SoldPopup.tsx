@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Tables } from "@/types/supabase";
 
 /* ============================================================
-   SOLD POPUP — stadium broadcast palette
+   SOLD POPUP — forest / mint palette
    ============================================================ */
 
 type SoldProps = {
@@ -29,11 +29,11 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
   if (!mounted) return null;
 
   const playerPhoto =
-    player.photo_url || "https://placehold.co/400x400/131A33/FFC93C?text=%3F";
+    player.photo_url || "https://placehold.co/400x400/0A1410/D8F3DC?text=%3F";
   const teamInitial = (team.team_name[0] ?? "?").toUpperCase();
   const teamPhoto =
     team.photo_url ||
-    `https://placehold.co/200x200/131A33/FFC93C?text=${encodeURIComponent(teamInitial)}`;
+    `https://placehold.co/200x200/0A1410/D8F3DC?text=${encodeURIComponent(teamInitial)}`;
 
   return createPortal(
     <AnimatePresence>
@@ -45,7 +45,7 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
         transition={{ duration: reduce ? 0.15 : 0.28 }}
         className="pointer-events-none fixed inset-0 z-[85] flex items-center justify-center overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a0820]/95 via-[#0d0510]/95 to-[#050208]/95" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a0508]/95 via-[#0f0204]/95 to-[#050102]/95" />
 
         {!reduce && (
           <motion.div
@@ -59,7 +59,7 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
               height: 600,
               borderRadius: "50%",
               background:
-                "radial-gradient(circle, rgba(255,201,60,0.55) 0%, rgba(255,77,109,0.35) 40%, transparent 70%)",
+                "radial-gradient(circle, rgba(216,243,220,0.55) 0%, rgba(193,18,31,0.35) 40%, transparent 70%)",
             }}
           />
         )}
@@ -85,7 +85,7 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
             transition={{ delay: 0.5, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center gap-3"
           >
-            <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-[#FFC93C]/60 shadow-[0_0_55px_-12px_rgba(255,201,60,0.7)] md:h-32 md:w-32">
+            <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-mint/60 shadow-[0_0_55px_-12px_rgba(216,243,220,0.7)] md:h-32 md:w-32">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={playerPhoto}
@@ -93,7 +93,7 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
                 className="h-full w-full object-cover object-top"
               />
             </div>
-            <h2 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-[#F0F4FF] md:text-5xl lg:text-6xl">
+            <h2 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream md:text-5xl lg:text-6xl">
               {player.full_name}
             </h2>
           </motion.div>
@@ -102,9 +102,9 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
             initial={reduce ? false : { y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.75, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="flex items-center gap-3 rounded-full border border-[#FFC93C]/30 bg-[#FFC93C]/5 px-5 py-2.5 backdrop-blur-none md:gap-4 md:px-6 md:py-3"
+            className="flex items-center gap-3 rounded-full border border-mint/30 bg-mint/5 px-5 py-2.5 md:gap-4 md:px-6 md:py-3"
           >
-            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#FFC93C]/60 md:h-12 md:w-12">
+            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-mint/60 md:h-12 md:w-12">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={teamPhoto}
@@ -113,10 +113,10 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
               />
             </div>
             <div className="text-left">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-[#FFC93C]/70 md:text-xs">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint/70 md:text-xs">
                 Bid By
               </p>
-              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[#F0F4FF] md:text-xl">
+              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-cream md:text-xl">
                 {team.team_name}
               </p>
             </div>
@@ -133,10 +133,10 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
             }}
             className="flex items-baseline gap-2"
           >
-            <p className="font-[family-name:var(--font-numeric)] text-7xl font-bold leading-none text-led-gold md:text-9xl">
+            <p className="font-[family-name:var(--font-numeric)] text-7xl font-bold leading-none text-mint text-glow-mint md:text-9xl">
               {price}
             </p>
-            <p className="text-lg font-extrabold uppercase tracking-[0.28em] text-[#FFC93C]/70 md:text-2xl">
+            <p className="text-lg font-extrabold uppercase tracking-[0.28em] text-mint/70 md:text-2xl">
               pts
             </p>
           </motion.div>
@@ -169,7 +169,7 @@ export function UnsoldBanner({ player, onClose }: UnsoldProps) {
   if (!mounted) return null;
 
   const playerPhoto =
-    player.photo_url || "https://placehold.co/400x400/131A33/FFC93C?text=%3F";
+    player.photo_url || "https://placehold.co/400x400/0A1410/D8F3DC?text=%3F";
 
   return createPortal(
     <AnimatePresence>
@@ -251,15 +251,13 @@ function Stamp({
   reduce: boolean;
 }) {
   const sold = variant === "sold";
-  const color = sold ? "#FF4D6D" : "#4a4a4a";
+  const color = sold ? "#C1121F" : "#4a4a4a";
   const borderColor = sold ? "rgba(255,235,205,0.85)" : "rgba(220,220,220,0.55)";
-  const textColor = sold ? "#FFE49A" : "#e8e8e8";
+  const textColor = sold ? "#FFEBCD" : "#e8e8e8";
 
   return (
     <motion.div
-      initial={
-        reduce ? false : { scale: 4.5, opacity: 0, rotate: -30 }
-      }
+      initial={reduce ? false : { scale: 4.5, opacity: 0, rotate: -30 }}
       animate={
         reduce
           ? undefined
@@ -282,7 +280,7 @@ function Stamp({
         style={{
           border: `5px double ${borderColor}`,
           boxShadow: sold
-            ? "0 0 60px rgba(255,77,109,0.45), inset 0 0 30px rgba(0,0,0,0.35)"
+            ? "0 0 60px rgba(193,18,31,0.45), inset 0 0 30px rgba(0,0,0,0.35)"
             : "0 0 45px rgba(200,200,200,0.25), inset 0 0 30px rgba(0,0,0,0.35)",
           background: `radial-gradient(circle at center, ${color}dd 0%, ${color}aa 100%)`,
         }}
@@ -319,7 +317,7 @@ function Stamp({
 
 function Confetti() {
   const pieces = Array.from({ length: 24 });
-  const colors = ["#FF4D6D", "#FFC93C", "#B8FF3C", "#F0F4FF", "#00D9FF"];
+  const colors = ["#C1121F", "#D8F3DC", "#2D6A4F", "#FDFCF0", "#FFA000"];
 
   return (
     <div

@@ -54,7 +54,7 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
   const initial = team?.team_name?.[0]?.toUpperCase() ?? "?";
   const photo =
     team?.photo_url ??
-    `https://placehold.co/160x160/131A33/FFC93C?text=${encodeURIComponent(initial)}`;
+    `https://placehold.co/160x160/0A1410/D8F3DC?text=${encodeURIComponent(initial)}`;
 
   return createPortal(
     <AnimatePresence>
@@ -78,22 +78,21 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
             exit={{ scale: 0.96, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-[#FFC93C]/25 bg-[#131A33] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.75)]"
+            className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-mint/25 bg-[#0A1410] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.75)]"
           >
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#F0F4FF]/10 text-xl font-bold text-[#F0F4FF]/80 transition hover:bg-[#FF4D6D] hover:text-white"
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-cream/10 text-xl font-bold text-cream/80 transition hover:bg-sold hover:text-white"
             >
               ×
             </button>
 
-            {/* Header */}
-            <div className="relative border-b border-[#FFC93C]/15 bg-gradient-to-br from-[#1B2340] to-[#131A33] px-6 py-5">
-              <div className="h-[3px] w-16 rounded-full bg-gradient-to-r from-[#FFC93C] to-[#FF4D6D]" />
+            <div className="relative border-b border-mint/15 bg-gradient-to-br from-[#0F231A] to-[#0A1410] px-6 py-5">
+              <div className="h-[3px] w-16 rounded-full bg-gradient-to-r from-success to-mint" />
               <div className="mt-4 flex items-center gap-4">
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-[#FFC93C]/45 bg-[#0B1020] shadow-[0_0_30px_-10px_rgba(255,201,60,0.55)]">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 border-mint/45 bg-[#050A08] shadow-[0_0_30px_-10px_rgba(216,243,220,0.55)]">
                   <ZoomableImage
                     src={photo}
                     alt={team.team_name}
@@ -102,14 +101,14 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                   />
                 </div>
                 <div className="min-w-0 flex-1 pr-8">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-[#FFC93C]">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint">
                     Squad
                   </p>
-                  <h2 className="mt-0.5 truncate font-[family-name:var(--font-display)] text-2xl font-bold text-[#F0F4FF]">
+                  <h2 className="mt-0.5 truncate font-[family-name:var(--font-display)] text-2xl font-bold text-cream">
                     {team.team_name}
                   </h2>
                   {team.captain_name && (
-                    <p className="mt-0.5 truncate text-sm text-[#F0F4FF]/55">
+                    <p className="mt-0.5 truncate text-sm text-cream/55">
                       Captain: {team.captain_name}
                     </p>
                   )}
@@ -117,11 +116,7 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-2">
-                <Stat
-                  label="Points Left"
-                  value={`${team.points_remaining}`}
-                  tone="gold"
-                />
+                <Stat label="Points Left" value={`${team.points_remaining}`} tone="mint" />
                 <Stat
                   label="Slots"
                   value={
@@ -129,29 +124,28 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                       ? `${slotsUsed}/${team.max_players}`
                       : `${slotsUsed}`
                   }
-                  tone="cyan"
+                  tone="cream"
                 />
-                <Stat label="Spent" value={`${totalSpent}`} tone="coral" />
+                <Stat label="Spent" value={`${totalSpent}`} tone="sold" />
               </div>
             </div>
 
-            {/* Squad list */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {squad.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#FFC93C]/20 bg-[#0B1020] p-8 text-center">
+                <div className="rounded-2xl border border-dashed border-mint/20 bg-[#050A08] p-8 text-center">
                   <p className="text-3xl" aria-hidden>
                     🏏
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-[#F0F4FF]/70">
+                  <p className="mt-2 text-sm font-semibold text-cream/70">
                     No players purchased yet
                   </p>
-                  <p className="mt-1 text-xs text-[#F0F4FF]/45">
+                  <p className="mt-1 text-xs text-cream/45">
                     Squad will appear here as bids are won.
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-[0.24em] text-[#F0F4FF]/45">
+                  <div className="mb-3 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-[0.24em] text-cream/45">
                     <span>
                       {squad.length} Player{squad.length === 1 ? "" : "s"}
                     </span>
@@ -162,17 +156,17 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                     {squad.map((p, idx) => {
                       const pPhoto =
                         p.photo_url ??
-                        "https://placehold.co/120x120/131A33/FFC93C?text=%3F";
+                        "https://placehold.co/120x120/0A1410/D8F3DC?text=%3F";
                       return (
                         <li
                           key={p.id}
-                          className="flex items-center gap-3 rounded-2xl border border-[#FFC93C]/12 bg-[#0B1020] p-3 transition hover:border-[#FFC93C]/30"
+                          className="flex items-center gap-3 rounded-2xl border border-mint/12 bg-[#050A08] p-3 transition hover:border-mint/35"
                         >
-                          <span className="w-6 shrink-0 text-center font-[family-name:var(--font-numeric)] text-xs font-bold text-[#FFC93C]/60">
+                          <span className="w-6 shrink-0 text-center font-[family-name:var(--font-numeric)] text-xs font-bold text-mint/60">
                             {String(idx + 1).padStart(2, "0")}
                           </span>
 
-                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-[#FFC93C]/35">
+                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 border-mint/35">
                             <ZoomableImage
                               src={pPhoto}
                               alt={p.full_name}
@@ -182,10 +176,10 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-bold text-[#F0F4FF]">
+                            <p className="truncate text-sm font-bold text-cream">
                               {p.full_name}
                             </p>
-                            <p className="truncate text-[11px] text-[#F0F4FF]/50">
+                            <p className="truncate text-[11px] text-cream/50">
                               {[p.category, p.jersey_no ? `#${p.jersey_no}` : null]
                                 .filter(Boolean)
                                 .join(" · ") || "—"}
@@ -193,10 +187,10 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                           </div>
 
                           <div className="shrink-0 text-right">
-                            <p className="font-[family-name:var(--font-numeric)] text-lg font-bold leading-none text-led-gold">
+                            <p className="font-[family-name:var(--font-numeric)] text-lg font-bold leading-none text-mint text-glow-mint">
                               {p.selling_price ?? 0}
                             </p>
-                            <p className="text-[9px] font-extrabold uppercase tracking-wider text-[#F0F4FF]/40">
+                            <p className="text-[9px] font-extrabold uppercase tracking-wider text-cream/40">
                               pts
                             </p>
                           </div>
@@ -206,7 +200,7 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                   </ul>
 
                   {slotsRemaining !== null && slotsRemaining === 0 && (
-                    <p className="mt-4 rounded-lg border border-[#FF4D6D]/30 bg-[#FF4D6D]/10 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-widest text-[#FF4D6D]">
+                    <p className="mt-4 rounded-lg border border-sold/30 bg-sold/10 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-widest text-sold">
                       Squad Full
                     </p>
                   )}
@@ -228,17 +222,17 @@ function Stat({
 }: {
   label: string;
   value: string;
-  tone: "gold" | "cyan" | "coral";
+  tone: "mint" | "cream" | "sold";
 }) {
   const color =
-    tone === "gold"
-      ? "text-[#FFC93C]"
-      : tone === "cyan"
-        ? "text-[#00D9FF]"
-        : "text-[#FF4D6D]";
+    tone === "mint"
+      ? "text-mint"
+      : tone === "sold"
+        ? "text-sold"
+        : "text-cream";
   return (
-    <div className="rounded-xl border border-[#FFC93C]/12 bg-[#0B1020] px-2 py-2 text-center">
-      <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#F0F4FF]/45">
+    <div className="rounded-xl border border-mint/12 bg-[#050A08] px-2 py-2 text-center">
+      <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-cream/45">
         {label}
       </p>
       <p

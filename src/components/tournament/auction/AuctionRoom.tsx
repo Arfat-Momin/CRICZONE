@@ -89,117 +89,145 @@ export function AuctionRoom({
   }, [players, onBlockPlayer]);
 
   return (
-    <>
-      {/* ============ FIXED HERO BACKGROUND ============ */}
-      <div aria-hidden className="fixed inset-0 z-0 bg-[#0B1020]">
-        <Image
-          src={HERO_IMAGE}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        {/* Single readability overlay — much lighter than before */}
-        <div className="absolute inset-0 bg-[#0B1020]/70" />
-        {/* Stronger at bottom for section legibility */}
-        <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0B1020] via-[#0B1020]/70 to-transparent" />
-        {/* Warm floodlight bloom at top (matches landing hero) */}
-        <div
-          className="absolute inset-x-0 top-0 h-[45%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.18), transparent 65%)",
-          }}
-        />
-      </div>
-
-      {/* ============ CONTENT ============ */}
-      <div className="relative z-10 min-h-screen w-full text-[#F0F4FF]">
-        <header className="sticky top-0 z-40 bg-[#0B1020]/75">
-          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-4 md:px-6">
-            <div className="flex min-w-0 items-center gap-3">
-              {tournament.poster_url && (
-                <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[#FFC93C]/30">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={tournament.poster_url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="chip-live inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.22em]">
-                  <span className="cz-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-white" />
-                  Live
-                </span>
-                <h1 className="min-w-0 truncate font-[family-name:var(--font-display)] text-base font-bold text-[#F0F4FF] md:text-lg">
-                  {tournament.name}
-                </h1>
+    <div className="min-h-screen w-full bg-[#050A08] text-cream">
+      {/* ============================================================
+          STICKY HEADER — dark green, mint accent line
+          ============================================================ */}
+      <header className="sticky top-0 z-40 border-b border-mint/10 bg-[#050A08]/95">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-4 md:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            {tournament.poster_url && (
+              <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-mint/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tournament.poster_url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               </div>
-            </div>
-
-            <div className="hidden flex-1 justify-center md:flex">
-              <span className="chip-gold inline-flex items-center gap-2 rounded-full px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em]">
-                LOT {String(stats.lotNumber).padStart(2, "0")}
-                <span className="text-[#FFC93C]/40">/</span>
-                {String(stats.total).padStart(2, "0")}
+            )}
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sold px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.22em] text-white shadow-[0_0_20px_-6px_rgba(193,18,31,0.75)]">
+                <span className="cz-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-white" />
+                Live
               </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setProjectionOpen(true)}
-              title="Presentation mode (P)"
-              aria-label="Open presentation mode"
-              className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#FFC93C]/25 bg-[#0B1020]/60 text-base text-[#FFC93C]/80 transition hover:bg-[#FFC93C] hover:text-[#0B1020]"
-            >
-              <span aria-hidden>⛶</span>
-            </button>
-          </div>
-
-          <div className="h-[2px] w-full bg-gradient-to-r from-[#FFC93C] via-[#FF4D6D] to-[#00D9FF]" />
-
-          <div className="border-b border-[#FFC93C]/10 bg-[#0B1020]/55 px-4 py-1.5 md:px-6">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F0F4FF]/45">
-              <span className="truncate">
-                {tournament.venue ? `📍 ${tournament.venue}` : "🏏 CRICZONE · LIVE"}
-              </span>
-              <span className="hidden shrink-0 md:inline">
-                <span className="text-[#00D9FF]">{stats.pending}</span> Upcoming
-                <span className="mx-2 text-[#F0F4FF]/20">·</span>
-                <span className="text-[#B8FF3C]">{stats.sold}</span> Sold
-                <span className="mx-2 text-[#F0F4FF]/20">·</span>
-                <span className="text-[#FF4D6D]">{stats.unsold}</span> Unsold
-              </span>
+              <h1 className="min-w-0 truncate font-[family-name:var(--font-display)] text-base font-bold text-cream md:text-lg">
+                {tournament.name}
+              </h1>
             </div>
           </div>
-        </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
+          <div className="hidden flex-1 justify-center md:flex">
+            <span className="inline-flex items-center gap-2 rounded-full border border-mint/25 bg-mint/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-mint">
+              LOT {String(stats.lotNumber).padStart(2, "0")}
+              <span className="text-mint/40">/</span>
+              {String(stats.total).padStart(2, "0")}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setProjectionOpen(true)}
+            title="Presentation mode (P)"
+            aria-label="Open presentation mode"
+            className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-mint/25 bg-[#0A1410] text-base text-mint/85 transition hover:bg-mint hover:text-forest"
+          >
+            <span aria-hidden>⛶</span>
+          </button>
+        </div>
+
+        {/* Broadcast gradient bar — mint glow */}
+        <div className="h-[2px] w-full bg-gradient-to-r from-[#1B4332] via-[#D8F3DC] to-[#1B4332]" />
+
+        {/* Info strip */}
+        <div className="border-b border-mint/10 bg-[#050A08] px-4 py-1.5 md:px-6">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 text-[10px] font-extrabold uppercase tracking-[0.22em] text-cream/45">
+            <span className="truncate">
+              {tournament.venue ? `📍 ${tournament.venue}` : "🏏 CRICZONE · LIVE"}
+            </span>
+            <span className="hidden shrink-0 md:inline">
+              <span className="text-mint">{stats.pending}</span> Upcoming
+              <span className="mx-2 text-cream/20">·</span>
+              <span className="text-success">{stats.sold}</span> Sold
+              <span className="mx-2 text-cream/20">·</span>
+              <span className="text-[#FFA000]">{stats.unsold}</span> Unsold
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* ============================================================
+          HERO SECTION — On Block + Current Bid (stadium image bg)
+          ============================================================ */}
+      <section className="relative overflow-hidden">
+        {/* Image + overlays */}
+        <div aria-hidden className="absolute inset-0 z-0">
+          <Image
+            src={HERO_IMAGE}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-[#050A08]/72" />
+          {/* Warm floodlight at top — matches landing hero */}
+          <div
+            className="absolute inset-x-0 top-0 h-[45%]"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,232,184,0.16), transparent 65%)",
+            }}
+          />
+          {/* Blend into the solid dark green below */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#050A08] to-transparent" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14">
+          {/* Kicker above the on-block stage */}
+          <div className="mb-6 flex items-center gap-3 md:mb-8">
+            <span className="cz-pulse-dot inline-block h-2 w-2 rounded-full bg-sold" />
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint/85">
+              Now on the floor
+            </p>
+          </div>
+
           <OnBlockStage
             state={state}
             onBlockPlayer={onBlockPlayer}
             currentHighestTeam={currentHighestTeam}
             players={players}
           />
+        </div>
+      </section>
 
-          <section className="mt-10">
-            <SectionHeader kicker="Franchises" title="Teams" accent="gold" />
-            <TeamsRow teams={teams} players={players} />
-          </section>
+      {/* ============================================================
+          BELOW-FOLD — solid dark green theme
+          ============================================================ */}
+      <section className="relative bg-[#050A08]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[200px]"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(27,67,50,0.35), transparent 70%)",
+          }}
+        />
 
-          <section className="mt-12">
-            <SectionHeader kicker="Player Pool" title="Roster" accent="coral" />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
+          <SectionHeader kicker="Franchises" title="Teams" />
+          <TeamsRow teams={teams} players={players} />
+
+          <div className="mt-14">
+            <SectionHeader kicker="Player Pool" title="Roster" />
             <PlayerTabs
               players={players}
               teams={teams}
               onBlockPlayerId={state?.current_player_id ?? null}
             />
-          </section>
-        </main>
-      </div>
+          </div>
+        </div>
+      </section>
 
       {soldEvent && (
         <SoldPopup
@@ -221,37 +249,22 @@ export function AuctionRoom({
         currentHighestTeam={currentHighestTeam}
         tournamentName={tournament.name}
       />
-    </>
+    </div>
   );
 }
 
-function SectionHeader({
-  kicker,
-  title,
-  accent,
-}: {
-  kicker: string;
-  title: string;
-  accent: "gold" | "coral";
-}) {
-  const kickerCls = accent === "coral" ? "text-[#FF4D6D]" : "text-[#FFC93C]";
-  const barCls =
-    accent === "coral"
-      ? "from-[#FF4D6D] to-transparent"
-      : "from-[#FFC93C] to-transparent";
+function SectionHeader({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div className="mb-5 flex items-end justify-between gap-4">
       <div>
-        <p
-          className={`text-[10px] font-extrabold uppercase tracking-[0.32em] ${kickerCls}`}
-        >
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
           {kicker}
         </p>
-        <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-[#F0F4FF] md:text-3xl">
+        <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-cream md:text-3xl">
           {title}
         </h2>
       </div>
-      <div className={`h-[3px] w-24 bg-gradient-to-r md:w-32 ${barCls}`} />
+      <div className="h-[3px] w-24 rounded-full bg-gradient-to-r from-mint via-success to-transparent md:w-32" />
     </div>
   );
 }

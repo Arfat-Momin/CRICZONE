@@ -42,7 +42,7 @@ export function OnBlockStage({
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
       {/* ============ LEFT — ON THE BLOCK ============ */}
-      <div className="relative min-h-[320px] overflow-hidden rounded-3xl card-navy-elevated dot-grid">
+      <div className="relative min-h-[320px] overflow-hidden rounded-3xl border border-mint/20 bg-[#0A1410]/85 dot-grid shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_45px_-18px_rgba(216,243,220,0.25)]">
         {shuffling ? (
           <ShuffleRoll target={shuffling} names={rollPool} reduce={!!reduce} />
         ) : onBlockPlayer ? (
@@ -53,23 +53,12 @@ export function OnBlockStage({
       </div>
 
       {/* ============ RIGHT — CURRENT BID ============ */}
-      <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#FFC93C]/25 bg-gradient-to-br from-[#1B2340] via-[#131A33] to-[#0B1020] p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(255,201,60,0.25)]">
-        {/* Corner LED dots */}
-        <div className="pointer-events-none absolute right-4 top-4 flex gap-1">
-          {[0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className="h-1 w-1 rounded-full bg-[#FFC93C]/40"
-              style={{ opacity: 0.25 + i * 0.2 }}
-            />
-          ))}
-        </div>
-
+      <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-mint/25 bg-gradient-to-br from-[#0F231A] via-[#0A1410] to-[#050A08] p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.75),0_0_50px_-20px_rgba(216,243,220,0.28)]">
         <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-[#FFC93C]">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-mint">
             Current Bid
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-[#F0F4FF]/35">
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-cream/35">
             Live · Instant
           </p>
         </div>
@@ -82,12 +71,12 @@ export function OnBlockStage({
         />
 
         <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.24em]">
-          <span className="text-[#F0F4FF]/35">Bid mode</span>
+          <span className="text-cream/35">Bid mode</span>
           <span
             className={
               state?.bid_mode === "star"
-                ? "chip-gold rounded-full px-2 py-0.5"
-                : "rounded-full border border-[#F0F4FF]/20 px-2 py-0.5 text-[#F0F4FF]/60"
+                ? "rounded-full border border-mint/35 bg-mint/10 px-2 py-0.5 text-mint"
+                : "rounded-full border border-cream/20 px-2 py-0.5 text-cream/60"
             }
           >
             {state?.bid_mode === "star" ? "★ Star ×1000" : "Normal"}
@@ -98,9 +87,6 @@ export function OnBlockStage({
   );
 }
 
-/* ============================================================
-   BID NUMBER (LED style)
-   ============================================================ */
 function BidNumber({
   value,
   teamName,
@@ -125,10 +111,10 @@ function BidNumber({
       className="my-4 text-center"
     >
       <div className="flex items-baseline justify-center gap-2">
-        <span className="font-[family-name:var(--font-numeric)] text-[5.5rem] font-bold leading-none text-led-gold md:text-[7rem]">
+        <span className="font-[family-name:var(--font-numeric)] text-[5.5rem] font-bold leading-none text-mint text-glow-mint md:text-[7rem]">
           {display}
         </span>
-        <span className="text-sm font-extrabold uppercase tracking-[0.28em] text-[#FFC93C]/60 md:text-base">
+        <span className="text-sm font-extrabold uppercase tracking-[0.28em] text-mint/65 md:text-base">
           pts
         </span>
       </div>
@@ -136,7 +122,7 @@ function BidNumber({
       <div className="mt-5 flex items-center justify-center gap-3">
         {teamName ? (
           <>
-            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#FFC93C]/45 bg-[#0B1020]">
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-mint/45 bg-[#050A08]">
               {teamPhoto ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -145,23 +131,23 @@ function BidNumber({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[#FFC93C]">
+                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-mint">
                   {initial}
                 </div>
               )}
             </div>
-            <span className="max-w-[16rem] truncate font-[family-name:var(--font-display)] text-xl font-bold text-[#F0F4FF] md:text-2xl">
+            <span className="max-w-[16rem] truncate font-[family-name:var(--font-display)] text-xl font-bold text-cream md:text-2xl">
               {teamName}
             </span>
           </>
         ) : (
-          <span className="rounded-full border border-[#F0F4FF]/15 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.28em] text-[#F0F4FF]/45">
+          <span className="rounded-full border border-cream/15 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.28em] text-cream/45">
             No bids yet
           </span>
         )}
       </div>
       {mode === "star" && (
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#FFC93C]/55">
+        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.24em] text-mint/55">
           Star mode · increments of 1000
         </p>
       )}
@@ -169,12 +155,9 @@ function BidNumber({
   );
 }
 
-/* ============================================================
-   PLAYER BLOCK CARD
-   ============================================================ */
 function PlayerBlockCard({ player }: { player: Tables<"players"> }) {
   const photo =
-    player.photo_url || "https://placehold.co/400x400/131A33/FFC93C?text=%3F";
+    player.photo_url || "https://placehold.co/400x400/0A1410/D8F3DC?text=%3F";
 
   return (
     <motion.div
@@ -183,13 +166,11 @@ function PlayerBlockCard({ player }: { player: Tables<"players"> }) {
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="relative flex h-full flex-col gap-5 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8"
     >
-      {/* LOT chip */}
-      <span className="chip-gold absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.24em] sm:left-7 sm:top-7">
+      <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint sm:left-7 sm:top-7">
         ⚡ On the Block
       </span>
 
-      {/* Photo */}
-      <div className="mx-auto h-40 w-40 shrink-0 overflow-hidden rounded-2xl border-2 border-[#FFC93C]/45 shadow-[0_0_45px_-12px_rgba(255,201,60,0.55)] sm:mx-0 sm:h-48 sm:w-48 lg:h-56 lg:w-56">
+      <div className="mx-auto h-40 w-40 shrink-0 overflow-hidden rounded-2xl border-2 border-mint/45 shadow-[0_0_45px_-12px_rgba(216,243,220,0.55)] sm:mx-0 sm:h-48 sm:w-48 lg:h-56 lg:w-56">
         <ZoomableImage
           src={photo}
           alt={player.full_name}
@@ -198,18 +179,17 @@ function PlayerBlockCard({ player }: { player: Tables<"players"> }) {
         />
       </div>
 
-      {/* Meta */}
       <div className="min-w-0 flex-1 text-center sm:pt-8 sm:text-left">
-        <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-[#F0F4FF] sm:text-4xl lg:text-5xl">
+        <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-cream text-glow-mint sm:text-4xl lg:text-5xl">
           {player.full_name}
         </h2>
 
         <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
           {player.category && (
-            <Pill label="Role" value={player.category} tone="gold" />
+            <Pill label="Role" value={player.category} tone="mint" />
           )}
           {player.jersey_no != null && (
-            <Pill label="Jersey" value={`#${player.jersey_no}`} tone="cyan" />
+            <Pill label="Jersey" value={`#${player.jersey_no}`} />
           )}
           {player.jersey_size && (
             <Pill label="Size" value={player.jersey_size} />
@@ -220,9 +200,9 @@ function PlayerBlockCard({ player }: { player: Tables<"players"> }) {
         </div>
 
         {player.base_price != null && (
-          <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.28em] text-[#F0F4FF]/40">
+          <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.28em] text-cream/40">
             Base price ·{" "}
-            <span className="text-[#FFC93C]/85">{player.base_price} pts</span>
+            <span className="text-mint/85">{player.base_price} pts</span>
           </p>
         )}
       </div>
@@ -237,19 +217,17 @@ function Pill({
 }: {
   label: string;
   value: string;
-  tone?: "gold" | "cyan";
+  tone?: "mint";
 }) {
   const toneCls =
-    tone === "gold"
-      ? "border-[#FFC93C]/30 text-[#FFC93C]"
-      : tone === "cyan"
-        ? "border-[#00D9FF]/30 text-[#00D9FF]"
-        : "border-[#F0F4FF]/15 text-[#F0F4FF]/85";
+    tone === "mint"
+      ? "border-mint/35 text-mint"
+      : "border-cream/15 text-cream/85";
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-lg border bg-[#0B1020] px-2.5 py-1 text-xs ${toneCls}`}
+      className={`inline-flex items-center gap-1 rounded-lg border bg-[#050A08] px-2.5 py-1 text-xs ${toneCls}`}
     >
-      <span className="font-bold uppercase tracking-[0.18em] text-[#F0F4FF]/45">
+      <span className="font-bold uppercase tracking-[0.18em] text-cream/45">
         {label}
       </span>
       <span className="font-semibold">{value}</span>
@@ -257,9 +235,6 @@ function Pill({
   );
 }
 
-/* ============================================================
-   SHUFFLE ROLL
-   ============================================================ */
 function ShuffleRoll({
   target,
   names,
@@ -299,7 +274,7 @@ function ShuffleRoll({
 
   return (
     <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-      <span className="chip-live rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em]">
+      <span className="rounded-full bg-sold px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-white shadow-[0_0_20px_-6px_rgba(193,18,31,0.75)]">
         Selecting player…
       </span>
       <motion.p
@@ -307,7 +282,7 @@ function ShuffleRoll({
         initial={{ opacity: 0.4, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.15 }}
-        className="mt-5 font-[family-name:var(--font-display)] text-3xl font-bold text-[#F0F4FF] sm:text-5xl"
+        className="mt-5 font-[family-name:var(--font-display)] text-3xl font-bold text-cream text-glow-mint sm:text-5xl"
       >
         {display}
       </motion.p>
@@ -317,7 +292,7 @@ function ShuffleRoll({
             key={i}
             animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
-            className="h-2 w-2 rounded-full bg-[#FF4D6D]"
+            className="h-2 w-2 rounded-full bg-sold"
           />
         ))}
       </div>
@@ -325,9 +300,6 @@ function ShuffleRoll({
   );
 }
 
-/* ============================================================
-   EMPTY STAGE
-   ============================================================ */
 function EmptyStage({ reduce }: { reduce: boolean }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
@@ -338,10 +310,10 @@ function EmptyStage({ reduce }: { reduce: boolean }) {
       >
         🏏
       </motion.div>
-      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-[#F0F4FF]">
+      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold text-cream">
         Awaiting next player
       </p>
-      <p className="text-sm text-[#F0F4FF]/55">
+      <p className="text-sm text-cream/55">
         The auctioneer will draw the next name shortly.
       </p>
     </div>
