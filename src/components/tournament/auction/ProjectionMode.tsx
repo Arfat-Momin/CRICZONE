@@ -1,10 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Tables } from "@/types/supabase";
 import { BorderTrail } from "@/components/ui/border-trail";
+
+const HERO_IMAGE = "/images/hero-night-cricket.jpg";
 
 type Props = {
   open: boolean;
@@ -21,7 +24,7 @@ const TRAIL_GLOW: React.CSSProperties = {
 };
 
 const BOX_BASE =
-  "relative overflow-hidden rounded-3xl border border-[#FFC93C]/25 bg-[#131A33]/85 shadow-2xl";
+  "relative overflow-hidden rounded-3xl border border-[#FFC93C]/25 bg-[#131A33]/80 shadow-2xl";
 
 export function ProjectionMode({
   open,
@@ -82,164 +85,182 @@ export function ProjectionMode({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[75] flex flex-col bg-gradient-to-br from-[#0B1020] via-[#131A33] to-[#050A08] text-[#F0F4FF]"
+          className="fixed inset-0 z-[75] text-[#F0F4FF]"
           role="dialog"
           aria-modal="true"
           aria-label="Live projection board"
         >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(circle at 20% 30%, rgba(255,201,60,0.14), transparent 45%), radial-gradient(circle at 80% 70%, rgba(255,77,109,0.16), transparent 50%)",
-            }}
-          />
-
-          {/* Top bar */}
-          <div className="relative z-10 flex items-center justify-between px-6 py-4 md:px-10 md:py-6">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="chip-live inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.24em] md:text-xs">
-                <span className="cz-pulse-dot inline-block h-2 w-2 rounded-full bg-white" />
-                Live
-              </span>
-              <span className="truncate font-[family-name:var(--font-display)] text-sm font-bold text-[#F0F4FF]/70 md:text-base">
-                {tournamentName}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="shrink-0 rounded-lg border border-[#F0F4FF]/20 bg-[#F0F4FF]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#F0F4FF]/80 transition hover:bg-[#F0F4FF]/20 md:text-xs"
-              aria-label="Exit projection"
-            >
-              Exit (Esc)
-            </button>
+          {/* ============================================================
+              BACKGROUND — same hero image as auction page
+              ============================================================ */}
+          <div aria-hidden className="absolute inset-0 z-0">
+            <Image
+              src={HERO_IMAGE}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[#0B1020]/85" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0B1020]/65 via-[#0B1020]/80 to-[#0B1020]" />
+            {/* Warm floodlight at top */}
+            <div
+              className="absolute inset-x-0 top-0 h-[45%]"
+              style={{
+                background:
+                  "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.16), transparent 65%)",
+              }}
+            />
           </div>
 
-          {/* Content */}
-          <div className="relative z-10 flex flex-1 items-center justify-center px-4 pb-6 md:px-8 md:pb-10">
-            {shuffling ? (
-              <ShufflingBox name={shuffling} reduce={!!reduce} />
-            ) : onBlockPlayer ? (
-              <div className="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-[1.4fr_1fr] md:gap-6 lg:gap-8">
-                {/* LEFT — Player */}
-                <div className={BOX_BASE + " flex flex-col"}>
-                  <BorderTrail size={150} style={TRAIL_GLOW} />
-                  <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 px-6 py-8 text-center md:gap-6 md:py-12">
-                    <span className="chip-gold rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.32em] md:text-xs">
-                      On the Block
-                    </span>
-                    <div className="h-40 w-40 overflow-hidden rounded-3xl border-4 border-[#FFC93C]/50 shadow-2xl md:h-56 md:w-56 lg:h-64 lg:w-64">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={playerPhoto}
-                        alt={onBlockPlayer.full_name}
-                        className="h-full w-full object-cover object-top"
-                      />
-                    </div>
-                    <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-[#F0F4FF] md:text-6xl lg:text-7xl">
-                      {onBlockPlayer.full_name}
-                    </h1>
-                    {(onBlockPlayer.category ||
-                      onBlockPlayer.jersey_no != null) && (
-                      <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FFC93C]/80 md:text-lg">
-                        {[onBlockPlayer.category,
-                          onBlockPlayer.jersey_no != null
-                            ? `#${onBlockPlayer.jersey_no}`
-                            : null,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* RIGHT — Bid + Team */}
-                <div className="grid grid-rows-2 gap-4 md:gap-6 lg:gap-8">
-                  {/* Current Bid */}
-                  <div className={BOX_BASE + " flex flex-col"}>
-                    <BorderTrail size={110} delay={0.2} style={TRAIL_GLOW} />
-                    <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-6 text-center">
-                      <span className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-[#FFC93C] md:text-sm">
-                        Current Bid
-                      </span>
-                      <motion.p
-                        key={currentBid}
-                        initial={reduce ? false : { scale: 1.15, opacity: 0.85 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 320,
-                          damping: 22,
-                        }}
-                        className="mt-2 font-[family-name:var(--font-numeric)] text-6xl font-bold leading-none text-led-gold md:text-7xl lg:text-8xl"
-                      >
-                        {displayBid}
-                      </motion.p>
-                      {state?.bid_mode === "star" && (
-                        <span className="mt-3 chip-gold rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest">
-                          ★ Star Mode
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Leading Team */}
-                  <div className={BOX_BASE + " flex flex-col"}>
-                    <BorderTrail size={110} delay={0.4} style={TRAIL_GLOW} />
-                    <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-2 px-4 py-6 text-center">
-                      <span className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-[#FFC93C] md:text-sm">
-                        {currentBid > 0 ? "Bid By" : "Waiting For"}
-                      </span>
-                      {currentHighestTeam ? (
-                        <>
-                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#FFC93C]/50 bg-[#0B1020] md:h-20 md:w-20">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={teamPhoto}
-                              alt={currentHighestTeam.team_name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <motion.p
-                            key={currentHighestTeam.id}
-                            initial={reduce ? false : { y: 8, opacity: 0.6 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.35 }}
-                            className="max-w-full truncate font-[family-name:var(--font-display)] text-3xl font-bold text-[#F0F4FF] md:text-4xl lg:text-5xl"
-                          >
-                            {currentHighestTeam.team_name}
-                          </motion.p>
-                          {currentHighestTeam.captain_name && (
-                            <p className="truncate text-[10px] font-semibold uppercase tracking-widest text-[#F0F4FF]/45 md:text-xs">
-                              {currentHighestTeam.captain_name}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#F0F4FF]/15 bg-[#0B1020] text-2xl text-[#FFC93C]/50 md:h-20 md:w-20 md:text-3xl">
-                            ?
-                          </div>
-                          <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[#F0F4FF]/60 md:text-3xl">
-                            No bids yet
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+          {/* ============================================================
+              CONTENT
+              ============================================================ */}
+          <div className="relative z-10 flex h-full flex-col">
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-6 py-4 md:px-10 md:py-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="chip-live inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.24em] md:text-xs">
+                  <span className="cz-pulse-dot inline-block h-2 w-2 rounded-full bg-white" />
+                  Live
+                </span>
+                <span className="truncate font-[family-name:var(--font-display)] text-sm font-bold text-[#F0F4FF]/70 md:text-base">
+                  {tournamentName}
+                </span>
               </div>
-            ) : (
-              <WaitingBox reduce={!!reduce} />
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="shrink-0 rounded-lg border border-[#F0F4FF]/20 bg-[#0B1020]/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#F0F4FF]/80 transition hover:bg-[#F0F4FF]/15 md:text-xs"
+                aria-label="Exit projection"
+              >
+                Exit (Esc)
+              </button>
+            </div>
 
-          <p className="relative z-10 pb-4 text-center text-[10px] uppercase tracking-[0.3em] text-[#F0F4FF]/30 md:pb-6 md:text-xs">
-            Press Esc to exit · CRICZONE
-          </p>
+            {/* Content */}
+            <div className="flex flex-1 items-center justify-center px-4 pb-6 md:px-8 md:pb-10">
+              {shuffling ? (
+                <ShufflingBox name={shuffling} reduce={!!reduce} />
+              ) : onBlockPlayer ? (
+                <div className="grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-[1.4fr_1fr] md:gap-6 lg:gap-8">
+                  {/* LEFT — Player */}
+                  <div className={BOX_BASE + " flex flex-col"}>
+                    <BorderTrail size={150} style={TRAIL_GLOW} />
+                    <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 px-6 py-8 text-center md:gap-6 md:py-12">
+                      <span className="chip-gold rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.32em] md:text-xs">
+                        On the Block
+                      </span>
+                      <div className="h-40 w-40 overflow-hidden rounded-3xl border-4 border-[#FFC93C]/50 shadow-2xl md:h-56 md:w-56 lg:h-64 lg:w-64">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={playerPhoto}
+                          alt={onBlockPlayer.full_name}
+                          className="h-full w-full object-cover object-top"
+                        />
+                      </div>
+                      <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-[#F0F4FF] md:text-6xl lg:text-7xl">
+                        {onBlockPlayer.full_name}
+                      </h1>
+                      {(onBlockPlayer.category ||
+                        onBlockPlayer.jersey_no != null) && (
+                        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FFC93C]/80 md:text-lg">
+                          {[onBlockPlayer.category,
+                            onBlockPlayer.jersey_no != null
+                              ? `#${onBlockPlayer.jersey_no}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* RIGHT — Bid + Team */}
+                  <div className="grid grid-rows-2 gap-4 md:gap-6 lg:gap-8">
+                    <div className={BOX_BASE + " flex flex-col"}>
+                      <BorderTrail size={110} delay={0.2} style={TRAIL_GLOW} />
+                      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-6 text-center">
+                        <span className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-[#FFC93C] md:text-sm">
+                          Current Bid
+                        </span>
+                        <motion.p
+                          key={currentBid}
+                          initial={reduce ? false : { scale: 1.15, opacity: 0.85 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 320,
+                            damping: 22,
+                          }}
+                          className="mt-2 font-[family-name:var(--font-numeric)] text-6xl font-bold leading-none text-led-gold md:text-7xl lg:text-8xl"
+                        >
+                          {displayBid}
+                        </motion.p>
+                        {state?.bid_mode === "star" && (
+                          <span className="mt-3 chip-gold rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest">
+                            ★ Star Mode
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={BOX_BASE + " flex flex-col"}>
+                      <BorderTrail size={110} delay={0.4} style={TRAIL_GLOW} />
+                      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-2 px-4 py-6 text-center">
+                        <span className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-[#FFC93C] md:text-sm">
+                          {currentBid > 0 ? "Bid By" : "Waiting For"}
+                        </span>
+                        {currentHighestTeam ? (
+                          <>
+                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#FFC93C]/50 bg-[#0B1020] md:h-20 md:w-20">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={teamPhoto}
+                                alt={currentHighestTeam.team_name}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <motion.p
+                              key={currentHighestTeam.id}
+                              initial={reduce ? false : { y: 8, opacity: 0.6 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ duration: 0.35 }}
+                              className="max-w-full truncate font-[family-name:var(--font-display)] text-3xl font-bold text-[#F0F4FF] md:text-4xl lg:text-5xl"
+                            >
+                              {currentHighestTeam.team_name}
+                            </motion.p>
+                            {currentHighestTeam.captain_name && (
+                              <p className="truncate text-[10px] font-semibold uppercase tracking-widest text-[#F0F4FF]/45 md:text-xs">
+                                {currentHighestTeam.captain_name}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#F0F4FF]/15 bg-[#0B1020]/60 text-2xl text-[#FFC93C]/50 md:h-20 md:w-20 md:text-3xl">
+                              ?
+                            </div>
+                            <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[#F0F4FF]/60 md:text-3xl">
+                              No bids yet
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <WaitingBox reduce={!!reduce} />
+              )}
+            </div>
+
+            <p className="pb-4 text-center text-[10px] uppercase tracking-[0.3em] text-[#F0F4FF]/30 md:pb-6 md:text-xs">
+              Press Esc to exit · CRICZONE
+            </p>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>,

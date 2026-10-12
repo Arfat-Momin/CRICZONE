@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { Tables } from "@/types/supabase";
 import { useAuctionRealtime } from "./useAuctionRealtime";
@@ -8,6 +9,8 @@ import { TeamsRow } from "./TeamsRow";
 import { PlayerTabs } from "./PlayerTabs";
 import { SoldPopup, UnsoldBanner } from "./SoldPopup";
 import { ProjectionMode } from "./ProjectionMode";
+
+const HERO_IMAGE = "/images/hero-night-cricket.jpg";
 
 type Props = {
   tournament: Tables<"tournaments">;
@@ -83,110 +86,130 @@ export function AuctionRoom({
       else if (p.status === "unsold") unsold++;
     }
     const total = players.length;
-    const lotNumber = Math.min(sold + unsold + (onBlockPlayer ? 1 : 0), total);
+    const lotNumber = Math.min(
+      sold + unsold + (onBlockPlayer ? 1 : 0),
+      total,
+    );
     return { pending, sold, unsold, total, lotNumber };
   }, [players, onBlockPlayer]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0B1020] text-[#F0F4FF]">
-      {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-40 bg-[#131A33]">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-4 md:px-6">
-          {/* LEFT — LIVE + name */}
-          <div className="flex min-w-0 items-center gap-3">
-            {tournament.poster_url && (
-              <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[#FFC93C]/30">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tournament.poster_url}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
+    <>
+      {/* ============================================================
+          FIXED HERO BACKGROUND — same image as landing hero
+          ============================================================ */}
+      <div aria-hidden className="fixed inset-0 z-0">
+        <Image
+          src={HERO_IMAGE}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Readability overlays */}
+        <div className="absolute inset-0 bg-[#0B1020]/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B1020]/70 via-[#0B1020]/80 to-[#0B1020]" />
+        {/* Warm floodlight glow at top (matches landing hero) */}
+        <div
+          className="absolute inset-x-0 top-0 h-[45%]"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,201,60,0.14), transparent 65%)",
+          }}
+        />
+      </div>
+
+      {/* ============================================================
+          CONTENT (above background)
+          ============================================================ */}
+      <div className="relative z-10 min-h-screen w-full text-[#F0F4FF]">
+        <header className="sticky top-0 z-40 bg-[#0B1020]/85">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-4 md:px-6">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="chip-live inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.22em]">
-                <span className="cz-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-white" />
-                Live
+              {tournament.poster_url && (
+                <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[#FFC93C]/30">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={tournament.poster_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="chip-live inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.22em]">
+                  <span className="cz-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-white" />
+                  Live
+                </span>
+                <h1 className="min-w-0 truncate font-[family-name:var(--font-display)] text-base font-bold text-[#F0F4FF] md:text-lg">
+                  {tournament.name}
+                </h1>
+              </div>
+            </div>
+
+            <div className="hidden flex-1 justify-center md:flex">
+              <span className="chip-gold inline-flex items-center gap-2 rounded-full px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em]">
+                LOT {String(stats.lotNumber).padStart(2, "0")}
+                <span className="text-[#FFC93C]/40">/</span>
+                {String(stats.total).padStart(2, "0")}
               </span>
-              <h1 className="min-w-0 truncate font-[family-name:var(--font-display)] text-base font-bold text-[#F0F4FF] md:text-lg">
-                {tournament.name}
-              </h1>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setProjectionOpen(true)}
+              title="Presentation mode (P)"
+              aria-label="Open presentation mode"
+              className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#FFC93C]/25 bg-[#0B1020]/60 text-base text-[#FFC93C]/80 transition hover:bg-[#FFC93C] hover:text-[#0B1020]"
+            >
+              <span aria-hidden>⛶</span>
+            </button>
+          </div>
+
+          {/* Broadcast gradient bar */}
+          <div className="h-[2px] w-full bg-gradient-to-r from-[#FFC93C] via-[#FF4D6D] to-[#00D9FF]" />
+
+          {/* Info strip */}
+          <div className="border-b border-[#FFC93C]/10 bg-[#0B1020]/60 px-4 py-1.5 md:px-6">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F0F4FF]/45">
+              <span className="truncate">
+                {tournament.venue ? `📍 ${tournament.venue}` : "🏏 CRICZONE · LIVE"}
+              </span>
+              <span className="hidden shrink-0 md:inline">
+                <span className="text-[#00D9FF]">{stats.pending}</span> Upcoming
+                <span className="mx-2 text-[#F0F4FF]/20">·</span>
+                <span className="text-[#B8FF3C]">{stats.sold}</span> Sold
+                <span className="mx-2 text-[#F0F4FF]/20">·</span>
+                <span className="text-[#FF4D6D]">{stats.unsold}</span> Unsold
+              </span>
             </div>
           </div>
+        </header>
 
-          {/* CENTER — LOT counter (hidden on small) */}
-          <div className="hidden flex-1 justify-center md:flex">
-            <span className="chip-gold inline-flex items-center gap-2 rounded-full px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em]">
-              LOT {String(stats.lotNumber).padStart(2, "0")}
-              <span className="text-[#FFC93C]/40">/</span>
-              {String(stats.total).padStart(2, "0")}
-            </span>
-          </div>
-
-          {/* RIGHT — projection */}
-          <button
-            type="button"
-            onClick={() => setProjectionOpen(true)}
-            title="Presentation mode (P)"
-            aria-label="Open presentation mode"
-            className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#FFC93C]/25 bg-[#0B1020] text-base text-[#FFC93C]/80 transition hover:bg-[#FFC93C] hover:text-[#0B1020]"
-          >
-            <span aria-hidden>⛶</span>
-          </button>
-        </div>
-
-        {/* Broadcast gradient bar */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-[#FFC93C] via-[#FF4D6D] to-[#00D9FF]" />
-
-        {/* Info strip */}
-        <div className="border-b border-[#FFC93C]/10 bg-[#0B1020] px-4 py-1.5 md:px-6">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#F0F4FF]/45">
-            <span className="truncate">
-              {tournament.venue ? `📍 ${tournament.venue}` : "🏏 CRICZONE · LIVE"}
-            </span>
-            <span className="hidden shrink-0 md:inline">
-              <span className="text-[#00D9FF]">{stats.pending}</span> Upcoming
-              <span className="mx-2 text-[#F0F4FF]/20">·</span>
-              <span className="text-[#B8FF3C]">{stats.sold}</span> Sold
-              <span className="mx-2 text-[#F0F4FF]/20">·</span>
-              <span className="text-[#FF4D6D]">{stats.unsold}</span> Unsold
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* ============ MAIN ============ */}
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
-        <OnBlockStage
-          state={state}
-          onBlockPlayer={onBlockPlayer}
-          currentHighestTeam={currentHighestTeam}
-          players={players}
-        />
-
-        <section className="mt-10">
-          <SectionHeader
-            kicker="Franchises"
-            title="Teams"
-            accent="gold"
-          />
-          <TeamsRow teams={teams} players={players} />
-        </section>
-
-        <section className="mt-12">
-          <SectionHeader
-            kicker="Player Pool"
-            title="Roster"
-            accent="coral"
-          />
-          <PlayerTabs
+        <main className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
+          <OnBlockStage
+            state={state}
+            onBlockPlayer={onBlockPlayer}
+            currentHighestTeam={currentHighestTeam}
             players={players}
-            teams={teams}
-            onBlockPlayerId={state?.current_player_id ?? null}
           />
-        </section>
-      </main>
+
+          <section className="mt-10">
+            <SectionHeader kicker="Franchises" title="Teams" accent="gold" />
+            <TeamsRow teams={teams} players={players} />
+          </section>
+
+          <section className="mt-12">
+            <SectionHeader kicker="Player Pool" title="Roster" accent="coral" />
+            <PlayerTabs
+              players={players}
+              teams={teams}
+              onBlockPlayerId={state?.current_player_id ?? null}
+            />
+          </section>
+        </main>
+      </div>
 
       {soldEvent && (
         <SoldPopup
@@ -208,7 +231,7 @@ export function AuctionRoom({
         currentHighestTeam={currentHighestTeam}
         tournamentName={tournament.name}
       />
-    </div>
+    </>
   );
 }
 
@@ -221,8 +244,7 @@ function SectionHeader({
   title: string;
   accent: "gold" | "coral";
 }) {
-  const kickerCls =
-    accent === "coral" ? "text-[#FF4D6D]" : "text-[#FFC93C]";
+  const kickerCls = accent === "coral" ? "text-[#FF4D6D]" : "text-[#FFC93C]";
   const barCls =
     accent === "coral"
       ? "from-[#FF4D6D] to-transparent"

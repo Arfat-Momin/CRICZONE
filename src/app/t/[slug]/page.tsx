@@ -48,17 +48,16 @@ export default async function TournamentPage({ params }: Props) {
     .filter((x): x is { id: string; label: string } => x !== null);
 
   // ============ LIVE — immersive auction room ============
+  // (AuctionRoom owns its own fixed hero background image.)
   if (tournament.status === "live") {
     return (
       <MaintenanceGate>
-        <NightBackdrop>
-          <AuctionRoom
-            tournament={tournament}
-            initialPlayers={players}
-            initialTeams={teams}
-            initialState={state}
-          />
-        </NightBackdrop>
+        <AuctionRoom
+          tournament={tournament}
+          initialPlayers={players}
+          initialTeams={teams}
+          initialState={state}
+        />
       </MaintenanceGate>
     );
   }
