@@ -80,19 +80,6 @@ export function OnBlockStage({
           teamName={currentHighestTeam?.team_name ?? null}
           teamPhoto={currentHighestTeam?.photo_url ?? null}
         />
-
-        <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.24em]">
-          <span className="text-cream/35">Bid mode</span>
-          <span
-            className={
-              state?.bid_mode === "star"
-                ? "rounded-full border border-mint/35 bg-mint/10 px-2 py-0.5 text-mint"
-                : "rounded-full border border-cream/20 px-2 py-0.5 text-cream/60"
-            }
-          >
-            {state?.bid_mode === "star" ? "★ Star" : "Normal"}
-          </span>
-        </div>
       </div>
     </div>
   );
