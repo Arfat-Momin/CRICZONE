@@ -5,14 +5,21 @@ import { motion } from "framer-motion";
 import type { Tables } from "@/types/supabase";
 import { ZoomableImage } from "@/components/shared/ZoomableImage";
 import { TeamSquadModal } from "./TeamSquadModal";
+import {
+  calculateMaxBid,
+  formatMaxBid,
+  SQUAD_FULL,
+} from "@/lib/tournament/max-bid";
 
-export function TeamsRow({
-  teams,
-  players,
-}: {
+type Props = {
   teams: Tables<"teams">[];
   players: Tables<"players">[];
-}) {
+  /** Current auction state — drives max bid calc (mode + star base). */
+  bidMode: "normal" | "star";
+  starBasePrice: number;
+};
+
+export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
   const [selectedTeam, setSelectedTeam] = useState<Tables<"teams"> | null>(null);
 
   const statsByTeam = useMemo(() => {
@@ -50,6 +57,16 @@ export function TeamsRow({
           const initial = (team.team_name[0] ?? "?").toUpperCase();
           const isFull = slotsRemaining !== null && slotsRemaining === 0;
 
+          // ⭐ Max bid — star/normal aware
+          const maxBid = calculateMaxBid(
+            team.points_remaining,
+            slotsRemaining,
+            bidMode,
+            starBasePrice,
+          );
+          const maxBidLabel = formatMaxBid(maxBid);
+          const isSquadFull = maxBid === SQUAD_FULL;
+
           return (
             <button
               key={team.id}
@@ -57,7 +74,8 @@ export function TeamsRow({
               onClick={() => setSelectedTeam(team)}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-mint/12 bg-[#0A1410] p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-mint/40 hover:shadow-[0_20px_55px_-20px_rgba(216,243,220,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-[#050A08]"
             >
-              <div className="flex items-center gap-3">
+              {/* ── Row 1: logo + name + MAX BID ────────────────── */}
+              <div className="flex items-start gap-3">
                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border-2 border-mint/40 bg-[#050A08]">
                   {team.photo_url ? (
                     <ZoomableImage
@@ -72,23 +90,49 @@ export function TeamsRow({
                     </div>
                   )}
                 </div>
+
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-[family-name:var(--font-display)] text-lg font-bold text-cream">
-                    {team.team_name}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="truncate font-[family-name:var(--font-display)] text-base font-bold leading-tight text-cream sm:text-lg">
+                      {team.team_name}
+                    </p>
+                    {/* ⭐ MAX BID BADGE */}
+                    <span
+                      className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider sm:text-[10px] ${
+                        isSquadFull
+                          ? "border-sold/40 bg-sold/15 text-sold"
+                          : maxBid === 0
+                            ? "border-[#FFA000]/40 bg-[#FFA000]/15 text-[#FFA000]"
+                            : "border-mint/40 bg-mint/10 text-mint"
+                      }`}
+                      title={
+                        isSquadFull
+                          ? "Squad is full — cannot place more bids"
+                          : `Maximum this team can bid on the current player (reserves ${bidMode === "star" ? starBasePrice : 1} pt per remaining slot)`
+                      }
+                    >
+                      {isSquadFull
+                        ? "Squad Full"
+                        : maxBid === 0
+                          ? "Max 0"
+                          : `Max ${maxBidLabel}`}
+                    </span>
+                  </div>
                   {team.captain_name && (
-                    <p className="truncate text-xs text-cream/50">
+                    <p className="mt-0.5 truncate text-xs text-cream/50">
                       {team.captain_name}
                     </p>
                   )}
                 </div>
-                {isFull && (
+
+                {isFull && !isSquadFull && (
                   <span className="shrink-0 rounded-full bg-sold px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest text-white">
                     Full
                   </span>
                 )}
               </div>
 
+              {/* ── Row 2: points + slots ──────────────────────── */}
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-[0.24em] text-cream/40">
@@ -120,6 +164,7 @@ export function TeamsRow({
                 )}
               </div>
 
+              {/* ── Spent progress bar ─────────────────────────── */}
               <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#050A08]">
                 <motion.div
                   initial={{ width: 0 }}
@@ -129,6 +174,7 @@ export function TeamsRow({
                 />
               </div>
 
+              {/* ── Bought chips ───────────────────────────────── */}
               {bought.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {bought.slice(0, 3).map((p) => (

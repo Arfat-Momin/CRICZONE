@@ -9,6 +9,11 @@ import {
   browserPassPlayer,
   computeNextBid,
 } from "@/lib/hooks/useAuctionActions";
+import {
+  calculateMaxBid,
+  formatMaxBid,
+  SQUAD_FULL,
+} from "@/lib/tournament/max-bid";
 
 type Props = {
   tournamentId: string;
@@ -56,7 +61,38 @@ export function BiddingPad({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBid]);
 
-  // Teams sorted by name, with derived meta
+  // Highest team object (for last-bid awareness line)
+  const highestTeam = useMemo(
+    () =>
+      highestTeamId ? teams.find((t) => t.id === highestTeamId) ?? null : null,
+    [highestTeamId, teams],
+  );
+
+  // Reusable star config passed to computeNextBid
+  const starConfig = useMemo(
+    () => ({
+      basePrice: state?.star_base_price ?? 1000,
+      increment: state?.star_increment ?? 1000,
+      doubleEnabled: state?.star_double_enabled ?? false,
+      doubleAfterBids: state?.star_double_after_bids ?? 10,
+      bidCount: state?.star_bid_count ?? 0,
+    }),
+    [
+      state?.star_base_price,
+      state?.star_increment,
+      state?.star_double_enabled,
+      state?.star_double_after_bids,
+      state?.star_bid_count,
+    ],
+  );
+
+  // The bid that would be placed next
+  const nextBidValue = useMemo(
+    () => computeNextBid(currentBid, bidMode, starConfig),
+    [currentBid, bidMode, starConfig],
+  );
+
+  // ---- Team rows for the manual sell list ----
   const teamRows = useMemo(() => {
     return teams
       .slice()
@@ -72,16 +108,9 @@ export function BiddingPad({
       });
   }, [teams, players]);
 
+  // ---- Actions ----
   async function onPlaceBid(teamId: string) {
-    const starConfig = {
-      basePrice: state?.star_base_price ?? 1000,
-      increment: state?.star_increment ?? 1000,
-      doubleEnabled: state?.star_double_enabled ?? false,
-      doubleAfterBids: state?.star_double_after_bids ?? 10,
-      bidCount: state?.star_bid_count ?? 0,
-    };
-    const nextBid = computeNextBid(currentBid, bidMode, starConfig);
-    onOptimisticBid(nextBid, teamId);
+    onOptimisticBid(nextBidValue, teamId);
 
     const r = await browserPlaceBid(tournamentId, teamId);
     if (!r.ok) {
@@ -170,9 +199,10 @@ export function BiddingPad({
     setManualPrice(currentBid.toString());
   }
 
+  // ---- Render ----
   return (
     <section className="mt-6 overflow-hidden rounded-2xl border-2 border-sold/25 bg-white shadow-sm">
-      {/* ============ Bidding Pad Header ============ */}
+      {/* ============ Header ============ */}
       <div className="border-b border-[#1B4332]/8 bg-gradient-to-r from-[#FFF7F7] to-white px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-forest">
@@ -190,6 +220,43 @@ export function BiddingPad({
             )}
           </p>
         </div>
+
+        {/* ⭐ Last-bid awareness strip */}
+        {highestTeam && currentBid > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-success/35 bg-gradient-to-r from-mint/70 to-mint/30 px-3.5 py-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success text-sm text-white shadow-[0_0_18px_-4px_rgba(45,106,79,0.7)]"
+                aria-hidden
+              >
+                ✓
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-success/80">
+                  Last bid
+                </p>
+                <p className="truncate text-sm font-bold text-forest">
+                  {highestTeam.team_name}{" "}
+                  <span className="font-[family-name:var(--font-numeric)] text-success">
+                    · {currentBid} pts
+                  </span>
+                </p>
+              </div>
+            </div>
+            <span className="shrink-0 rounded-full border border-success/30 bg-white/60 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-success">
+              Cannot bid again
+            </span>
+          </div>
+        ) : (
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-dashed border-[#1B4332]/15 bg-[#FAFDF9] px-3.5 py-2.5">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#1B4332]/20 text-[11px] text-[#1B4332]/50">
+              ?
+            </span>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#1B4332]/55">
+              No bids yet — tap any team to open the bidding
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ============ Team Buttons ============ */}
@@ -205,31 +272,107 @@ export function BiddingPad({
             const remaining =
               team.max_players != null ? team.max_players - boughtCount : null;
             const isHighest = team.id === highestTeamId;
-            const full = remaining !== null && remaining <= 0;
-            const canAfford = team.points_remaining > 0;
-            const disabled = isHighest || full || !canAfford;
+            const isFull = remaining !== null && remaining <= 0;
+
+            const maxBid = calculateMaxBid(
+              team.points_remaining,
+              remaining,
+              bidMode,
+              state?.star_base_price ?? 1000,
+            );
+            const maxBidLabel = formatMaxBid(maxBid);
+            const isSquadFull = maxBid === SQUAD_FULL;
+            const cannotAfford = team.points_remaining < nextBidValue;
+            const exceedsMax = maxBid !== SQUAD_FULL && nextBidValue > maxBid;
+
+            const isDisabled =
+              isHighest || isFull || cannotAfford || exceedsMax;
+
+            const tooltip = isHighest
+              ? `Already highest at ${currentBid} pts — wait for another team to bid, or use "Sell to Highest"`
+              : isFull
+                ? "Squad is full"
+                : cannotAfford
+                  ? `Needs ${nextBidValue} pts (has ${team.points_remaining})`
+                  : exceedsMax
+                    ? `Next bid ${nextBidValue} exceeds max ${maxBidLabel}`
+                    : `Place bid — ${nextBidValue} pts (max ${maxBidLabel})`;
+
+            // Highest bidder — distinctive winning style
+            if (isHighest) {
+              return (
+                <div
+                  key={team.id}
+                  title={tooltip}
+                  className="flex flex-col rounded-xl border-2 border-success bg-gradient-to-br from-mint via-mint/80 to-mint/60 p-3 text-left"
+                >
+                  <div className="flex w-full items-start justify-between gap-1.5">
+                    <p className="min-w-0 flex-1 truncate text-sm font-bold text-forest">
+                      {team.team_name}
+                    </p>
+                    <span className="shrink-0 rounded-full bg-success px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white">
+                      ✓ Highest
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs font-semibold text-forest/70">
+                    Bid:{" "}
+                    <span className="font-[family-name:var(--font-numeric)] text-success">
+                      {currentBid} pts
+                    </span>
+                  </p>
+                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-success/80">
+                    Cannot bid against self
+                  </p>
+                </div>
+              );
+            }
+
             return (
               <button
                 key={team.id}
                 type="button"
                 onClick={() => onPlaceBid(team.id)}
-                disabled={disabled}
-                className={`rounded-xl border p-3 text-left transition active:scale-[0.97] ${
-                  isHighest
-                    ? "border-success bg-mint"
-                    : "border-[#1B4332]/15 bg-white hover:border-[#2D6A4F]/40"
-                } disabled:opacity-50`}
+                disabled={isDisabled}
+                title={tooltip}
+                className="flex flex-col rounded-xl border border-[#1B4332]/15 bg-white p-3 text-left transition hover:border-[#2D6A4F]/40 active:scale-[0.97] disabled:opacity-50"
               >
-                <p className="truncate text-sm font-bold text-forest">
-                  {team.team_name}
-                </p>
+                <div className="flex w-full items-start justify-between gap-1.5">
+                  <p className="min-w-0 flex-1 truncate text-sm font-bold text-forest">
+                    {team.team_name}
+                  </p>
+                  <span
+                    className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${
+                      isSquadFull
+                        ? "border-sold/40 bg-sold/15 text-sold"
+                        : maxBid === 0
+                          ? "border-[#FFA000]/40 bg-[#FFA000]/15 text-[#B87333]"
+                          : "border-[#2D6A4F]/40 bg-mint/70 text-success"
+                    }`}
+                  >
+                    {isSquadFull
+                      ? "Full"
+                      : maxBid === 0
+                        ? "Max 0"
+                        : `Max ${maxBidLabel}`}
+                  </span>
+                </div>
                 <p className="mt-0.5 text-xs text-[#1B4332]/60">
                   {team.points_remaining} pts
-                  {remaining !== null && ` · ${remaining} slots`}
+                  {remaining !== null && ` · ${remaining} slot${remaining === 1 ? "" : "s"}`}
                 </p>
-                {isHighest && (
-                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-success">
-                    Highest
+                {isFull && !isSquadFull && (
+                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-sold">
+                    Squad Full
+                  </p>
+                )}
+                {!isFull && cannotAfford && (
+                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-sold">
+                    Needs {nextBidValue}
+                  </p>
+                )}
+                {!isFull && !cannotAfford && exceedsMax && (
+                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wider text-sold">
+                    Would exceed max
                   </p>
                 )}
               </button>
@@ -340,7 +483,7 @@ export function BiddingPad({
               <ul className="divide-y divide-[#1B4332]/8">
                 {teamRows.map(({ team, remaining, isFull, cannotAfford, disabled }) => {
                   const selected = team.id === manualTeamId;
-                  const isHighest = team.id === highestTeamId;
+                  const isHighestTeam = team.id === highestTeamId;
                   return (
                     <li key={team.id}>
                       <button
@@ -355,7 +498,6 @@ export function BiddingPad({
                               : "hover:bg-[#FAFDF9]"
                         }`}
                       >
-                        {/* Radio indicator */}
                         <span
                           className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition ${
                             selected
@@ -368,13 +510,12 @@ export function BiddingPad({
                           )}
                         </span>
 
-                        {/* Info */}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="truncate text-sm font-bold text-forest">
                               {team.team_name}
                             </p>
-                            {isHighest && (
+                            {isHighestTeam && (
                               <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-success">
                                 Highest
                               </span>
@@ -392,7 +533,8 @@ export function BiddingPad({
                           </div>
                           <p className="mt-0.5 text-[11px] text-[#1B4332]/55">
                             {team.points_remaining} pts
-                            {remaining !== null && ` · ${remaining} slot${remaining === 1 ? "" : "s"} left`}
+                            {remaining !== null &&
+                              ` · ${remaining} slot${remaining === 1 ? "" : "s"} left`}
                             {team.captain_name && ` · ${team.captain_name}`}
                           </p>
                         </div>

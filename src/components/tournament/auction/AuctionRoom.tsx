@@ -228,7 +228,12 @@ export function AuctionRoom({
 
         <div className="relative mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14">
           <SectionHeader kicker="Franchises" title="Teams" />
-          <TeamsRow teams={teams} players={players} />
+          <TeamsRow
+            teams={teams}
+            players={players}
+            bidMode={state?.bid_mode ?? "normal"}
+            starBasePrice={state?.star_base_price ?? 1000}
+          />
 
           <div className="mt-12 md:mt-14">
             <SectionHeader kicker="Player Pool" title="Roster" />
