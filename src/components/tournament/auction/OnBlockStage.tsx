@@ -133,7 +133,7 @@ function CurrentBidContent({
           transition={{ type: "spring", stiffness: 320, damping: 20 }}
           className="flex items-baseline justify-center gap-1.5 sm:gap-2"
         >
-          <span className="font-[family-name:var(--font-numeric)] text-[3.25rem] font-bold leading-[0.95] tracking-tight text-mint text-glow-mint sm:text-[3.75rem] md:text-[4.25rem] lg:text-[4.75rem] xl:text-[5.25rem]">
+          <span className="font-[family-name:var(--font-numeric)] text-[3.25rem] font-bold leading-[0.95] tracking-tight text-mint sm:text-[3.75rem] md:text-[4.25rem] lg:text-[4.75rem] xl:text-[5.25rem]">
             {display}
           </span>
           <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint/60 sm:text-xs md:text-sm">
@@ -256,7 +256,7 @@ function PlayerBlockCard({
       </div>
 
       <div className="min-w-0 w-full flex-1">
-        <h2 className="line-clamp-2 font-[family-name:var(--font-display)] text-lg font-bold leading-tight text-cream text-glow-mint sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
+        <h2 className="line-clamp-2 font-[family-name:var(--font-display)] text-lg font-bold leading-tight text-cream sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
           {player.full_name}
         </h2>
 

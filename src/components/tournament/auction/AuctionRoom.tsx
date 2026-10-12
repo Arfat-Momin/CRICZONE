@@ -124,7 +124,7 @@ export function AuctionRoom({
                   Auction Floor
                 </span>
               </div>
-              <h1 className="mt-0.5 max-w-[10rem] truncate font-[family-name:var(--font-display)] text-[15px] font-bold leading-tight text-cream text-glow-mint sm:max-w-none sm:text-base md:text-lg">
+              <h1 className="mt-0.5 max-w-[10rem] truncate font-[family-name:var(--font-display)] text-[15px] font-bold leading-tight text-cream sm:max-w-none sm:text-base md:text-lg">
                 {tournament.name}
               </h1>
             </div>

@@ -42,7 +42,7 @@ function StatCell({ item, active }: { item: StatItem; active: boolean }) {
       : String(v);
   return (
     <div className="relative flex flex-col items-center px-3 py-6 text-center md:px-6 md:py-8">
-      <p className="font-[family-name:var(--font-numeric)] text-3xl font-bold leading-none text-mint text-glow-mint md:text-5xl">
+      <p className="font-[family-name:var(--font-numeric)] text-3xl font-bold leading-none text-mint md:text-5xl">
         {display}
         {item.suffix ? (
           <span className="text-lg md:text-2xl"> {item.suffix}</span>

@@ -131,7 +131,7 @@ export function TeamsRow({ teams, players, bidMode, starBasePrice }: Props) {
                     initial={{ scale: 1.12, color: "#C1121F" }}
                     animate={{ scale: 1, color: "#D8F3DC" }}
                     transition={{ duration: 0.55 }}
-                    className="font-[family-name:var(--font-numeric)] text-base font-bold leading-none text-glow-mint sm:text-3xl"
+                    className="font-[family-name:var(--font-numeric)] text-base font-bold leading-none sm:text-3xl"
                   >
                     {team.points_remaining}
                   </motion.p>

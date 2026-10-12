@@ -30,7 +30,7 @@ export function SummaryView({
         <span className="inline-block rounded-full border border-mint/25 bg-mint/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.28em] text-mint">
           {tournament.status === "archived" ? "Archived Auction" : "Auction Ended"}
         </span>
-        <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream text-glow-mint md:text-5xl">
+        <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream md:text-5xl">
           {tournament.name}
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-cream/60">

@@ -187,7 +187,7 @@ export function TeamSquadModal({ team, players, onClose }: Props) {
                           </div>
 
                           <div className="shrink-0 text-right">
-                            <p className="font-[family-name:var(--font-numeric)] text-lg font-bold leading-none text-mint text-glow-mint">
+                            <p className="font-[family-name:var(--font-numeric)] text-lg font-bold leading-none text-mint">
                               {p.selling_price ?? 0}
                             </p>
                             <p className="text-[9px] font-extrabold uppercase tracking-wider text-cream/40">

@@ -142,7 +142,7 @@ export function SoldPopup({ player, team, price, onClose }: SoldProps) {
             }}
             className="flex items-baseline gap-1.5"
           >
-            <p className="font-[family-name:var(--font-numeric)] text-4xl font-bold leading-none text-mint text-glow-mint sm:text-5xl md:text-6xl lg:text-7xl">
+            <p className="font-[family-name:var(--font-numeric)] text-4xl font-bold leading-none text-mint sm:text-5xl md:text-6xl lg:text-7xl">
               {price}
             </p>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-mint/70 sm:text-xs md:text-sm">

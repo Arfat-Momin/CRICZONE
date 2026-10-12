@@ -153,7 +153,7 @@ export function ProjectionMode({
                           className="h-full w-full object-cover object-top"
                         />
                       </div>
-                      <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream text-glow-mint md:text-6xl lg:text-7xl">
+                      <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-cream md:text-6xl lg:text-7xl">
                         {onBlockPlayer.full_name}
                       </h1>
                       {(onBlockPlayer.category ||
@@ -188,7 +188,7 @@ export function ProjectionMode({
                             stiffness: 320,
                             damping: 22,
                           }}
-                          className="mt-2 font-[family-name:var(--font-numeric)] text-6xl font-bold leading-none text-mint text-glow-mint md:text-7xl lg:text-8xl"
+                          className="mt-2 font-[family-name:var(--font-numeric)] text-6xl font-bold leading-none text-mint md:text-7xl lg:text-8xl"
                         >
                           {displayBid}
                         </motion.p>
@@ -274,7 +274,7 @@ function ShufflingBox({ name, reduce }: { name: string; reduce: boolean }) {
           initial={reduce ? false : { opacity: 0.4, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="font-[family-name:var(--font-display)] text-5xl font-bold text-cream text-glow-mint md:text-8xl"
+          className="font-[family-name:var(--font-display)] text-5xl font-bold text-cream md:text-8xl"
         >
           {name}
         </motion.h1>

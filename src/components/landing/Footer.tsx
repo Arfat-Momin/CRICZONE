@@ -11,7 +11,7 @@ export function Footer() {
       />
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-3">
         <div>
-          <h3 className="font-[family-name:var(--font-display)] text-2xl font-bold text-glow-mint">
+          <h3 className="font-[family-name:var(--font-display)] text-2xl font-bold">
             CRICZONE
           </h3>
           <p className="mt-2 max-w-xs text-sm text-cream/60">

@@ -148,7 +148,7 @@ export function CardCascadeShuffle({ target, names, reduce }: Props) {
           <p
             className={`line-clamp-2 break-words text-center font-[family-name:var(--font-display)] leading-tight transition-all duration-300 ${
               landed
-                ? "text-xl font-bold text-cream text-glow-mint sm:text-2xl md:text-3xl lg:text-4xl"
+                ? "text-xl font-bold text-cream sm:text-2xl md:text-3xl lg:text-4xl"
                 : "text-base font-semibold text-cream/80 sm:text-lg md:text-xl lg:text-2xl"
             }`}
           >

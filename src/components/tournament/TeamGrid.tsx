@@ -6,7 +6,7 @@ export function TeamGrid({ teams }: { teams: Tables<"teams">[] }) {
 
   return (
     <section>
-      <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-cream text-glow-mint md:text-3xl">
+      <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-cream md:text-3xl">
         Teams &amp; Captains
       </h2>
       <p className="mt-1 text-sm text-cream/55">
