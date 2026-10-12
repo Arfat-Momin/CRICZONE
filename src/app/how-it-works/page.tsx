@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "How CRICZONE runs real-time turf cricket auctions — from tournament setup to the final bid.",
 };
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 const FAQ = [
   {

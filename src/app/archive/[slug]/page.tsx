@@ -8,7 +8,7 @@ import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 import { SummaryView } from "@/components/tournament/SummaryView";
 import { getTournamentPublicData } from "@/lib/queries/tournament-public";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 

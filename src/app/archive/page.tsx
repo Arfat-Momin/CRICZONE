@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Browse completed CRICZONE auctions and their final squads.",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function ArchivePage() {
   const archives = await getArchivedTournaments(48);

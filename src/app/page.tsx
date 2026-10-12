@@ -8,7 +8,7 @@ import { PastAuctions } from "@/components/landing/PastAuctions";
 import { Footer } from "@/components/landing/Footer";
 import { MaintenanceGate } from "@/components/shared/MaintenanceGate";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   return (
