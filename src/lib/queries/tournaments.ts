@@ -8,9 +8,13 @@ export type PublicTournament = Pick<
   "id" | "slug" | "name" | "venue" | "auction_start_at" | "status"
 >;
 
-const PUBLIC_COLUMNS = "id, slug, name, venue, auction_start_at, status" as const;
+const PUBLIC_COLUMNS =
+  "id, slug, name, venue, auction_start_at, status" as const;
 
-export async function getActiveTournaments(limit = 12): Promise<PublicTournament[]> {
+/** Live + registration + ready tournaments — shown on the landing page. */
+export async function getActiveTournaments(
+  limit = 12,
+): Promise<PublicTournament[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("tournaments")
@@ -26,12 +30,18 @@ export async function getActiveTournaments(limit = 12): Promise<PublicTournament
   return data ?? [];
 }
 
-export async function getArchivedTournaments(limit = 8): Promise<PublicTournament[]> {
+/**
+ * Completed tournaments — includes both `ended` (auction just finished)
+ * AND `archived` (finalized / moved to permanent archive).
+ */
+export async function getArchivedTournaments(
+  limit = 8,
+): Promise<PublicTournament[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("tournaments")
     .select(PUBLIC_COLUMNS)
-    .eq("status", "archived")
+    .in("status", ["ended", "archived"])
     .order("auction_start_at", { ascending: false, nullsFirst: false })
     .limit(limit);
 
@@ -42,7 +52,10 @@ export async function getArchivedTournaments(limit = 8): Promise<PublicTournamen
   return data ?? [];
 }
 
-export async function getTournamentBySlug(slug: string): Promise<PublicTournament | null> {
+/** Get a single public tournament by slug (any public status). */
+export async function getTournamentBySlug(
+  slug: string,
+): Promise<PublicTournament | null> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("tournaments")
