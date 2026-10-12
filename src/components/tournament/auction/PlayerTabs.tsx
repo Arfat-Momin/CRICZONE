@@ -31,36 +31,39 @@ export function PlayerTabs({
 
   return (
     <div>
-      <div className="inline-flex flex-wrap gap-1 rounded-xl border border-mint/15 bg-[#0A1410] p-1">
-        <TabBtn
-          active={tab === "pending"}
-          onClick={() => setTab("pending")}
-          label="Upcoming"
-          count={pending.length}
-          tone="mint"
-        />
-        <TabBtn
-          active={tab === "sold"}
-          onClick={() => setTab("sold")}
-          label="Sold"
-          count={sold.length}
-          tone="success"
-        />
-        <TabBtn
-          active={tab === "unsold"}
-          onClick={() => setTab("unsold")}
-          label="Unsold"
-          count={unsold.length}
-          tone="amber"
-        />
+      {/* Tabs — scrollable on mobile if needed */}
+      <div className="-mx-1 overflow-x-auto pb-1">
+        <div className="mx-1 inline-flex min-w-full flex-wrap gap-1 rounded-xl border border-mint/15 bg-[#0A1410] p-1 sm:min-w-0">
+          <TabBtn
+            active={tab === "pending"}
+            onClick={() => setTab("pending")}
+            label="Upcoming"
+            count={pending.length}
+            tone="mint"
+          />
+          <TabBtn
+            active={tab === "sold"}
+            onClick={() => setTab("sold")}
+            label="Sold"
+            count={sold.length}
+            tone="success"
+          />
+          <TabBtn
+            active={tab === "unsold"}
+            onClick={() => setTab("unsold")}
+            label="Unsold"
+            count={unsold.length}
+            tone="amber"
+          />
+        </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-6">
         {tab === "pending" &&
           (pending.length === 0 ? (
             <Empty text="No players left to auction." />
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
               {pending.map((p) => (
                 <MiniCard key={p.id} player={p} />
               ))}
@@ -71,35 +74,38 @@ export function PlayerTabs({
           (sold.length === 0 ? (
             <Empty text="No players sold yet." />
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1.5 sm:space-y-2">
               {sold.map((p) => {
-                const team = p.sold_to_team_id ? teamsById[p.sold_to_team_id] : null;
+                const team = p.sold_to_team_id
+                  ? teamsById[p.sold_to_team_id]
+                  : null;
                 return (
                   <li
                     key={p.id}
-                    className="flex items-center justify-between rounded-xl border border-mint/12 bg-[#0A1410] p-3 transition hover:border-mint/35"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-mint/12 bg-[#0A1410] p-2 transition hover:border-mint/35 sm:gap-3 sm:rounded-xl sm:p-3"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                       {p.photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={p.photo_url}
                           alt=""
-                          className="h-10 w-10 rounded-full border border-mint/25 object-cover"
+                          loading="lazy"
+                          className="h-8 w-8 shrink-0 rounded-full border border-mint/25 object-cover sm:h-10 sm:w-10"
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-mint/10" />
+                        <div className="h-8 w-8 shrink-0 rounded-full bg-mint/10 sm:h-10 sm:w-10" />
                       )}
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-cream">
+                        <p className="truncate text-xs font-semibold text-cream sm:text-sm">
                           {p.full_name}
                         </p>
-                        <p className="truncate text-xs text-cream/55">
+                        <p className="truncate text-[10px] text-cream/55 sm:text-xs">
                           {team?.team_name ?? "—"}
                         </p>
                       </div>
                     </div>
-                    <span className="whitespace-nowrap rounded-full border border-sold/40 bg-sold/10 px-3 py-1 font-[family-name:var(--font-numeric)] text-sm font-bold text-sold">
+                    <span className="shrink-0 whitespace-nowrap rounded-full border border-sold/40 bg-sold/10 px-2 py-0.5 font-[family-name:var(--font-numeric)] text-[11px] font-bold text-sold sm:px-3 sm:py-1 sm:text-sm">
                       {p.selling_price ?? 0} pts
                     </span>
                   </li>
@@ -112,7 +118,7 @@ export function PlayerTabs({
           (unsold.length === 0 ? (
             <Empty text="No unsold players." />
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
               {unsold.map((p) => (
                 <MiniCard key={p.id} player={p} variant="unsold" />
               ))}
@@ -146,16 +152,16 @@ function TabBtn({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em] transition ${
+      className={`inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] transition sm:flex-initial sm:gap-2 sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.22em] ${
         active
           ? "bg-[#050A08] text-cream"
           : "text-cream/55 hover:text-cream/85"
       }`}
-      style={active ? { boxShadow: `0 0 24px -8px ${activeColor}` } : undefined}
+      style={active ? { boxShadow: `0 0 20px -8px ${activeColor}` } : undefined}
     >
       {label}
       <span
-        className="rounded-full px-1.5 py-0.5 text-[10px] font-extrabold"
+        className="rounded-full px-1.5 py-0.5 text-[9px] font-extrabold sm:text-[10px]"
         style={{
           background: active ? `${activeColor}22` : "rgba(253,252,240,0.08)",
           color: active ? activeColor : "rgba(253,252,240,0.55)",
@@ -178,13 +184,13 @@ function MiniCard({
     player.photo_url || "https://placehold.co/200x200/0A1410/D8F3DC?text=%3F";
   return (
     <div
-      className={`flex flex-col items-center rounded-xl border p-3 text-center transition hover:-translate-y-0.5 ${
+      className={`flex flex-col items-center rounded-lg border p-1.5 text-center transition hover:-translate-y-0.5 sm:rounded-xl sm:p-2 ${
         variant === "unsold"
           ? "border-[#FFA000]/15 bg-[#0A1410]/60 opacity-70"
           : "border-mint/12 bg-[#0A1410] hover:border-mint/35"
       }`}
     >
-      <div className="h-14 w-14 overflow-hidden rounded-full border border-mint/25">
+      <div className="h-10 w-10 overflow-hidden rounded-full border border-mint/25 sm:h-12 sm:w-12">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photo}
@@ -193,11 +199,11 @@ function MiniCard({
           className="h-full w-full object-cover object-top"
         />
       </div>
-      <p className="mt-2 line-clamp-2 text-xs font-bold text-cream">
+      <p className="mt-1 line-clamp-2 text-[10px] font-bold leading-tight text-cream sm:mt-2 sm:text-xs">
         {player.full_name}
       </p>
       {variant === "unsold" && (
-        <span className="mt-1 text-[9px] font-extrabold uppercase tracking-widest text-[#FFA000]/70">
+        <span className="mt-0.5 text-[8px] font-extrabold uppercase tracking-wider text-[#FFA000]/70 sm:text-[9px]">
           Unsold
         </span>
       )}
@@ -207,7 +213,7 @@ function MiniCard({
 
 function Empty({ text }: { text: string }) {
   return (
-    <p className="rounded-xl border border-dashed border-mint/15 bg-[#0A1410]/50 p-6 text-center text-sm text-cream/55">
+    <p className="rounded-xl border border-dashed border-mint/15 bg-[#0A1410]/50 p-4 text-center text-xs text-cream/55 sm:p-6 sm:text-sm">
       {text}
     </p>
   );
