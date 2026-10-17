@@ -139,13 +139,28 @@ export async function toggleRegistrationAction(
 ): Promise<ActionResult> {
   try {
     const { supabase } = await requireAdmin();
+
+    // Fetch current config to update the nested `enabled` flag safely
+    const { data: t } = await supabase
+      .from("tournaments")
+      .select("form_config")
+      .eq("id", tournamentId)
+      .single();
+
+    const currentConfig = (t?.form_config as any) || {};
+
     const { error } = await supabase
       .from("tournaments")
-      .update({ registration_enabled: enabled })
+      .update({
+        registration_enabled: enabled,
+        form_config: { ...currentConfig, enabled },
+      })
       .eq("id", tournamentId);
+
     if (error) return { ok: false, error: error.message };
 
     revalidatePath(`/admin/${tournamentId}`);
+    revalidatePath(`/t/[slug]`, "page");
     return { ok: true, data: undefined };
   } catch (e) {
     return {

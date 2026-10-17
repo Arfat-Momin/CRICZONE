@@ -84,7 +84,6 @@ export default async function TournamentPage({ params }: Props) {
   // ============ PRE-AUCTION — countdown + roster + register CTA ============
   const registrationOpen =
     tournament.registration_enabled &&
-    config.enabled &&
     (tournament.status === "registration" || tournament.status === "ready");
 
   return (

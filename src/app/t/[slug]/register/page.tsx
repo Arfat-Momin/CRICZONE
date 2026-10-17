@@ -28,7 +28,6 @@ export default async function RegisterPage({ params }: Props) {
   const config = normalizeFormConfig(tournament.form_config, tournament.name);
   const open =
     tournament.registration_enabled &&
-    config.enabled &&
     (tournament.status === "registration" || tournament.status === "ready");
 
   return (

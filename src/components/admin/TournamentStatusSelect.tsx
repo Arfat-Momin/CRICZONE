@@ -8,13 +8,13 @@ import type { Tables } from "@/types/supabase";
 
 type Status = Tables<"tournaments">["status"];
 
-const OPTIONS: readonly Status[] = [
-  "draft",
-  "registration",
-  "ready",
-  "live",
-  "ended",
-  "archived",
+const OPTIONS: { value: Status; label: string }[] = [
+  { value: "draft", label: "Draft (Hidden)" },
+  { value: "registration", label: "Waiting (Countdown & Roster)" },
+  { value: "ready", label: "Waiting (Countdown & Roster)" },
+  { value: "live", label: "Live (Auction Running)" },
+  { value: "ended", label: "Ended (Summary)" },
+  { value: "archived", label: "Archived (History)" },
 ];
 
 export function TournamentStatusSelect({
@@ -54,8 +54,8 @@ export function TournamentStatusSelect({
       className="rounded-lg border border-[#1B4332]/20 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-forest outline-none focus:border-[#2D6A4F] disabled:opacity-50"
     >
       {OPTIONS.map((o) => (
-        <option key={o} value={o}>
-          {o}
+        <option key={o.value} value={o.value}>
+          {o.label}
         </option>
       ))}
     </select>

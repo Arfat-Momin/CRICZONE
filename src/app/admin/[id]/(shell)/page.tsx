@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
 import { ReadOnlyUrlField } from "@/components/admin/ReadOnlyUrlField";
 import { ExportPdfButton } from "@/components/admin/ExportPdfButton";
+import { TournamentStatusSelect } from "@/components/admin/TournamentStatusSelect";
+import { TournamentRegistrationToggle } from "@/components/admin/TournamentRegistrationToggle";
 import { TournamentPosterCard } from "@/components/admin/TournamentPosterCard";
 import { getSiteUrl } from "@/lib/env";
 
@@ -142,11 +144,28 @@ export default async function OverviewPage({ params }: Props) {
           Auction Details
         </h2>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-          <Row label="Status" value={tournament.status} />
-          <Row
-            label="Registration"
-            value={tournament.registration_enabled ? "Open" : "Closed"}
-          />
+          <div className="flex items-center justify-between gap-4 border-b border-[#1B4332]/10 pb-2 last:border-0 last:pb-0">
+            <dt className="text-xs font-bold uppercase tracking-wider text-[#1B4332]/50">
+              Status
+            </dt>
+            <dd className="text-right">
+              <TournamentStatusSelect
+                tournamentId={tournament.id}
+                current={tournament.status}
+              />
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 border-b border-[#1B4332]/10 pb-2 last:border-0 last:pb-0">
+            <dt className="text-xs font-bold uppercase tracking-wider text-[#1B4332]/50">
+              Registration
+            </dt>
+            <dd className="text-right">
+              <TournamentRegistrationToggle
+                tournamentId={tournament.id}
+                current={tournament.registration_enabled}
+              />
+            </dd>
+          </div>
           <Row label="Venue" value={tournament.venue ?? "—"} />
           <Row
             label="Start Time"

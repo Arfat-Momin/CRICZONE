@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateFormConfigAction } from "@/lib/actions/tournament";
+import { updateFormConfigAction, toggleRegistrationAction } from "@/lib/actions/tournament";
 import { FormPreviewModal } from "./FormPreviewModal";
 import { useAppDialogs } from "@/components/shared/ConfirmProvider";
 import {
@@ -202,7 +202,12 @@ export function FormBuilderSection({
             </span>
             <button
               type="button"
-              onClick={() => setConfig((c) => ({ ...c, enabled: !c.enabled }))}
+              onClick={async () => {
+                const next = !config.enabled;
+                setConfig((c) => ({ ...c, enabled: next }));
+                await toggleRegistrationAction(tournamentId, next);
+                router.refresh();
+              }}
               className={`relative h-5 w-10 shrink-0 rounded-full transition ${
                 config.enabled ? "bg-success" : "bg-[#1B4332]/20"
               }`}
