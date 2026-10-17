@@ -71,7 +71,7 @@ export default async function TournamentPage({ params }: Props) {
       <MaintenanceGate>
         <TournamentStatusBridge tournamentId={tournament.id} />
         <NightBackdrop>
-          <Navbar />
+          <Navbar hideLiveNow={true} />
           <main className="pt-14 sm:pt-16">
             <SummaryView tournament={tournament} players={players} teams={teams} />
           </main>
@@ -90,7 +90,7 @@ export default async function TournamentPage({ params }: Props) {
     <MaintenanceGate>
       <TournamentStatusBridge tournamentId={tournament.id} />
       <NightBackdrop>
-        <Navbar />
+        <Navbar hideLiveNow={true} />
         <RosterRealtimeBridge tournamentId={tournament.id} />
 
         <main className="pt-14 sm:pt-16">

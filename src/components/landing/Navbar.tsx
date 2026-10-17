@@ -3,17 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-/**
- * Mobile-first responsive navbar.
- *
- * Below `md` (768px): only logo + compact "Live" CTA visible.
- *   "How It Works" and "Archive" are hidden on small screens to
- *   prevent overlap. They remain reachable via the footer.
- *
- * The header is `fixed`, so pages that don't start with a full-
- * height hero must add `pt-14 sm:pt-16` to their content wrapper.
- */
-export function Navbar() {
+type Props = {
+  hideLiveNow?: boolean;
+};
+
+export function Navbar({ hideLiveNow = false }: Props) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -68,15 +62,19 @@ export function Navbar() {
               Archive
             </Link>
           </li>
-          <li>
-            <Link
-              href="#tournaments"
-              className="inline-flex items-center justify-center rounded-lg bg-mint px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-forest transition-colors hover:bg-cream sm:px-3.5 sm:py-2 sm:text-sm"
-            >
-              <span className="hidden sm:inline">Live Now</span>
-              <span className="sm:hidden">Live</span>
-            </Link>
-          </li>
+          
+          {/* Only show Live Now if hideLiveNow is false */}
+          {!hideLiveNow && (
+            <li>
+              <Link
+                href="/#tournaments"
+                className="inline-flex items-center justify-center rounded-lg bg-mint px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-forest transition-colors hover:bg-cream sm:px-3.5 sm:py-2 sm:text-sm"
+              >
+                <span className="hidden sm:inline">Live Now</span>
+                <span className="sm:hidden">Live</span>
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
     </header>
