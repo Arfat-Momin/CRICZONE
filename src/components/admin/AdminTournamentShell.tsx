@@ -77,7 +77,7 @@ export function AdminTournamentShell({
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-[#1B4332]/10 bg-white/85 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
               href="/admin/dashboard"
               prefetch
@@ -85,7 +85,7 @@ export function AdminTournamentShell({
             >
               ← All Tournaments
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest ${statusCls}`}
               >
@@ -101,7 +101,7 @@ export function AdminTournamentShell({
               </a>
             </div>
           </div>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-forest md:text-3xl">
+          <h1 className="mt-2 font-[family-name:var(--font-display)] text-xl font-bold leading-tight text-forest sm:text-2xl md:text-3xl">
             {tournament.name}
           </h1>
           {tournament.venue && (
@@ -113,14 +113,14 @@ export function AdminTournamentShell({
       </header>
 
       {/* Body */}
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:flex-row md:px-6 md:py-8">
-        {/* Sidebar */}
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-3 py-4 sm:px-4 sm:py-6 md:flex-row md:px-6 md:py-8">
+        {/* Sidebar / Tab bar */}
         <nav className="md:sticky md:top-32 md:w-56 md:shrink-0 md:self-start">
-          <ul className="flex flex-row gap-1 overflow-x-auto pb-1 md:flex-col md:gap-1 md:overflow-visible md:pb-0">
+          <ul className="flex flex-row gap-1 overflow-x-auto pb-2 scrollbar-none md:flex-col md:gap-1 md:overflow-visible md:pb-0">
             {navItems.map((item) => {
               const active = isActive(item.href, item.exact);
               const baseCls =
-                "flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider transition";
+                "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider transition";
               let colorCls = "text-[#1B4332]/70 hover:bg-mint hover:text-forest";
               if (active) colorCls = "bg-forest text-cream";
               else if (item.danger) colorCls = "text-sold hover:bg-sold/10";

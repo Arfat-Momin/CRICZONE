@@ -55,13 +55,13 @@ export default async function OverviewPage({ params }: Props) {
       <section className="grid gap-3 sm:grid-cols-2">
         <Link
           href={`/admin/${tournament.id}/live`}
-          className="rounded-2xl border border-sold/30 bg-gradient-to-br from-[#FFF7F7] to-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="rounded-2xl border border-sold/30 bg-gradient-to-br from-[#FFF7F7] to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5"
         >
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-sold">
             Live Control
           </p>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-            Run the auction →
+          <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-bold text-forest sm:text-xl">
+            Run the auction &rarr;
           </p>
           <p className="mt-1 text-xs text-[#1B4332]/60">
             Draw players, capture bids, trigger SOLD moments.
@@ -69,13 +69,13 @@ export default async function OverviewPage({ params }: Props) {
         </Link>
         <Link
           href={`/admin/${tournament.id}/registration`}
-          className="rounded-2xl border border-[#1B4332]/10 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="rounded-2xl border border-[#1B4332]/10 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5"
         >
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#2D6A4F]">
             Registration
           </p>
-          <p className="mt-1 font-[family-name:var(--font-display)] text-xl font-bold text-forest">
-            Configure the form →
+          <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-bold text-forest sm:text-xl">
+            Configure the form &rarr;
           </p>
           <p className="mt-1 text-xs text-[#1B4332]/60">
             Edit fields, toggle open/closed, preview.
@@ -83,7 +83,7 @@ export default async function OverviewPage({ params }: Props) {
         </Link>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <section className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3">
         <Stat label="Players" value={playerCount} tone="forest" />
         <Stat label="Teams" value={teamsCount.count ?? 0} tone="forest" />
         <Stat label="Pending" value={pendingCount} tone="amber" />

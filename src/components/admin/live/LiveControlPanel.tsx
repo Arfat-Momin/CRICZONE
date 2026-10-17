@@ -57,6 +57,7 @@ export function LiveControlPanel({
   const [manualPlayerId, setManualPlayerId] = useState<string | null>(null);
   const [showDisplayModal, setShowDisplayModal] = useState(false);
   const [showStarConfig, setShowStarConfig] = useState(false);
+  const [liveViewers, setLiveViewers] = useState(0);
 
   const formConfig = useMemo(
     () => normalizeFormConfig(tournament.form_config, tournament.name),
@@ -145,6 +146,25 @@ export function LiveControlPanel({
 
     return () => {
       void supabase.removeChannel(channel);
+    };
+  }, [tournament.id]);
+
+  // ---- Audience presence tracking ----
+  useEffect(() => {
+    const supabase = createClient();
+    const presenceChannel = supabase.channel(
+      `live-viewers-${tournament.id}`,
+    );
+
+    presenceChannel
+      .on("presence", { event: "sync" }, () => {
+        const state = presenceChannel.presenceState();
+        setLiveViewers(Object.keys(state).length);
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(presenceChannel);
     };
   }, [tournament.id]);
 
@@ -394,6 +414,19 @@ export function LiveControlPanel({
             </button>
             <span className="hidden text-xs font-semibold uppercase tracking-wider text-[#1B4332]/60 sm:inline">
               {tournament.status}
+            </span>
+
+            <span
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#1B4332]/12 bg-[#FAFDF9] px-2.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-[#1B4332]/80"
+              title="Viewers currently watching the live auction"
+            >
+              <span aria-hidden>👀</span>
+              <span className="font-[family-name:var(--font-numeric)] text-sm text-forest">
+                {liveViewers}
+              </span>
+              <span className="text-[10px] text-[#1B4332]/55">
+                {liveViewers === 1 ? "Viewer" : "Viewers"}
+              </span>
             </span>
 
             {tournament.status !== "live" && !isEnded && (

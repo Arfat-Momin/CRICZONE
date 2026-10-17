@@ -18,14 +18,14 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen w-full bg-[#FDFCF0]">
       <header className="border-b border-[#1B4332]/10 bg-white/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <Link
             href="/"
             className="font-[family-name:var(--font-display)] text-xl font-bold text-forest"
           >
             CRICZONE
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="hidden text-xs font-semibold text-[#1B4332]/60 sm:inline">
               {user.email}
             </span>
@@ -34,9 +34,9 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 py-10 lg:grid-cols-[1fr_360px]">
-        <section>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-forest">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_360px]">
+        <section className="order-2 lg:order-1">
+          <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-forest sm:text-3xl">
             Your Tournaments
           </h1>
           <p className="mt-1 text-sm text-[#1B4332]/65">
@@ -52,7 +52,7 @@ export default async function DashboardPage() {
                 No tournaments yet
               </p>
               <p className="mt-1 text-sm text-[#1B4332]/55">
-                Create one using the form on the right &rarr;
+                Create one using the form above &rarr;
               </p>
             </div>
           ) : (
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
+        <aside className="order-1 space-y-6 lg:order-2 lg:sticky lg:top-6 lg:h-fit">
           <CreateTournamentForm />
           <SiteMaintenanceToggle current={siteState} />
         </aside>

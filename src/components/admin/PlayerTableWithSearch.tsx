@@ -40,7 +40,7 @@ export function PlayerTableWithSearch({
 
   return (
     <>
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="mb-4 flex flex-col gap-2">
         <input
           type="search"
           value={q}
@@ -51,7 +51,7 @@ export function PlayerTableWithSearch({
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as StatusFilter)}
-          className="rounded-lg border border-[#1B4332]/20 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-forest outline-none"
+          className="w-full rounded-lg border border-[#1B4332]/20 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-forest outline-none sm:w-auto"
         >
           <option value="all">All statuses</option>
           <option value="pending">Pending</option>
@@ -72,72 +72,76 @@ export function PlayerTableWithSearch({
             : "No players match your filters."}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-[#1B4332]/10 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-[#1B4332]/10 bg-[#FAFDF9] text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/60">
-              <tr>
-                <th className="px-4 py-3">Player</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Jersey</th>
-                <th className="hidden px-4 py-3 sm:table-cell">Mobile</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-[#1B4332]/5 last:border-0 hover:bg-[#FAFDF9]"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {p.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.photo_url}
-                          alt=""
-                          className="h-8 w-8 rounded-full border border-[#1B4332]/15 object-cover object-top"
-                        />
-                      ) : (
-                        <div className="h-8 w-8 rounded-full bg-[#1B4332]/10" />
-                      )}
-                      <span className="font-semibold text-forest">{p.full_name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[#1B4332]/70">{p.category ?? "—"}</td>
-                  <td className="px-4 py-3 text-[#1B4332]/70">
-                    {p.jersey_no ? `#${p.jersey_no}` : "—"}
-                  </td>
-                  <td className="hidden px-4 py-3 font-mono text-xs text-[#1B4332]/70 sm:table-cell">
-                    {p.mobile_no ?? "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-[#1B4332]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#1B4332]">
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setEditing(p)}
-                        className="text-xs font-bold text-[#2D6A4F] hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <DeletePlayerButton
-                        playerId={p.id}
-                        tournamentId={tournamentId}
-                        playerName={p.full_name}
-                        playerStatus={p.status}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="-mx-3 overflow-x-auto sm:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden rounded-2xl border border-[#1B4332]/10 bg-white">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-[#1B4332]/10 bg-[#FAFDF9] text-[10px] font-extrabold uppercase tracking-wider text-[#1B4332]/60">
+                  <tr>
+                    <th className="px-3 py-3 sm:px-4">Player</th>
+                    <th className="hidden px-3 py-3 sm:table-cell sm:px-4">Category</th>
+                    <th className="hidden px-3 py-3 sm:table-cell sm:px-4">Jersey</th>
+                    <th className="hidden px-4 py-3 md:table-cell">Mobile</th>
+                    <th className="px-3 py-3 sm:px-4">Status</th>
+                    <th className="px-3 py-3 text-right sm:px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => (
+                    <tr
+                      key={p.id}
+                      className="border-b border-[#1B4332]/5 last:border-0 hover:bg-[#FAFDF9]"
+                    >
+                      <td className="px-3 py-3 sm:px-4">
+                        <div className="flex items-center gap-2">
+                          {p.photo_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={p.photo_url}
+                              alt=""
+                              className="h-8 w-8 shrink-0 rounded-full border border-[#1B4332]/15 object-cover object-top"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 shrink-0 rounded-full bg-[#1B4332]/10" />
+                          )}
+                          <span className="max-w-[120px] truncate font-semibold text-forest sm:max-w-none">{p.full_name}</span>
+                        </div>
+                      </td>
+                      <td className="hidden px-3 py-3 text-[#1B4332]/70 sm:table-cell sm:px-4">{p.category ?? "—"}</td>
+                      <td className="hidden px-3 py-3 text-[#1B4332]/70 sm:table-cell sm:px-4">
+                        {p.jersey_no ? `#${p.jersey_no}` : "—"}
+                      </td>
+                      <td className="hidden px-4 py-3 font-mono text-xs text-[#1B4332]/70 md:table-cell">
+                        {p.mobile_no ?? "—"}
+                      </td>
+                      <td className="px-3 py-3 sm:px-4">
+                        <span className="rounded-full bg-[#1B4332]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#1B4332]">
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-right sm:px-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditing(p)}
+                            className="rounded-md px-2 py-1 text-xs font-bold text-[#2D6A4F] hover:bg-mint hover:underline"
+                          >
+                            Edit
+                          </button>
+                          <DeletePlayerButton
+                            playerId={p.id}
+                            tournamentId={tournamentId}
+                            playerName={p.full_name}
+                            playerStatus={p.status}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 

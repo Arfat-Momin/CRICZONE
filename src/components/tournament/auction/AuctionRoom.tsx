@@ -9,6 +9,7 @@ import { TeamsRow } from "./TeamsRow";
 import { PlayerTabs } from "./PlayerTabs";
 import { SoldPopup, UnsoldBanner } from "./SoldPopup";
 import { ProjectionMode } from "./ProjectionMode";
+import { ViewersTracker } from "@/components/tournament/ViewersTracker";
 import type { DisplayField } from "@/lib/tournament/player-field-value";
 
 const HERO_IMAGE = "/images/hero-night-cricket.jpg";
